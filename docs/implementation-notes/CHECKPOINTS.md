@@ -55,3 +55,19 @@ No Windows network adapters, installed applications, or file associations were c
 Follow `M1_WINDOWS_HANDOFF.md` and record evidence before marking M1 PASS.
 M2–M11 remain NOT STARTED. No milestone was skipped and no v1.0 feature is marked
 PASS merely because its source was imported or the program compiled.
+
+### Launch verification — 2026-09-05 23:01 UTC
+
+- Started the prepared executable at the user's request.
+- Startup log confirms .NET 8.0.30, installed WebView2 152.0.4191.62, and a
+  correlated `web.ready` event for the pinned upstream baseline. No startup
+  error was recorded in that session's log.
+- Actual OS identification is Windows 10 IoT Enterprise LTSC 2021, 21H2,
+  build 19044.7663. Supported-servicing-equivalent eligibility still needs
+  assessment; the build number alone does not establish release qualification.
+- Computer Use initialization and window listing succeeded, but the app was
+  not listed as a targetable window. Its explicit launch request timed out
+  waiting for Computer Use app approval. No viewport/file/export UI acceptance
+  is inferred from `web.ready`.
+- Network adapters were not disabled. Offline import/preview/export/console
+  acceptance remains unverified, so M1 is not marked PASS and M2 stays gated.
