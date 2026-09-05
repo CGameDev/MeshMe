@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <linearGradient id="vp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f4"/><stop offset="1" stop-color="#dfe4e8"/></linearGradient>
+    <style>
+      .ui{font-family:'Segoe UI',Arial,sans-serif;fill:#202124}.muted{fill:#5f6368}.normal{font-size:13px}.small{font-size:12px}.tiny{font-size:11px}.head{font-size:11px;font-weight:600;letter-spacing:.8px}.tab{font-size:12px;font-weight:600;letter-spacing:.5px}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#f3f4f6"/>
+  <rect width="1600" height="36" fill="#fff"/>
+  <line x1="0" y1="36" x2="1600" y2="36" stroke="#d6d9dd"/>
+  <circle cx="22" cy="18" r="11" fill="#1473e6"/><path d="M16 18l6-7 6 7-6 7z" fill="none" stroke="#fff" stroke-width="1.6"/>
+  <text x="41" y="22" class="ui normal" font-weight="600">Mesh Me360</text><text x="145" y="22" class="ui normal">File</text><text x="182" y="22" class="ui normal">Edit</text><text x="221" y="22" class="ui normal">View</text><text x="263" y="22" class="ui normal">Help</text>
+  <text x="695" y="22" class="ui normal muted">ControllerGrip.stl  •</text>
+
+  <rect y="36" width="1600" height="88" fill="#fbfbfc"/><line x1="0" y1="124" x2="1600" y2="124" stroke="#d6d9dd"/>
+  <text x="24" y="57" class="ui tab">DESIGN</text><text x="94" y="57" class="ui tab" fill="#1473e6">TEXTURE</text><text x="174" y="57" class="ui tab">MESH</text><text x="227" y="57" class="ui tab">INSPECT</text><rect x="92" y="63" width="67" height="2" fill="#1473e6"/>
+
+  <g class="ui small">
+    <rect x="24" y="74" width="92" height="34" rx="5" fill="#eaf2fd" stroke="#b9d3f4"/><text x="70" y="96" text-anchor="middle">Texture Library</text>
+    <rect x="126" y="74" width="100" height="34" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="176" y="96" text-anchor="middle">Import Texture</text>
+    <line x1="246" y1="70" x2="246" y2="116" stroke="#d6d9dd"/>
+    <rect x="266" y="74" width="86" height="34" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="309" y="96" text-anchor="middle">Triplanar</text>
+    <rect x="361" y="74" width="72" height="34" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="397" y="96" text-anchor="middle">Cubic</text>
+    <rect x="442" y="74" width="90" height="34" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="487" y="96" text-anchor="middle">Cylindrical</text>
+    <line x1="553" y1="70" x2="553" y2="116" stroke="#d6d9dd"/>
+    <rect x="573" y="74" width="98" height="34" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="622" y="96" text-anchor="middle">Paint Exclude</text>
+    <rect x="680" y="74" width="96" height="34" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="728" y="96" text-anchor="middle">Paint Include</text>
+    <line x1="798" y1="70" x2="798" y2="116" stroke="#d6d9dd"/>
+    <rect x="818" y="74" width="94" height="34" rx="17" fill="#1473e6"/><circle cx="897" cy="91" r="13" fill="#fff"/><text x="828" y="96" fill="#fff">3D Preview</text>
+  </g>
+
+  <!-- Browser -->
+  <rect x="0" y="124" width="250" height="722" fill="#fff"/><line x1="250" y1="124" x2="250" y2="846" stroke="#d6d9dd"/><rect x="0" y="124" width="250" height="34" fill="#f7f8f9"/><text x="14" y="146" class="ui head">BROWSER</text>
+  <g class="ui normal"><text x="14" y="184">▾  Document Settings</text><text x="14" y="214">▾  Named Views</text><text x="14" y="244">▾  Origin</text><text x="14" y="274">▾  Model</text><text x="40" y="299" class="small">◈ ControllerGrip.stl</text><rect x="7" y="316" width="236" height="31" rx="4" fill="#eaf2fd"/><text x="14" y="337">▾  Textures</text><text x="40" y="363" class="small">▧ Active: Hexagon</text><text x="14" y="394">▾  Masks</text><text x="14" y="424">▾  Diagnostics</text><text x="14" y="454">▸  History</text></g>
+
+  <!-- viewport -->
+  <rect x="250" y="124" width="840" height="722" fill="url(#vp)"/>
+  <g opacity=".34" stroke="#abb4bd"><path d="M278 749h778M295 716h745M312 683h711M329 650h678M346 617h644"/><path d="M395 814l278-290M495 814l230-290M595 814l182-290M695 814l134-290M795 814l86-290M895 814l38-290"/></g>
+  <path d="M475 565c18-93 104-163 211-165 82-2 158 39 195 107l39 70c24 43 4 83-42 94l-105 25c-39 9-68-2-94-34l-48-58c-24-29-49-37-88-24l-41 13c-18 6-31-6-27-28z" fill="#6f9fd8" stroke="#3f71ad" stroke-width="2"/>
+  <g stroke="#dceafb" fill="none" opacity=".8"><path d="M600 473l14-8 14 8v16l-14 8-14-8zM633 455l14-8 14 8v16l-14 8-14-8zM666 453l14-8 14 8v16l-14 8-14-8zM699 461l14-8 14 8v16l-14 8-14-8zM580 505l14-8 14 8v16l-14 8-14-8zM613 498l14-8 14 8v16l-14 8-14-8zM646 496l14-8 14 8v16l-14 8-14-8zM679 501l14-8 14 8v16l-14 8-14-8z"/></g>
+  <g transform="translate(975,152)"><polygon points="35,0 65,16 35,32 5,16" fill="#fff" stroke="#9aa2ab"/><polygon points="5,16 35,32 35,66 5,50" fill="#edf0f3" stroke="#9aa2ab"/><polygon points="65,16 35,32 35,66 65,50" fill="#dfe5eb" stroke="#9aa2ab"/><text x="35" y="19" text-anchor="middle" class="ui tiny">TOP</text><text x="20" y="48" text-anchor="middle" class="ui tiny">FRONT</text><text x="50" y="48" text-anchor="middle" class="ui tiny">RIGHT</text></g>
+  <g transform="translate(270,794)"><rect width="300" height="32" rx="5" fill="#fff" opacity=".92" stroke="#d6d9dd"/><text x="12" y="20" class="ui small">Triangles: 124,532</text><text x="136" y="20" class="ui small muted">120.0 × 82.5 × 35.0 mm</text></g>
+
+  <!-- Texture library expanded right panel -->
+  <rect x="1090" y="124" width="510" height="722" fill="#fff"/><line x1="1090" y1="124" x2="1090" y2="846" stroke="#d6d9dd"/><rect x="1090" y="124" width="510" height="42" fill="#f7f8f9"/>
+  <text x="1106" y="150" class="ui head">TEXTURE LIBRARY</text><text x="1572" y="150" class="ui normal muted">×</text>
+
+  <rect x="1106" y="182" width="315" height="34" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="1120" y="204" class="ui normal muted">Search textures…</text>
+  <rect x="1433" y="182" width="151" height="34" rx="5" fill="#1473e6"/><text x="1508" y="204" text-anchor="middle" class="ui normal" fill="#fff">+ Import Texture</text>
+
+  <g class="ui small">
+    <rect x="1106" y="230" width="54" height="30" rx="15" fill="#1473e6"/><text x="1133" y="249" text-anchor="middle" fill="#fff">All</text>
+    <rect x="1168" y="230" width="70" height="30" rx="15" fill="#f2f4f6"/><text x="1203" y="249" text-anchor="middle">Built-in</text>
+    <rect x="1246" y="230" width="68" height="30" rx="15" fill="#f2f4f6"/><text x="1280" y="249" text-anchor="middle">Custom</text>
+    <rect x="1322" y="230" width="78" height="30" rx="15" fill="#f2f4f6"/><text x="1361" y="249" text-anchor="middle">Favorites</text>
+  </g>
+
+  <!-- cards -->
+  <g class="ui small">
+    <g transform="translate(1106,280)"><rect width="142" height="154" rx="7" fill="#fff" stroke="#d6d9dd"/><rect x="10" y="10" width="122" height="100" rx="5" fill="#dfe4e8"/><g stroke="#69727d" fill="none"><path d="M22 34l15-8 15 8v16l-15 8-15-8zM53 26l15-8 15 8v16l-15 8-15-8zM84 34l15-8 15 8v16l-15 8-15-8zM37 58l15-8 15 8v16l-15 8-15-8zM68 50l15-8 15 8v16l-15 8-15-8z"/></g><text x="12" y="130" font-weight="600">Hexagon</text><text x="12" y="147" class="tiny muted">Built-in</text><text x="119" y="134" font-size="18" fill="#e0a400">★</text></g>
+    <g transform="translate(1260,280)"><rect width="142" height="154" rx="7" fill="#eaf2fd" stroke="#94bdf0" stroke-width="2"/><rect x="10" y="10" width="122" height="100" rx="5" fill="#d8dde3"/><path d="M18 25h106M18 40h106M18 55h106M18 70h106M18 85h106M31 15v95M55 15v95M79 15v95M103 15v95" stroke="#6f7780" opacity=".65"/><text x="12" y="130" font-weight="600" fill="#1473e6">Grid</text><text x="12" y="147" class="tiny muted">Built-in</text><text x="119" y="134" font-size="18" fill="#c1c6cc">☆</text></g>
+    <g transform="translate(1414,280)"><rect width="142" height="154" rx="7" fill="#fff" stroke="#d6d9dd"/><rect x="10" y="10" width="122" height="100" rx="5" fill="#d7dde2"/><path d="M15 27c28-19 52 16 82-1s38 12 30 26M15 55c31-20 55 18 84 0s37 8 28 28M15 83c31-20 55 18 84 0s37 8 28 27" stroke="#6b737c" fill="none"/><text x="12" y="130" font-weight="600">Wood 2</text><text x="12" y="147" class="tiny muted">Built-in</text><text x="119" y="134" font-size="18" fill="#c1c6cc">☆</text></g>
+
+    <g transform="translate(1106,450)"><rect width="142" height="154" rx="7" fill="#fff" stroke="#d6d9dd"/><rect x="10" y="10" width="122" height="100" rx="5" fill="#dce1e6"/><path d="M17 99L125 18M17 78L100 18M41 110L132 42M17 55L58 18M70 110l62-53" stroke="#626b74" stroke-width="5" opacity=".65"/><text x="12" y="130" font-weight="600">Knurling</text><text x="12" y="147" class="tiny muted">Built-in</text><text x="119" y="134" font-size="18" fill="#e0a400">★</text></g>
+    <g transform="translate(1260,450)"><rect width="142" height="154" rx="7" fill="#fff" stroke="#d6d9dd"/><rect x="10" y="10" width="122" height="100" rx="5" fill="#202a36"/><g stroke="#8ab2e2" opacity=".85"><path d="M18 20l106 80M18 40l88 67M36 18l88 67M18 63l60 45M65 18l59 45"/><path d="M124 20L18 100M124 40l-88 67M106 18l-88 67M124 63l-60 45M77 18L18 63"/></g><text x="12" y="130" font-weight="600">Carbon Fiber</text><text x="12" y="147" class="tiny muted">Built-in</text><text x="119" y="134" font-size="18" fill="#c1c6cc">☆</text></g>
+    <g transform="translate(1414,450)"><rect width="142" height="154" rx="7" fill="#fff" stroke="#d6d9dd"/><rect x="10" y="10" width="122" height="100" rx="5" fill="#d9d2c7"/><circle cx="34" cy="38" r="11" fill="#9e8f7d" opacity=".45"/><circle cx="76" cy="29" r="8" fill="#80715f" opacity=".4"/><circle cx="104" cy="65" r="15" fill="#9a8a77" opacity=".43"/><circle cx="56" cy="78" r="13" fill="#756b60" opacity=".35"/><text x="12" y="130" font-weight="600">Leather 2</text><text x="12" y="147" class="tiny muted">Built-in</text><text x="119" y="134" font-size="18" fill="#c1c6cc">☆</text></g>
+
+    <g transform="translate(1106,620)"><rect width="142" height="154" rx="7" fill="#fff" stroke="#1473e6"/><rect x="10" y="10" width="122" height="100" rx="5" fill="#30343a"/><path d="M18 100l26-44 24 18 27-47 31 73" stroke="#ddd" stroke-width="7" fill="none"/><text x="12" y="130" font-weight="600">My Grip Pattern</text><text x="12" y="147" class="tiny muted">Custom • grip</text><text x="119" y="134" font-size="18" fill="#e0a400">★</text></g>
+    <g transform="translate(1260,620)"><rect width="142" height="154" rx="7" fill="#fff" stroke="#d6d9dd"/><rect x="10" y="10" width="122" height="100" rx="5" fill="#d5d8dc"/><path d="M22 27h98v70H22zM35 39h72v46H35z" fill="none" stroke="#6d7379" stroke-width="4"/><text x="12" y="130" font-weight="600">Panel Lines</text><text x="12" y="147" class="tiny muted">Custom • sci-fi</text><text x="119" y="134" font-size="18" fill="#c1c6cc">☆</text></g>
+  </g>
+
+  <!-- bottom status -->
+  <rect y="846" width="1600" height="54" fill="#fff"/><line x1="0" y1="846" x2="1600" y2="846" stroke="#d6d9dd"/><circle cx="22" cy="873" r="5" fill="#1b7f3a"/><text x="36" y="878" class="ui normal">Ready</text><text x="1270" y="878" class="ui small muted">Triangles</text><text x="1328" y="878" class="ui small">124,532</text><text x="1410" y="878" class="ui small muted">3D Preview</text><text x="1485" y="878" class="ui small" fill="#1b7f3a">On</text>
+  <text x="1238" y="114" class="ui tiny muted">Texture Library expanded state • reference implementation layout</text>
+</svg>
