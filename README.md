@@ -116,6 +116,21 @@ Mesh Me360 v1.0 is complete only when:
 
 ## Developer attribution
 
+## Development checkpoint
+
+See `docs/implementation-notes/CHECKPOINTS.md` for verified milestone status.
+The solution targets .NET 8 WPF on Windows x64. Build with a supported .NET SDK:
+
+```powershell
+python build/verify-upstream.py
+dotnet build MeshMe360.sln -c Debug
+```
+
+Python is a development provenance-check tool only. The end-user application
+does not require it. This is an implementation baseline, not a qualified release.
+
+## Developer attribution
+
 Mesh Me360 project direction: **Brian Hinds / CGameDev**.
 
 Upstream BumpMesh / stlTexturizer engine: **CNC Kitchen (Stefan Hermann) and contributors**. See the upstream repository and licensing documentation for details.

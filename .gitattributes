@@ -1,0 +1,4 @@
+* text=auto
+src/MeshMe360.EngineWeb/upstream/** -text
+src/MeshMe360.EngineWeb/vendor/** -text
+LICENSE -text

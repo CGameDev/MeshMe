@@ -13,7 +13,10 @@ This file is a living dependency/provenance manifest. Codex must update it whene
 - License: GNU Affero General Public License v3.0
 - Role: upstream mesh-processing, 3D viewer, texture/mask/subdivision/displacement/decimation/diagnostics/project engine
 
-Upstream source notices must remain intact when imported into `src/MeshMe360.EngineWeb/upstream/`.
+Imported unchanged on 2026-09-05 into `src/MeshMe360.EngineWeb/upstream/`.
+All 117 original blobs and the complete root `LICENSE` are verified by
+`build/verify-upstream.py`. Original notices, 24 textures and thumbnails are retained.
+Combined Mesh Me360 source uses AGPL-3.0-only.
 
 ## Dependencies identified by the pinned upstream project
 
@@ -42,7 +45,7 @@ Required local release modules include only the pieces actually used by the pinn
 - Project: meshStep
 - Upstream source: `https://github.com/CNCKitchen/meshStep`
 - Upstream BumpMesh baseline references meshStep for STEP/STP tessellation
-- Version/source revision: **Codex must confirm from the pinned upstream code before vendoring**
+- Version/source revision: `meshstep@0.1.0`, confirmed in pinned `js/stepWorker.js`
 - License: **Codex must inspect and record the actual license before redistribution**
 - Role: STEP/STP browser-side tessellation/worker path
 
@@ -68,6 +71,17 @@ The following are architecture selections. Codex must record the exact installed
 - License: inspect actual package/repository license before first release and record it here
 
 ## Future .NET / test / logging dependencies
+
+### .NET 8 build targeting packs
+
+- Names: Microsoft.NETCore.App.Ref, Microsoft.WindowsDesktop.App.Ref,
+  Microsoft.AspNetCore.App.Ref, Microsoft.NETCore.App.Host.win-x64
+- Version in M0 verification: 8.0.30, resolved by SDK 10.0.400
+- Source: official Microsoft packages on https://api.nuget.org/v3/index.json
+- License: MIT, .NET Foundation and contributors; inspected package license text
+- Role: compile the .NET 8 WPF/Core projects and provide the Windows app host
+- Reference packs are development-only; the application host is output with the build.
+- Runtime distribution and its complete notices are part of M8 release engineering.
 
 For every new package, append an entry containing:
 
