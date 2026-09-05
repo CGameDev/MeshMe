@@ -73,3 +73,7 @@ signing-secrets.*
 # Local build prerequisites and source verification cache
 .tools/
 .upstream-source/
+
+# Pinned meshStep runtime is source-controlled, not our generated dist output.
+!src/MeshMe360.EngineWeb/vendor/meshstep-0.1.0/dist/
+!src/MeshMe360.EngineWeb/vendor/meshstep-0.1.0/dist/**
