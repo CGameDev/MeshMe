@@ -1,0 +1,71 @@
+# Visual Studio / .NET
+.vs/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+TestResults/
+artifacts/
+
+# Rider / IDE
+.idea/
+*.DotSettings.user
+
+# VS Code local settings
+.vscode/
+
+# Node/web build tools if introduced for tests/build only
+node_modules/
+coverage/
+playwright-report/
+test-results/
+
+# Release outputs
+release/
+releases/
+dist/
+publish/
+*.nupkg
+*.snupkg
+*.msi
+*.msix
+*.exe
+*.zip
+
+# Do not commit packaged WebView2 fixed runtime binaries
+WebView2FixedRuntime/
+**/WebView2FixedRuntime/
+**/FixedVersionRuntime/
+
+# Local app data / recovery / logs
+.localdata/
+Logs/
+Recovery/
+Session/
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary/editor files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Signing secrets / certificates
+*.pfx
+*.p12
+*.cer
+*.key
+*.pem
+signing-secrets.*
+
+# Local environment files
+.env
+.env.*
+!.env.example
