@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+  <defs><filter id="s"><feDropShadow dx="0" dy="8" stdDeviation="18" flood-opacity=".22"/></filter><style>.ui{font-family:'Segoe UI',Arial,sans-serif;fill:#202124}.muted{fill:#5f6368}.normal{font-size:14px}.small{font-size:12px}.tiny{font-size:11px}.title{font-size:24px;font-weight:600}.head{font-size:12px;font-weight:600;letter-spacing:.5px}</style></defs>
+  <rect width="1200" height="760" fill="#dfe4e9"/>
+  <g opacity=".45"><rect x="0" y="0" width="1200" height="44" fill="#fff"/><rect x="0" y="44" width="1200" height="76" fill="#f7f8f9"/><rect x="0" y="120" width="220" height="640" fill="#fff"/><rect x="940" y="120" width="260" height="640" fill="#fff"/></g>
+  <g filter="url(#s)">
+    <rect x="188" y="112" width="824" height="536" rx="10" fill="#fff"/>
+    <rect x="188" y="112" width="824" height="56" rx="10" fill="#f7f8f9"/>
+    <rect x="188" y="158" width="824" height="10" fill="#f7f8f9"/>
+  </g>
+  <circle cx="224" cy="140" r="14" fill="#1473e6"/><path d="M217 140l7-8 7 8-7 8z" fill="none" stroke="#fff" stroke-width="1.6"/>
+  <text x="248" y="146" class="ui normal" font-weight="600">Mesh Me360</text><text x="975" y="146" class="ui normal muted">×</text>
+  <text x="232" y="214" class="ui title">Recover Mesh Me360 Work</text>
+  <text x="232" y="244" class="ui normal muted">Mesh Me360 did not close normally. A recoverable autosave was found.</text>
+
+  <rect x="232" y="276" width="736" height="214" rx="6" fill="#fff" stroke="#d6d9dd"/>
+  <rect x="232" y="276" width="736" height="40" rx="6" fill="#f4f6f8"/>
+  <rect x="232" y="310" width="736" height="6" fill="#f4f6f8"/>
+  <text x="250" y="301" class="ui head">PROJECT / MODEL</text><text x="500" y="301" class="ui head">LAST AUTOSAVE</text><text x="650" y="301" class="ui head">ORIGINAL LOCATION</text><text x="910" y="301" class="ui head">SIZE</text>
+  <rect x="240" y="326" width="720" height="64" rx="5" fill="#eaf2fd" stroke="#94bdf0"/>
+  <circle cx="263" cy="358" r="9" fill="#1473e6"/><path d="M259 358l3 3 6-7" stroke="#fff" stroke-width="1.6" fill="none"/>
+  <text x="282" y="353" class="ui normal" font-weight="600">ControllerGrip.stl</text><text x="282" y="372" class="ui small muted">Unsaved textured model</text>
+  <text x="500" y="355" class="ui normal">Today, 5:08 PM</text><text x="500" y="374" class="ui small muted">2 minutes before crash</text>
+  <text x="650" y="355" class="ui small">C:\Users\Brian\Downloads\</text><text x="650" y="374" class="ui small muted">ControllerGrip.stl</text><text x="910" y="361" class="ui normal">86.4 MB</text>
+
+  <rect x="240" y="398" width="720" height="64" rx="5" fill="#fff"/>
+  <circle cx="263" cy="430" r="9" fill="#fff" stroke="#b9c0c8"/>
+  <text x="282" y="425" class="ui normal" font-weight="600">CaseTexture.bumpmesh</text><text x="282" y="444" class="ui small muted">Saved project with newer recovery</text>
+  <text x="500" y="427" class="ui normal">Yesterday, 9:42 PM</text><text x="500" y="446" class="ui small muted">Recovery snapshot</text>
+  <text x="650" y="427" class="ui small">D:\3D Projects\Cases\</text><text x="650" y="446" class="ui small muted">CaseTexture.bumpmesh</text><text x="910" y="433" class="ui normal">54.2 MB</text>
+
+  <text x="232" y="522" class="ui small muted">Recovering opens the autosave as an unsaved document. Your original file is not overwritten.</text>
+  <rect x="232" y="554" width="196" height="38" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="330" y="578" text-anchor="middle" class="ui normal" fill="#a23a34">Delete Selected Recovery</text>
+  <rect x="568" y="554" width="188" height="38" rx="5" fill="#fff" stroke="#cbd0d6"/><text x="662" y="578" text-anchor="middle" class="ui normal">Open Without Recovering</text>
+  <rect x="770" y="554" width="198" height="38" rx="5" fill="#1473e6"/><text x="869" y="578" text-anchor="middle" class="ui normal" fill="#fff" font-weight="600">Recover Selected</text>
+  <text x="600" y="626" text-anchor="middle" class="ui tiny muted">Reference recovery dialog • no automatic overwrite • Mesh Me360 original UI</text>
+</svg>
