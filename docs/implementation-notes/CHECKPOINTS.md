@@ -38,6 +38,9 @@ Automated evidence from `./build/Test-M1.ps1 -Publish`:
 - Self-contained Windows x64 Debug publish: PASS (.NET/WPF runtime 8.0.30).
 - Published-content check: PASS, all 141 web files match staging byte-for-byte;
   .NET/WPF/WebView2 SDK/native loader and license/notice files are present.
+- Fresh committed-source archive: PASS for provenance, web preparation, all
+  5 asset tests and all 3 Node tests. This also verifies that ignored local
+  dependency caches are not needed to reproduce the web build.
 - Test output: `artifacts/m1-windows/MeshMe360.exe` (entire containing directory
   required). This is a development handoff, not an installer or release artifact.
 
