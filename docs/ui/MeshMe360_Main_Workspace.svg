@@ -1,0 +1,353 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="viewport" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef1f4"/>
+      <stop offset="1" stop-color="#dfe4e8"/>
+    </linearGradient>
+    <linearGradient id="mesh" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#90baf0"/>
+      <stop offset="1" stop-color="#4f7fbf"/>
+    </linearGradient>
+    <style>
+      .ui { font-family: 'Segoe UI', Arial, sans-serif; fill:#202124; }
+      .muted { fill:#5f6368; }
+      .tiny { font-size:11px; }
+      .small { font-size:12px; }
+      .normal { font-size:13px; }
+      .header { font-size:11px; font-weight:600; letter-spacing:.8px; }
+      .tab { font-size:12px; font-weight:600; letter-spacing:.5px; }
+      .tool { font-size:11px; }
+      .iconStroke { stroke:#4b5563; stroke-width:1.5; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+    </style>
+  </defs>
+
+  <!-- Window -->
+  <rect width="1600" height="900" fill="#f3f4f6"/>
+  <rect x="0.5" y="0.5" width="1599" height="899" rx="8" fill="none" stroke="#c8ccd2"/>
+
+  <!-- A: Menu/title row -->
+  <rect x="0" y="0" width="1600" height="36" rx="8" fill="#ffffff"/>
+  <rect x="0" y="28" width="1600" height="8" fill="#ffffff"/>
+  <line x1="0" y1="36" x2="1600" y2="36" stroke="#d6d9dd"/>
+
+  <!-- app icon -->
+  <circle cx="22" cy="18" r="11" fill="#1473e6"/>
+  <path d="M16 18l6-7 6 7-6 7z" fill="none" stroke="#fff" stroke-width="1.6"/>
+  <path d="M18.5 18h7M22 13.5v9" stroke="#fff" stroke-width="1.2" opacity=".9"/>
+  <text x="41" y="22" class="ui normal" font-weight="600">Mesh Me360</text>
+
+  <!-- menus -->
+  <text x="145" y="22" class="ui normal">File</text>
+  <text x="182" y="22" class="ui normal">Edit</text>
+  <text x="221" y="22" class="ui normal">View</text>
+  <text x="263" y="22" class="ui normal">Help</text>
+  <text x="702" y="22" class="ui normal muted">ControllerGrip.stl  •</text>
+
+  <!-- undo redo -->
+  <g transform="translate(1368,10)">
+    <path class="iconStroke" d="M12 3H6L2 7l4 4V8h5c4 0 6 2 6 6"/>
+  </g>
+  <g transform="translate(1400,10)">
+    <path class="iconStroke" d="M6 3h6l4 4-4 4V8H7c-4 0-6 2-6 6"/>
+  </g>
+  <line x1="1432" y1="8" x2="1432" y2="28" stroke="#d6d9dd"/>
+  <text x="1446" y="22" class="ui small muted">System</text>
+  <line x1="1505" y1="8" x2="1505" y2="28" stroke="#d6d9dd"/>
+  <path d="M1522 18h12" stroke="#5f6368" stroke-width="1.5"/>
+  <rect x="1550" y="12" width="12" height="10" fill="none" stroke="#5f6368"/>
+  <path d="M1580 13l10 10m0-10l-10 10" stroke="#5f6368"/>
+
+  <!-- B: command bar -->
+  <rect x="0" y="36" width="1600" height="88" fill="#fbfbfc"/>
+  <line x1="0" y1="124" x2="1600" y2="124" stroke="#d6d9dd"/>
+
+  <!-- workspace tabs -->
+  <text x="24" y="57" class="ui tab">DESIGN</text>
+  <text x="94" y="57" class="ui tab" fill="#1473e6">TEXTURE</text>
+  <text x="174" y="57" class="ui tab">MESH</text>
+  <text x="227" y="57" class="ui tab">INSPECT</text>
+  <rect x="92" y="63" width="67" height="2" rx="1" fill="#1473e6"/>
+
+  <!-- toolbar separators -->
+  <line x1="228" y1="70" x2="228" y2="116" stroke="#d6d9dd"/>
+  <line x1="493" y1="70" x2="493" y2="116" stroke="#d6d9dd"/>
+  <line x1="804" y1="70" x2="804" y2="116" stroke="#d6d9dd"/>
+  <line x1="1043" y1="70" x2="1043" y2="116" stroke="#d6d9dd"/>
+
+  <!-- library tools -->
+  <g transform="translate(25,74)">
+    <rect x="0" y="0" width="30" height="26" rx="4" fill="#e8f1fd" stroke="#a8c7f0"/>
+    <path d="M7 7h16v13H7zM10 10h10M10 14h10M10 18h7" class="iconStroke"/>
+    <text x="-2" y="39" class="ui tool">Library</text>
+  </g>
+  <g transform="translate(84,74)">
+    <rect x="0" y="0" width="30" height="26" rx="4" fill="#fff" stroke="#d6d9dd"/>
+    <path d="M7 19l5-6 4 4 4-6 4 8zM7 6h17v14H7z" class="iconStroke"/>
+    <text x="-7" y="39" class="ui tool">Import</text>
+  </g>
+  <g transform="translate(141,74)">
+    <rect x="0" y="0" width="30" height="26" rx="4" fill="#fff" stroke="#d6d9dd"/>
+    <path d="M15 5l3 6 7 .9-5 4.6 1.5 6.5-6.5-3.5L8.5 23 10 16.5 5 12l7-.9z" class="iconStroke"/>
+    <text x="-7" y="39" class="ui tool">Favorites</text>
+  </g>
+  <text x="174" y="116" class="ui tiny muted" text-anchor="middle">LIBRARY</text>
+
+  <!-- Projection -->
+  <g transform="translate(252,74)">
+    <circle cx="15" cy="13" r="10" fill="#e8f1fd" stroke="#1473e6"/>
+    <path d="M7 13h16M15 5v16M9 8l12 10M21 8L9 18" stroke="#1473e6" stroke-width="1"/>
+    <text x="-6" y="39" class="ui tool" fill="#1473e6">Triplanar</text>
+  </g>
+  <g transform="translate(322,74)">
+    <path d="M7 9l8-4 8 4v9l-8 4-8-4zM7 9l8 4 8-4M15 13v9" class="iconStroke"/>
+    <text x="-1" y="39" class="ui tool">Cubic</text>
+  </g>
+  <g transform="translate(378,74)">
+    <ellipse cx="15" cy="7" rx="9" ry="4" class="iconStroke"/>
+    <path d="M6 7v12c0 2 4 4 9 4s9-2 9-4V7" class="iconStroke"/>
+    <text x="-8" y="39" class="ui tool">Cylindrical</text>
+  </g>
+  <g transform="translate(450,74)">
+    <circle cx="15" cy="13" r="10" class="iconStroke"/>
+    <path d="M5 13h20M15 3c5 5 5 15 0 20M15 3c-5 5-5 15 0 20" class="iconStroke"/>
+    <text x="-6" y="39" class="ui tool">More ▾</text>
+  </g>
+  <text x="361" y="116" class="ui tiny muted" text-anchor="middle">PROJECTION</text>
+
+  <!-- Mask -->
+  <g transform="translate(520,74)">
+    <circle cx="13" cy="11" r="7" fill="#f59e0b" opacity=".25"/>
+    <path d="M5 20l13-13M15 5l4 4M5 20l4-1-3-3z" class="iconStroke"/>
+    <text x="-4" y="39" class="ui tool">Exclude</text>
+  </g>
+  <g transform="translate(581,74)">
+    <circle cx="13" cy="11" r="7" fill="#22c55e" opacity=".22"/>
+    <path d="M5 20l13-13M15 5l4 4M5 20l4-1-3-3z" class="iconStroke"/>
+    <text x="-1" y="39" class="ui tool">Include</text>
+  </g>
+  <g transform="translate(644,74)">
+    <path d="M6 7h18v15H6zM9 10h12v9H9z" class="iconStroke"/>
+    <path d="M9 16c4-5 8-5 12 0" stroke="#4b5563" fill="none"/>
+    <text x="-1" y="39" class="ui tool">Bucket</text>
+  </g>
+  <g transform="translate(705,74)">
+    <path d="M7 19l10-13 7 6-10 11H7z" class="iconStroke"/>
+    <text x="0" y="39" class="ui tool">Erase</text>
+  </g>
+  <g transform="translate(761,74)">
+    <path d="M7 7h16M10 7l1 15h8l1-15M12 4h6" class="iconStroke"/>
+    <text x="-4" y="39" class="ui tool">Clear</text>
+  </g>
+  <text x="647" y="116" class="ui tiny muted" text-anchor="middle">MASK</text>
+
+  <!-- Preview -->
+  <g transform="translate(841,74)">
+    <rect x="0" y="0" width="36" height="25" rx="12.5" fill="#1473e6"/>
+    <circle cx="24" cy="12.5" r="9" fill="#fff"/>
+    <text x="-2" y="39" class="ui tool">3D Preview</text>
+  </g>
+  <text x="917" y="116" class="ui tiny muted" text-anchor="middle">PREVIEW</text>
+
+  <!-- Export -->
+  <g transform="translate(1077,74)">
+    <rect x="0" y="0" width="30" height="26" rx="4" fill="#fff" stroke="#d6d9dd"/>
+    <path d="M15 4v13M10 9l5-5 5 5M7 16v7h16v-7" class="iconStroke"/>
+    <text x="-6" y="39" class="ui tool">Export STL</text>
+  </g>
+  <g transform="translate(1149,74)">
+    <rect x="0" y="0" width="30" height="26" rx="4" fill="#fff" stroke="#d6d9dd"/>
+    <path d="M15 4v13M10 9l5-5 5 5M7 16v7h16v-7" class="iconStroke"/>
+    <text x="-7" y="39" class="ui tool">Export 3MF</text>
+  </g>
+  <text x="1127" y="116" class="ui tiny muted" text-anchor="middle">OUTPUT</text>
+
+  <!-- C: Browser -->
+  <rect x="0" y="124" width="250" height="722" fill="#fff"/>
+  <line x1="250" y1="124" x2="250" y2="846" stroke="#d6d9dd"/>
+  <rect x="0" y="124" width="250" height="34" fill="#f7f8f9"/>
+  <text x="14" y="146" class="ui header">BROWSER</text>
+  <text x="225" y="146" class="ui normal muted">‹</text>
+
+  <!-- tree -->
+  <text x="14" y="184" class="ui normal">▾  Document Settings</text>
+  <text x="14" y="210" class="ui normal">▾  Named Views</text>
+  <text x="40" y="235" class="ui small muted">⌂  Home</text>
+  <text x="40" y="258" class="ui small muted">□  Front</text>
+  <text x="40" y="281" class="ui small muted">□  Top</text>
+  <text x="14" y="310" class="ui normal">▾  Origin</text>
+  <text x="40" y="334" class="ui small" fill="#d64545">—  X Axis</text>
+  <text x="40" y="356" class="ui small" fill="#2f9d58">—  Y Axis</text>
+  <text x="40" y="378" class="ui small" fill="#3675d3">—  Z Axis</text>
+  <rect x="7" y="392" width="236" height="31" rx="4" fill="#eaf2fd"/>
+  <text x="14" y="413" class="ui normal">▾  Model</text>
+  <text x="40" y="440" class="ui small">◈  ControllerGrip.stl</text>
+  <text x="14" y="472" class="ui normal">▾  Textures</text>
+  <text x="40" y="496" class="ui small muted">▧  Active: Hexagon</text>
+  <text x="14" y="528" class="ui normal">▾  Masks</text>
+  <text x="40" y="552" class="ui small muted">●  Excluded Faces  143</text>
+  <text x="40" y="574" class="ui small muted">●  Included Faces  0</text>
+  <text x="14" y="606" class="ui normal">▾  Diagnostics</text>
+  <text x="40" y="630" class="ui small muted">○  Open Edges  0</text>
+  <text x="40" y="652" class="ui small muted">○  Shells  1</text>
+  <text x="14" y="684" class="ui normal">▸  History</text>
+
+  <!-- D: viewport -->
+  <rect x="250" y="124" width="1030" height="722" fill="url(#viewport)"/>
+
+  <!-- grid -->
+  <g opacity=".32" stroke="#aeb6bf" stroke-width="1">
+    <path d="M275 741L1120 741M292 709L1132 709M309 677L1145 677M326 645L1157 645M343 613L1170 613M360 581L1182 581"/>
+    <path d="M420 814L688 530M510 814L752 530M600 814L816 530M690 814L880 530M780 814L944 530M870 814L1008 530"/>
+    <path d="M1040 814L824 530M1130 814L888 530M1220 814L952 530"/>
+  </g>
+
+  <!-- fake 3d model -->
+  <g filter="url(#shadow)">
+    <path d="M515 558 C530 474 605 408 702 397 C780 388 849 423 884 485 L930 568 C952 608 934 648 893 659 L793 686 C756 696 730 687 704 657 L651 598 C627 571 604 564 569 575 L535 585 C519 590 510 579 515 558Z" fill="url(#mesh)" stroke="#386ca7" stroke-width="2"/>
+    <path d="M570 524c52-65 149-91 224-54 38 18 68 49 83 88" fill="none" stroke="#c8dcf5" stroke-width="3" opacity=".85"/>
+    <path d="M618 592c52-12 88 4 124 43" fill="none" stroke="#315f92" stroke-width="2" opacity=".8"/>
+    <!-- hex texture hints -->
+    <g fill="none" stroke="#dceafb" stroke-width="1" opacity=".75">
+      <path d="M650 469l14-8 14 8v16l-14 8-14-8zM683 451l14-8 14 8v16l-14 8-14-8zM716 449l14-8 14 8v16l-14 8-14-8zM749 457l14-8 14 8v16l-14 8-14-8z"/>
+      <path d="M631 499l14-8 14 8v16l-14 8-14-8zM664 493l14-8 14 8v16l-14 8-14-8zM697 490l14-8 14 8v16l-14 8-14-8zM730 495l14-8 14 8v16l-14 8-14-8zM763 506l14-8 14 8v16l-14 8-14-8z"/>
+    </g>
+  </g>
+
+  <!-- viewport active tool label -->
+  <g transform="translate(270,145)">
+    <rect width="338" height="48" rx="6" fill="#ffffff" opacity=".94" stroke="#d6d9dd"/>
+    <text x="14" y="20" class="ui normal" font-weight="600">Paint Exclude</text>
+    <text x="14" y="37" class="ui small muted">Paint faces • Shift = erase • Esc = finish</text>
+  </g>
+
+  <!-- View cube -->
+  <g transform="translate(1164,154)">
+    <polygon points="39,0 72,17 39,34 6,17" fill="#ffffff" stroke="#9aa2ab"/>
+    <polygon points="6,17 39,34 39,72 6,55" fill="#eef1f4" stroke="#9aa2ab"/>
+    <polygon points="72,17 39,34 39,72 72,55" fill="#dfe5eb" stroke="#9aa2ab"/>
+    <text x="39" y="20" text-anchor="middle" class="ui tiny" font-weight="600">TOP</text>
+    <text x="22" y="52" text-anchor="middle" class="ui tiny" transform="rotate(-0 22 52)">FRONT</text>
+    <text x="56" y="52" text-anchor="middle" class="ui tiny">RIGHT</text>
+    <circle cx="39" cy="94" r="14" fill="#fff" stroke="#c5cbd1"/>
+    <path d="M31 96l8-7 8 7v7h-5v-5h-6v5h-5z" class="iconStroke"/>
+  </g>
+
+  <!-- bottom nav strip -->
+  <g transform="translate(690,790)">
+    <rect width="178" height="34" rx="7" fill="#ffffff" opacity=".94" stroke="#cfd4da"/>
+    <circle cx="27" cy="17" r="8" class="iconStroke"/>
+    <path d="M17 17h20M27 7v20" class="iconStroke"/>
+    <path d="M68 10c-8 5-8 10 0 15M67 10l-1 6-5-3" class="iconStroke"/>
+    <path d="M102 8v18M95 17h14" class="iconStroke"/>
+    <path d="M138 19l8-7 8 7v7h-5v-5h-6v5h-5z" class="iconStroke"/>
+  </g>
+
+  <!-- model stats -->
+  <g transform="translate(270,794)">
+    <rect width="310" height="32" rx="5" fill="#ffffff" opacity=".9" stroke="#d6d9dd"/>
+    <text x="12" y="20" class="ui small">Triangles: 124,532</text>
+    <text x="137" y="20" class="ui small muted">Size: 120.0 × 82.5 × 35.0 mm</text>
+  </g>
+
+  <!-- E: properties -->
+  <rect x="1280" y="124" width="320" height="722" fill="#fff"/>
+  <line x1="1280" y1="124" x2="1280" y2="846" stroke="#d6d9dd"/>
+  <rect x="1280" y="124" width="320" height="34" fill="#f7f8f9"/>
+  <text x="1294" y="146" class="ui header">TEXTURE</text>
+  <text x="1575" y="146" class="ui normal muted">›</text>
+
+  <!-- texture card -->
+  <rect x="1296" y="174" width="288" height="72" rx="6" fill="#f7f8f9" stroke="#e0e3e7"/>
+  <rect x="1308" y="186" width="48" height="48" rx="5" fill="#dde3ea"/>
+  <g transform="translate(1310,188)" stroke="#69727d" fill="none" opacity=".8">
+    <path d="M3 10l7-4 7 4v8l-7 4-7-4zM18 6l7-4 7 4v8l-7 4-7-4zM33 10l7-4 7 4v8l-7 4-7-4zM10 22l7-4 7 4v8l-7 4-7-4zM25 18l7-4 7 4v8l-7 4-7-4z"/>
+  </g>
+  <text x="1368" y="202" class="ui normal" font-weight="600">Hexagon</text>
+  <text x="1368" y="221" class="ui small muted">Built-in Texture</text>
+  <rect x="1495" y="191" width="76" height="28" rx="4" fill="#fff" stroke="#cbd0d6"/>
+  <text x="1533" y="210" class="ui small" text-anchor="middle">Library</text>
+
+  <!-- form labels -->
+  <text x="1296" y="277" class="ui small muted">PROJECTION</text>
+  <rect x="1296" y="286" width="288" height="34" rx="4" fill="#fff" stroke="#cbd0d6"/>
+  <text x="1308" y="307" class="ui normal">Triplanar</text>
+  <text x="1562" y="307" class="ui normal muted">▾</text>
+
+  <text x="1296" y="349" class="ui small muted">TEXTURE SIZE</text>
+  <text x="1296" y="376" class="ui normal">U</text>
+  <rect x="1322" y="358" width="205" height="28" rx="4" fill="#fff" stroke="#cbd0d6"/>
+  <rect x="1323" y="359" width="107" height="26" rx="3" fill="#eaf2fd"/>
+  <text x="1539" y="377" class="ui small muted">12.0 mm</text>
+  <text x="1296" y="413" class="ui normal">V</text>
+  <rect x="1322" y="395" width="205" height="28" rx="4" fill="#fff" stroke="#cbd0d6"/>
+  <rect x="1323" y="396" width="107" height="26" rx="3" fill="#eaf2fd"/>
+  <text x="1539" y="414" class="ui small muted">12.0 mm</text>
+  <rect x="1540" y="359" width="44" height="64" rx="4" fill="#f7f8f9" stroke="#cbd0d6"/>
+  <path d="M1552 390h20M1557 386v-4a5 5 0 0110 0v4M1557 394v4a5 5 0 0010 0v-4" class="iconStroke"/>
+
+  <text x="1296" y="454" class="ui small muted">OFFSET</text>
+  <text x="1296" y="481" class="ui normal">U</text>
+  <rect x="1322" y="463" width="120" height="28" rx="4" fill="#fff" stroke="#cbd0d6"/>
+  <text x="1430" y="481" class="ui small muted" text-anchor="end">0.00</text>
+  <text x="1455" y="481" class="ui normal">V</text>
+  <rect x="1480" y="463" width="104" height="28" rx="4" fill="#fff" stroke="#cbd0d6"/>
+  <text x="1572" y="481" class="ui small muted" text-anchor="end">0.00</text>
+
+  <text x="1296" y="525" class="ui normal">Rotation</text>
+  <rect x="1372" y="506" width="212" height="28" rx="4" fill="#fff" stroke="#cbd0d6"/>
+  <rect x="1373" y="507" width="74" height="26" rx="3" fill="#eaf2fd"/>
+  <text x="1572" y="525" class="ui small muted" text-anchor="end">0°</text>
+
+  <text x="1296" y="570" class="ui small muted">DISPLACEMENT</text>
+  <text x="1296" y="596" class="ui normal">Amplitude</text>
+  <rect x="1372" y="577" width="212" height="28" rx="4" fill="#fff" stroke="#cbd0d6"/>
+  <rect x="1373" y="578" width="126" height="26" rx="3" fill="#eaf2fd"/>
+  <text x="1572" y="596" class="ui small muted" text-anchor="end">55%</text>
+
+  <rect x="1296" y="624" width="16" height="16" rx="3" fill="#1473e6"/>
+  <path d="M1300 632l4 4 7-9" stroke="#fff" fill="none" stroke-width="1.7"/>
+  <text x="1321" y="637" class="ui normal">Symmetric displacement</text>
+
+  <rect x="1296" y="657" width="16" height="16" rx="3" fill="#1473e6"/>
+  <path d="M1300 665l4 4 7-9" stroke="#fff" fill="none" stroke-width="1.7"/>
+  <text x="1321" y="670" class="ui normal">3D Preview</text>
+
+  <line x1="1296" y1="697" x2="1584" y2="697" stroke="#e0e3e7"/>
+  <text x="1296" y="723" class="ui small muted">MASK SUMMARY</text>
+  <text x="1296" y="747" class="ui normal">Excluded faces</text>
+  <text x="1576" y="747" class="ui normal" text-anchor="end">143</text>
+  <text x="1296" y="772" class="ui normal">Included faces</text>
+  <text x="1576" y="772" class="ui normal" text-anchor="end">0</text>
+  <rect x="1296" y="791" width="288" height="34" rx="5" fill="#fff" stroke="#cbd0d6"/>
+  <text x="1440" y="813" class="ui normal" text-anchor="middle">Open Mask Tool</text>
+
+  <!-- F: bottom status/history -->
+  <rect x="0" y="846" width="1600" height="54" fill="#fff"/>
+  <line x1="0" y1="846" x2="1600" y2="846" stroke="#d6d9dd"/>
+  <circle cx="22" cy="873" r="5" fill="#1b7f3a"/>
+  <text x="36" y="878" class="ui normal">Ready</text>
+  <line x1="105" y1="857" x2="105" y2="889" stroke="#e0e3e7"/>
+
+  <!-- history chips -->
+  <text x="127" y="877" class="ui small muted">HISTORY</text>
+  <rect x="189" y="858" width="64" height="28" rx="14" fill="#f2f4f6" stroke="#d6d9dd"/>
+  <text x="221" y="876" class="ui small" text-anchor="middle">Load</text>
+  <rect x="261" y="858" width="72" height="28" rx="14" fill="#eaf2fd" stroke="#bed5f3"/>
+  <text x="297" y="876" class="ui small" text-anchor="middle">Texture</text>
+  <rect x="341" y="858" width="62" height="28" rx="14" fill="#f2f4f6" stroke="#d6d9dd"/>
+  <text x="372" y="876" class="ui small" text-anchor="middle">Mask</text>
+
+  <text x="1260" y="878" class="ui small muted">Triangles</text>
+  <text x="1315" y="878" class="ui small">124,532</text>
+  <line x1="1380" y1="857" x2="1380" y2="889" stroke="#e0e3e7"/>
+  <text x="1400" y="878" class="ui small muted">Viewport</text>
+  <text x="1453" y="878" class="ui small">GPU</text>
+  <line x1="1493" y1="857" x2="1493" y2="889" stroke="#e0e3e7"/>
+  <text x="1510" y="878" class="ui small muted">100%</text>
+
+  <!-- annotation -->
+  <text x="1265" y="115" class="ui tiny muted">Mesh Me360 reference mockup • Fusion-inspired spatial layout • original assets</text>
+</svg>
