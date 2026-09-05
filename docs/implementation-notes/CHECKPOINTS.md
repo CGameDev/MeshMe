@@ -15,7 +15,14 @@
 - Initial archive inherited Windows Git CRLF conversion. Re-extracted with
   `git -c core.autocrlf=false archive`; the identity check now passes.
 
-## M1 — IN PROGRESS; manual Windows checkpoint required (2026-09-05)
+## M1 — PASS (user-confirmed offline checkpoint, 2026-09-05)
+
+The user confirmed "yes the test passed" in response to the explicit checkpoint
+question covering networking disabled, model loading, viewport movement, texture
+preview, STL export and no console errors. Combined with the automated evidence
+below, this satisfies the M1 master-plan gate. This is user-reported UI acceptance;
+do not interpret it as agent-observed screenshots, full STEP parity, or M8 release
+qualification. Earlier entries below retain the history before that confirmation.
 
 Implemented the WPF/WebView2 host, virtual-host mapping, offline page and worker
 dependencies, restricted CSP, startup/error logging, and fatal-startup screen.
@@ -71,3 +78,7 @@ PASS merely because its source was imported or the program compiled.
   is inferred from `web.ready`.
 - Network adapters were not disabled. Offline import/preview/export/console
   acceptance remains unverified, so M1 is not marked PASS and M2 stays gated.
+
+## M2 — IN PROGRESS
+
+Started after the user's M1 confirmation. M3–M11 remain NOT STARTED.
