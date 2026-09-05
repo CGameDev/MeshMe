@@ -12,7 +12,7 @@ UPSTREAM = ROOT / 'src/MeshMe360.EngineWeb/upstream'
 
 class OfflineAssets(unittest.TestCase):
     def test_only_declared_upstream_changes(self):
-        changed = {'index.html', 'js/threeCompat.js', 'js/stepWorker.js'}
+        changed = {'index.html', 'js/threeCompat.js', 'js/stepWorker.js', 'js/main.js', 'js/exporter.js'}
         for path in WEB.rglob('*'):
             relative = path.relative_to(WEB)
             original = UPSTREAM / relative

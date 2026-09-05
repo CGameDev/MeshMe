@@ -4,6 +4,7 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
     <AssemblyName>MeshMe360</AssemblyName>
     <RootNamespace>MeshMe360.Desktop</RootNamespace>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>

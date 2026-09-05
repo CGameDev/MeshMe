@@ -9,6 +9,10 @@ internal sealed class StartupLog
     private readonly SemaphoreSlim _gate = new(1, 1);
     public string DirectoryPath { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MeshMe360", "Logs");
     private readonly string _filename = $"startup-{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid():N}.jsonl";
+    public StartupLog(string? directory = null)
+    {
+        if (directory is not null) DirectoryPath = directory;
+    }
 
     public async Task WriteAsync(string type, object details)
     {

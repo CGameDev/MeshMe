@@ -120,15 +120,16 @@ See `docs/implementation-notes/CHECKPOINTS.md` for verified milestone status.
 The solution targets .NET 8 WPF on Windows x64. Build with a supported .NET SDK:
 
 ```powershell
-./build/Test-M1.ps1 -Publish
+./build/Test-M2.ps1 -Publish
 ```
 
 Python and Node are development verification tools only. The end-user application
-does not require them. M0 passes; M1 automated preparation passes and awaits its
-manual Windows/offline checkpoint. Follow `docs/implementation-notes/M1_WINDOWS_HANDOFF.md`.
-The self-contained test build is `artifacts/m1-windows/MeshMe360.exe`; keep its
-whole directory together and supply an installed WebView2 runtime for M1 testing.
-This is not a qualified release. M2–M11 have not begun.
+does not require them. M0 and M1 pass; M1 offline acceptance was confirmed by the
+user. M2 automated checks pass and await the manual Windows checkpoint in
+`docs/implementation-notes/M2_WINDOWS_HANDOFF.md`.
+The self-contained test build is `artifacts/m2-windows/MeshMe360.exe`; keep its
+whole directory together and supply an installed WebView2 runtime for testing.
+This is not a qualified release. M3–M11 have not begun.
 
 ## Developer attribution
 

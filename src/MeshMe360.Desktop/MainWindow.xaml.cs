@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using Microsoft.Web.WebView2.Core;
+using MeshMe360.Core;
 
 namespace MeshMe360.Desktop;
 
@@ -14,12 +15,15 @@ public partial class MainWindow : Window
     private readonly StartupLog _log = new();
     private bool _closed;
     private bool _fatal;
+    private WebViewHostBridge? _bridge;
+    internal SessionService? Session { get; private set; }
+    internal bool ClosedNormally { get; private set; }
 
     public MainWindow()
     {
         InitializeComponent();
         Loaded += InitializeAsync;
-        Closed += (_, _) => { _closed = true; _engineReady.TrySetCanceled(); Web.Dispose(); };
+        Closed += (_, _) => { _closed = true; _engineReady.TrySetCanceled(); _bridge?.Dispose(); Web.Dispose(); ClosedNormally = !_fatal; };
     }
 
     private async void InitializeAsync(object sender, RoutedEventArgs e)
@@ -27,6 +31,8 @@ public partial class MainWindow : Window
         try
         {
             await _log.WriteAsync("host.startup", new { version = typeof(MainWindow).Assembly.GetName().Version?.ToString(), framework = Environment.Version.ToString() });
+            Session = new SessionService(AppDataPaths.ForCurrentUser());
+            await Session.StartAsync();
             var webRoot = Path.Combine(AppContext.BaseDirectory, "EngineWeb");
             if (!File.Exists(Path.Combine(webRoot, "index.html")))
                 throw new FileNotFoundException("Packaged engine files are missing. Rebuild Mesh Me360.");
@@ -54,7 +60,9 @@ public partial class MainWindow : Window
                     catch (Exception error) { _ = _log.WriteAsync("host.linkError", new { error.Message }); }
                 }
             };
-            core.WebMessageReceived += OnWebMessage;
+            _bridge = new WebViewHostBridge(core, this, _log, AppDataPaths.ForCurrentUser(), Session);
+            _bridge.Ready += () => _engineReady.TrySetResult();
+            _bridge.FatalError += message => FailStartup(new InvalidOperationException(message));
             core.NavigationCompleted += (_, args) =>
             {
                 if (!args.IsSuccess) FailStartup(new InvalidOperationException($"Engine navigation failed: {args.WebErrorStatus}"));
@@ -64,6 +72,20 @@ public partial class MainWindow : Window
             core.Navigate(AppOrigin + "index.html");
             await _engineReady.Task.WaitAsync(TimeSpan.FromSeconds(60));
             if (!_closed && !_fatal) StartupPanel.Visibility = Visibility.Collapsed;
+            if (!_closed && !_fatal)
+            {
+                try
+                {
+                    var startup = HostFiles.ParseArguments(Environment.GetCommandLineArgs().Skip(1).ToArray());
+                    if (startup.Warning is not null) MessageBox.Show(this, startup.Warning, "Mesh Me360");
+                    if (startup.Path is not null) await _bridge.OpenFileAsync(startup.Path);
+                }
+                catch (Exception error)
+                {
+                    await _log.WriteAsync("host.startupFileError", new { error.Message });
+                    MessageBox.Show(this, error.Message, "Mesh Me360 — Could not open file", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
         }
         catch (Exception error)
         {
@@ -74,30 +96,6 @@ public partial class MainWindow : Window
     private static bool IsAppUri(string value) =>
         Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
         uri.Scheme == Uri.UriSchemeHttps && uri.Host == "app.meshme360.local" && uri.IsDefaultPort;
-
-    private async void OnWebMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs args)
-    {
-        try
-        {
-            if (!IsAppUri(args.Source)) return;
-            var json = args.WebMessageAsJson;
-            if (json.Length > 32768) throw new InvalidDataException("Startup message exceeds the diagnostic limit.");
-            using var message = JsonDocument.Parse(json);
-            var root = message.RootElement;
-            var type = root.GetProperty("type").GetString();
-            if (type is not ("web.ready" or "engine.error")) return;
-            var payload = root.GetProperty("payload");
-            await _log.WriteAsync(type, new { requestId = root.GetProperty("requestId").GetString(), payload });
-            if (_closed) return;
-            if (type == "web.ready") _engineReady.TrySetResult();
-            else if (payload.TryGetProperty("fatal", out var fatal) && fatal.ValueKind == JsonValueKind.True)
-                FailStartup(new InvalidOperationException(payload.GetProperty("message").GetString()));
-        }
-        catch (Exception error)
-        {
-            await _log.WriteAsync("host.messageError", new { error.Message });
-        }
-    }
 
     private void FailStartup(Exception error)
     {

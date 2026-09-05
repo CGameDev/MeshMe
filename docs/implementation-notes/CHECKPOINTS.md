@@ -51,17 +51,9 @@ Automated evidence from `./build/Test-M1.ps1 -Publish`:
 - Test output: `artifacts/m1-windows/MeshMe360.exe` (entire containing directory
   required). This is a development handoff, not an installer or release artifact.
 
-**Not run:** actual WPF/WebView2 interaction, GPU/WebGL, native file selection,
-preview, exported download, STEP quality controls in WebView2, DevTools review,
-or launch with the network adapter disabled. Node worker tests do not prove these.
-
-The current host reports Windows build 19044, below the specified Windows 10 22H2
-target (19045); use a supported Windows 10 22H2/Windows 11 test machine for acceptance.
-No Windows network adapters, installed applications, or file associations were changed.
-
-Follow `M1_WINDOWS_HANDOFF.md` and record evidence before marking M1 PASS.
-M2–M11 remain NOT STARTED. No milestone was skipped and no v1.0 feature is marked
-PASS merely because its source was imported or the program compiled.
+The agent did not directly observe M1's physical/offline interaction; the user
+confirmed it as described above. Full STEP parity and release-platform eligibility
+remain separate qualification work. No network adapters or associations were changed.
 
 ### Launch verification — 2026-09-05 23:01 UTC
 
@@ -76,9 +68,40 @@ PASS merely because its source was imported or the program compiled.
   not listed as a targetable window. Its explicit launch request timed out
   waiting for Computer Use app approval. No viewport/file/export UI acceptance
   is inferred from `web.ready`.
-- Network adapters were not disabled. Offline import/preview/export/console
-  acceptance remains unverified, so M1 is not marked PASS and M2 stays gated.
+- At that time, the manual gate was still pending. The subsequent user confirmation
+  recorded above satisfied M1 and allowed M2 to start.
 
-## M2 — IN PROGRESS
+## M2 — AUTOMATED PASS; MANUAL CHECKPOINT PENDING
 
-Started after the user's M1 confirmation. M3–M11 remain NOT STARTED.
+Started after the user's M1 confirmation. `build/Test-M2.ps1 -Publish` passes:
+
+- .NET 8 self-contained Windows x64 build: zero warnings/errors.
+- 36 Core checks: envelope/startup paths, scoped single-use tokens, expiry,
+  invalidation, 128 MB byte-exact bounded-memory stream, settings defaults and
+  persistence, recents cap/dedup/missing entries, session archives, save metadata.
+- 5 Python asset checks and 6 Node engine/RPC checks, including unchanged pinned
+  cube geometry/diagnostics and both local worker entry points.
+- Actual WPF/WebView2 integration: startup, binary GET/native file activation,
+  token rejection, settings correlation, repeated STL/3MF downloads, preserved
+  project ZIP serialization and successful-save recents, cancellation preserving
+  bytes, and language control persistence. Modal save decisions are substituted;
+  synthetic STL/3MF payloads test transport, not complete export geometry parity.
+- Self-contained publish and exact staged/published web inventory checks pass.
+  Executable: `artifacts/m2-windows/MeshMe360.exe`.
+- No upstream source or mesh algorithms rewritten: all 117 blobs still match.
+
+The first sandboxed WebView test could not initialize. Running in the normal
+Windows environment succeeds. Expanded tests exposed Chromium's second-download
+block; scoped permission handling corrected it and the full suite passes.
+
+Follow `M2_WINDOWS_HANDOFF.md` for physical/native-dialog/startup acceptance.
+M2 is not marked complete. M3–M11 remain NOT STARTED.
+
+### M2 launch evidence — 2026-09-05 23:56 UTC
+
+Launched the published executable with `cube_binary.stl` as its quoted command-line
+argument. Production logs confirm .NET 8.0.30, WebView2 152.0.4191.62, `web.ready`,
+matching file-issued/file-consumed ID `2d97ef21-ec02-4954-89c9-918c5ab5f3e4`, and
+successful recent/title/ReadyClean acknowledgements. The app remains open for
+manual testing. This verifies the startup path through the actual executable;
+visible geometry and native modal interactions still require user acceptance.

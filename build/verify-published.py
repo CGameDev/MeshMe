@@ -1,9 +1,10 @@
 """Check the actual M1 handoff payload, not just the source web directory."""
 from pathlib import Path
 import json
+import sys
 
 root = Path(__file__).resolve().parents[1]
-published = root / 'artifacts/m1-windows'
+published = root / (sys.argv[1] if len(sys.argv) > 1 else 'artifacts/m1-windows')
 staged = root / 'artifacts/web'
 expected = {p.relative_to(staged).as_posix(): p for p in staged.rglob('*') if p.is_file()}
 actual = {p.relative_to(published / 'EngineWeb').as_posix(): p

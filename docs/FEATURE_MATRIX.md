@@ -15,7 +15,7 @@ Status values during implementation: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `P
 | Project | `.bumpmesh` save | Required | Saves reusable project and reloads without material state loss | NOT STARTED |
 | Project | Undo/Redo | Required | Existing upstream edit history remains functional in new UI | NOT STARTED |
 | Project | Dirty-state tracking | Required | User is warned before destructive close/open/new | NOT STARTED |
-| Project | Recent files | Required | Max 20, deduplicated, persisted, missing-file behavior per requirements | NOT STARTED |
+| Project | Recent files | Required | Max 20, deduplicated, persisted, missing-file behavior per requirements | IN PROGRESS |
 | Textures | Upstream built-in textures | Required | All pinned upstream built-ins remain available | NOT STARTED |
 | Textures | Custom texture loading | Required | Existing upstream custom texture path works | NOT STARTED |
 | Textures | Texture smoothing | Required | Upstream blur/smoothing behavior preserved | NOT STARTED |
@@ -69,8 +69,8 @@ Status values during implementation: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `P
 | Desktop | Fully offline runtime | Required | Core app works with NIC/network disabled | IN PROGRESS |
 | Desktop | No local server | Required | No Kestrel/HttpListener/Python/Node/PHP local service | IN PROGRESS |
 | Desktop | No CDN runtime | Required | Release makes zero required CDN requests | IN PROGRESS |
-| Desktop | Native save destinations | Required | Windows save dialogs used for save/export | NOT STARTED |
-| Desktop | Explorer startup file | Required | `MeshMe360.exe "path"` opens supported model/project | NOT STARTED |
+| Desktop | Native save destinations | Required | Windows save dialogs used for save/export | IN PROGRESS |
+| Desktop | Explorer startup file | Required | `MeshMe360.exe "path"` opens supported model/project | IN PROGRESS |
 | Desktop | Drag and drop | Required | Single supported model/project opens; multiple drop handled explicitly | NOT STARTED |
 | Windows | `.bumpmesh` association | Required | Explorer recognizes Mesh Me360 Project and opens app | NOT STARTED |
 | Windows | STL Open With | Required | Mesh Me360 appears without hijacking default | NOT STARTED |
@@ -85,7 +85,7 @@ Status values during implementation: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `P
 | Reliability | Autosave | Required | Dirty doc snapshots every 120 sec under policy | NOT STARTED |
 | Reliability | Crash/session recovery | Required | Forced process termination yields recoverable next-launch state | NOT STARTED |
 | Reliability | Atomic recovery writes | Required | Interrupted autosave cannot replace last valid snapshot with partial file | NOT STARTED |
-| Reliability | Structured logs | Required | Rolling logs capture host/engine errors without model payloads | NOT STARTED |
+| Reliability | Structured logs | Required | Rolling logs capture host/engine errors without model payloads | IN PROGRESS |
 | Reliability | Diagnostics screen | Required | Required host/WebGL/model metadata view/copy works | NOT STARTED |
 | Updates | Automatic check | Required | Default once/24h, user-disableable, non-blocking offline | NOT STARTED |
 | Updates | Manual check | Required | Help menu action checks immediately | NOT STARTED |
@@ -99,12 +99,12 @@ Status values during implementation: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `P
 | UI | Browser panel | Required | Defined logical tree; no fake CAD component semantics | NOT STARTED |
 | UI | Properties panel | Required | Context controls use upstream ranges/defaults | NOT STARTED |
 | UI | Bottom status/history | Required | Processing state/progress and real history info visible | NOT STARTED |
-| UI | Light theme | Required | Functional and persistent | NOT STARTED |
-| UI | Dark theme | Required | Functional and persistent | NOT STARTED |
-| UI | System theme | Required | Default follows OS until overridden | NOT STARTED |
+| UI | Light theme | Required | Functional and persistent | IN PROGRESS |
+| UI | Dark theme | Required | Functional and persistent | IN PROGRESS |
+| UI | System theme | Required | Default follows OS until overridden | IN PROGRESS |
 | UI | Empty state | Required | Drop/Open affordance with supported formats | NOT STARTED |
 | UI | Recovery dialog | Required | Matches flow and safety behavior in UI spec | NOT STARTED |
-| UI | Preferences | Required | Required settings available and persisted | NOT STARTED |
+| UI | Preferences | Required | Required settings available and persisted | IN PROGRESS |
 | UI | Keyboard shortcuts | Required | Minimum shortcut set works without breaking viewport controls | NOT STARTED |
 | i18n | Upstream languages | Required | Existing translations remain accessible after UI refactor | NOT STARTED |
 | Licensing | Upstream attribution | Required | Visible in About/notice files/source | NOT STARTED |

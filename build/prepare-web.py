@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import sys
+import runpy
 
 root = Path(__file__).resolve().parents[1]
 subprocess.run([sys.executable, str(root / 'build/verify-upstream.py')], check=True)
@@ -58,6 +59,7 @@ replace_exact('js/threeCompat.js',
               '../vendor/three-0.170.0/build/three.module.js')
 replace_exact('js/stepWorker.js', 'https://cdn.jsdelivr.net/npm/meshstep@0.1.0/+esm',
               '../vendor/meshstep-0.1.0/dist/index.js')
+runpy.run_path(str(root / 'build/adapt-host.py'))['adapt_host'](output, notice)
 page = (output / 'index.html').read_text(encoding='utf-8')
 page = page.replace('<title>BumpMesh by CNC Kitchen</title>', '<title>Mesh Me360</title>')
 page = re.sub(r'^.*<link rel="(?:canonical|preconnect)"[^\n]*\n', '', page, flags=re.M)
@@ -75,7 +77,7 @@ import_map = re.search(r'<script type="importmap">(.*?)</script>', page, re.S)[1
 digest = base64.b64encode(hashlib.sha256(import_map.encode()).digest()).decode()
 csp = (f"default-src 'self'; script-src 'self' 'sha256-{digest}'; "
        "style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; "
-       "worker-src 'self' blob:; connect-src 'self'; font-src 'self'; "
+       "worker-src 'self' blob:; connect-src 'self' https://bridge.meshme360.local; font-src 'self'; "
        "object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'")
 page = page.replace('<meta charset="UTF-8" />', '<meta charset="UTF-8" />\n  <meta http-equiv="Content-Security-Policy" content="' + csp + '" />')
 page = page.replace('<script type="module" src="js/main.js"></script>', '<script type="module" src="app/bootstrap.js"></script>')

@@ -48,3 +48,51 @@
   `assets/logo_big.png`). Explicitly included the pinned files without altering
   upstream's own .gitignore. Build verification now also checks Git membership
   when building a checkout, preventing working-directory-only provenance claims.
+
+## 2026-09-05 — M2
+
+- Begin only after the user's explicit M1 offline checkpoint confirmation.
+- Implement the documented internal GET origin with a FileStream response,
+  256-bit opaque single-use tokens, five-minute expiry, exact app-origin check,
+  no-store headers and revocation on document replacement/disposal. Capture
+  WebView2 request properties on its UI thread before background file opening.
+  Browser Blob/File memory remains necessary for the preserved engine loaders;
+  this is low-copy streaming, not a claim of zero total browser allocations.
+- Envelope responses use `<type>.result` and the initiating GUID. Reject unknown
+  operations; 64 KiB control messages carry metadata only. Web and native logs
+  record matching IDs, types and outcomes, without model contents.
+- Existing `document.stateChanged` metadata registers `{state:'Exporting',
+  downloadUrl, filename}` before the preserved download helper clicks its Blob
+  anchor. The host approves at most four pending URLs for five minutes, consumes
+  each once, and shows Save Project/Export STL/Export 3MF native dialogs. Only
+  completed project saves enter recents. No new message name or endpoint added.
+- Chromium's repeated-download permission is allowed only for the exact app
+  origin while a host-approved download is pending, and is not persisted.
+  DownloadStarting independently checks each exact Blob URL and native decision.
+  This fixes a real second-export integration-test failure.
+- Preserve upstream algorithms and source bytes. `adapt-host.py` applies
+  asserted staging-only loader completion/cancellation hooks, named exports,
+  and download delegation. Preserve existing STEP quality and project-content
+  dialogs. File chooser/drop stay upstream-owned; opaque browser Files do not
+  expose native paths, so only host-approved activations populate native recents.
+- Settings use the documented defaults, atomic JSON replacement and extension
+  data for unknown keys. Invalid known values fail without overwriting settings.
+  JSON read handles allow delete-sharing so another reader cannot block an atomic
+  replacement on Windows; integration polling exposed and verified this fix.
+  Theme override and the existing language control persist through the host;
+  unsupported automatic browser language falls back to upstream English.
+- Recents normalize full paths, deduplicate case-insensitively and retain twenty.
+  Missing entries remain marked/removable. `recent.add` requires a successfully
+  loaded host activation ID; `recent.open` resolves only a saved recent entry.
+- Session marker is written before loading the editor. An exclusive session
+  lease prevents competing marker writers; previous unclean markers are archived,
+  never silently deleted. Final normal exit marks clean off the WPF synchronization
+  context to avoid deadlock. Snapshot policy and recovery UI remain M6.
+- `update.status` honestly reports NotConfigured; network checks/install remain
+  M9. Dirty-close/save-document behavior remains M4, diagnostics UI/rolling logs
+  remain M10. No stub is counted as those later milestones passing.
+- Desktop builds now default to self-contained .NET 8, including test executables,
+  so the installed .NET 10 runtime does not substitute for the specified .NET 8.
+  Tests retain isolated artifacts; native modal choices are substituted only in
+  the integration executable. Manual dialogs and physical Windows testing remain
+  explicit gates in `M2_WINDOWS_HANDOFF.md`.
