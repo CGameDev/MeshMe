@@ -43,3 +43,8 @@
   module resolution and deterministic engine execution, not Chromium/WebGL behavior.
 - Publish verification caught MSBuild metadata referring to existing Content
   items. A dedicated `_OfflineAsset` item now supplies qualified target paths.
+- A clean Git-archive rebuild found ignore rules omitting meshStep's required
+  `dist/` files and two upstream files (`.claude/settings.local.json` and
+  `assets/logo_big.png`). Explicitly included the pinned files without altering
+  upstream's own .gitignore. Build verification now also checks Git membership
+  when building a checkout, preventing working-directory-only provenance claims.

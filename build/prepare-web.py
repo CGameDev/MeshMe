@@ -17,12 +17,16 @@ engine = root / 'src/MeshMe360.EngineWeb'
 upstream = engine / 'upstream'
 output = root / 'artifacts/web'
 manifest = json.loads((engine / 'vendor/manifest.json').read_text(encoding='utf-8'))
+tracked = (set(subprocess.check_output(['git', '-C', str(root), 'ls-files'], text=True).splitlines())
+           if (root / '.git').exists() else None)
 for package in manifest.values():
     directory = engine / 'vendor' / package['directory']
     actual = {p.relative_to(directory).as_posix() for p in directory.rglob('*') if p.is_file()}
     assert actual == package['files'].keys(), f'Vendor inventory mismatch: {directory}'
     for relative, digest in package['files'].items():
         assert hashlib.sha256((directory / relative).read_bytes()).hexdigest() == digest, relative
+        if tracked is not None:
+            assert (directory / relative).relative_to(root).as_posix() in tracked, f'Vendored file omitted from Git: {relative}'
 
 # Remove only this fixed, resolved generated directory, never a caller-selected path.
 assert output.resolve() == root.resolve() / 'artifacts' / 'web'

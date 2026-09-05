@@ -1,6 +1,7 @@
 """Verify the full imported tree against pinned Git blob identities (no network)."""
 from pathlib import Path
 import hashlib
+import subprocess
 
 root = Path(__file__).resolve().parents[1]
 upstream = root / 'src/MeshMe360.EngineWeb/upstream'
@@ -17,4 +18,8 @@ for name, digest in expected.items():
     blob = b'blob ' + str(len(data)).encode() + b'\0' + data
     assert hashlib.sha1(blob).hexdigest() == digest, f'Changed upstream file: {name}'
 assert (root / 'LICENSE').read_bytes() == (upstream / 'LICENSE').read_bytes()
+if (root / '.git').exists():
+    tracked = set(subprocess.check_output(['git', '-C', str(root), 'ls-files'], text=True).splitlines())
+    missing = {'src/MeshMe360.EngineWeb/upstream/' + name for name in expected} - tracked
+    assert not missing, f'Pinned upstream files omitted from Git: {sorted(missing)}'
 print(f'PASS: {len(expected)} upstream blobs and complete root AGPL license match pinned baseline')
