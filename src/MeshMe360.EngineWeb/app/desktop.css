@@ -1,0 +1,3 @@
+/* SPDX-License-Identifier: AGPL-3.0-only
+   M1 retains the upstream layout. The M3 workspace redesign remains gated. */
+#store-cta-wrapper, #sponsor-overlay { display: none !important; }

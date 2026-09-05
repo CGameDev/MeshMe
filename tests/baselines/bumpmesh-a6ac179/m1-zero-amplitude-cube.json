@@ -1,0 +1,46 @@
+{
+  "baseline": "a6ac179149b8a17c71a9469dd4cb6f866c0c01d1",
+  "fixtureSha256": "1fcd28b5315f6f4167f0cd117ed227fd6f727345428c07c21259a03f72b828c8",
+  "settings": {
+    "mappingMode": 5,
+    "scaleU": 25,
+    "scaleV": 25,
+    "amplitude": 0,
+    "textureHeight": 0.5,
+    "offsetU": 0,
+    "offsetV": 0,
+    "rotation": 0,
+    "refineLength": 100,
+    "maxTriangles": 750000,
+    "bottomAngleLimit": 0,
+    "topAngleLimit": 0,
+    "mappingBlend": 1,
+    "seamBandWidth": 0.5,
+    "capAngle": 20,
+    "boundaryFalloff": 0,
+    "blendNormalSmoothing": 0,
+    "regularizeEnabled": false,
+    "smoothBottom": false
+  },
+  "triangles": 12,
+  "bounds": {
+    "min": [
+      -10,
+      -10,
+      -10
+    ],
+    "max": [
+      10,
+      10,
+      10
+    ]
+  },
+  "invalidVertices": 0,
+  "diagnostics": {
+    "openEdges": 0,
+    "nonManifoldEdges": 0,
+    "shellCount": 1
+  },
+  "exportBytes": 684,
+  "positionsSha256": "87d11d73b2060d2837d967d3d07d3758517c9347965212b16397efaae7bda300"
+}

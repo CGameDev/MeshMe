@@ -29,6 +29,9 @@ The pinned upstream project documentation/code must be treated as the authoritat
 - Source: `https://threejs.org/` / official Three.js repository/package
 - License: MIT
 - Role: WebGL rendering, scene management, materials, loaders, controls, line rendering helpers
+- Vendored: `src/MeshMe360.EngineWeb/vendor/three-0.170.0/`; actual npm LICENSE
+  inspected and included. Copyright 2010–2024 three.js authors. Runtime core and
+  the recursive closure of required addons are included unchanged.
 
 Required local release modules include only the pieces actually used by the pinned engine, such as core Three.js plus relevant addons/loaders/controls/line modules.
 
@@ -39,6 +42,8 @@ Required local release modules include only the pieces actually used by the pinn
 - Source: `https://github.com/101arrowz/fflate`
 - License: MIT
 - Role: ZIP compression/decompression for 3MF/project-related workflows
+- Vendored: `src/MeshMe360.EngineWeb/vendor/fflate-0.8.2/`; actual npm LICENSE
+  inspected and included. Copyright 2023 Arjun Barrett. Browser ESM unchanged.
 
 ### meshStep
 
@@ -46,8 +51,12 @@ Required local release modules include only the pieces actually used by the pinn
 - Upstream source: `https://github.com/CNCKitchen/meshStep`
 - Upstream BumpMesh baseline references meshStep for STEP/STP tessellation
 - Version/source revision: `meshstep@0.1.0`, confirmed in pinned `js/stepWorker.js`
-- License: **Codex must inspect and record the actual license before redistribution**
+- License: AGPL-3.0-only, confirmed from npm package.json, SPDX source headers
+  and the complete included LICENSE (not MIT).
 - Role: STEP/STP browser-side tessellation/worker path
+- Vendored: `src/MeshMe360.EngineWeb/vendor/meshstep-0.1.0/`; unmodified compiled
+  JavaScript and corresponding TypeScript source, README, package metadata and license.
+- Zero runtime dependencies and no WASM payload in this pinned package.
 
 Do not write an assumed version/license into release metadata. Inspect the pinned upstream source first.
 
@@ -60,7 +69,13 @@ The following are architecture selections. Codex must record the exact installed
 - Components: Microsoft WebView2 .NET SDK + WebView2 Fixed Version Runtime x64 for releases
 - Source: Microsoft
 - Role: embedded Chromium/WebGL runtime for the Mesh Me360 web engine
-- Version: pinned during implementation/release engineering
+- SDK version: `Microsoft.Web.WebView2` 1.0.4191.47 (NuGet lock file included)
+- SDK license: BSD-style three-clause Microsoft license inspected in the actual
+  package. Complete LICENSE and NOTICE included in `build/licenses/` and output
+  `Licenses/`. SDK assemblies and native loader are redistributed in the M1 test build.
+- Fixed Runtime: not bundled at M1; pinning/packaging is the M8 requirement.
+  M1 uses a local `WebView2FixedRuntime/` folder when supplied, otherwise an already
+  installed runtime. The host never downloads/bootstrap-installs a runtime.
 - Redistribution terms: confirm and comply with Microsoft WebView2 redistribution terms when packaging the fixed runtime
 
 ### Velopack
@@ -82,6 +97,23 @@ The following are architecture selections. Codex must record the exact installed
 - Role: compile the .NET 8 WPF/Core projects and provide the Windows app host
 - Reference packs are development-only; the application host is output with the build.
 - Runtime distribution and its complete notices are part of M8 release engineering.
+
+### .NET 8 self-contained M1 test build
+
+- Microsoft.NETCore.App.Runtime.win-x64 and Microsoft.WindowsDesktop.App.Runtime.win-x64
+- Version: 8.0.30 in this verified handoff; source: official Microsoft NuGet packages.
+- MIT licenses inspected; .NET Foundation and contributors.
+- Runtime binaries are in ignored test output only. Complete .NET license and
+  runtime third-party notices are copied from the packages into `build/licenses/`
+  and shipped in the test payload. No machine-wide .NET installation was performed.
+
+### Vendored package integrity
+
+`src/MeshMe360.EngineWeb/vendor/manifest.json` records exact npm archive URLs,
+registry SHA-512 integrity values, versions, licenses and SHA-256 for every
+vendored file. `build/vendor-dependencies.py` checks archive integrity on import;
+every ordinary build checks the committed file inventory and hashes offline.
+All three browser dependencies are redistributed locally with their notices.
 
 For every new package, append an entry containing:
 

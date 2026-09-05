@@ -6,8 +6,19 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AssemblyName>MeshMe360</AssemblyName>
     <RootNamespace>MeshMe360.Desktop</RootNamespace>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../MeshMe360.Core/MeshMe360.Core.csproj" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
+    <Content Include="../../build/licenses/*" Link="Licenses/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../LICENSE;../../THIRD_PARTY_NOTICES.md" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+  <Target Name="PrepareOfflineWeb" BeforeTargets="AssignTargetPaths">
+    <Exec Command="python &quot;$(MSBuildProjectDirectory)/../../build/prepare-web.py&quot;" />
+    <ItemGroup>
+      <_OfflineAsset Include="../../artifacts/web/**/*" />
+      <Content Include="@(_OfflineAsset)" Link="EngineWeb/%(_OfflineAsset.RecursiveDir)%(_OfflineAsset.Filename)%(_OfflineAsset.Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 </Project>

@@ -64,11 +64,11 @@ Status values during implementation: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `P
 | Export | Binary STL | Required | Produces valid upstream-equivalent displaced STL | NOT STARTED |
 | Export | 3MF | Required | Produces valid supported 3MF output | NOT STARTED |
 | Export | Processing progress | Required | Subdivision→displacement→decimation→write stages visible | NOT STARTED |
-| Desktop | WPF host | Required | .NET 8 WPF executable launches and owns OS integration | NOT STARTED |
-| Desktop | WebView2 embedded app | Required | Engine runs in application window, not external browser | NOT STARTED |
-| Desktop | Fully offline runtime | Required | Core app works with NIC/network disabled | NOT STARTED |
-| Desktop | No local server | Required | No Kestrel/HttpListener/Python/Node/PHP local service | NOT STARTED |
-| Desktop | No CDN runtime | Required | Release makes zero required CDN requests | NOT STARTED |
+| Desktop | WPF host | Required | .NET 8 WPF executable launches and owns OS integration | IN PROGRESS |
+| Desktop | WebView2 embedded app | Required | Engine runs in application window, not external browser | IN PROGRESS |
+| Desktop | Fully offline runtime | Required | Core app works with NIC/network disabled | IN PROGRESS |
+| Desktop | No local server | Required | No Kestrel/HttpListener/Python/Node/PHP local service | IN PROGRESS |
+| Desktop | No CDN runtime | Required | Release makes zero required CDN requests | IN PROGRESS |
 | Desktop | Native save destinations | Required | Windows save dialogs used for save/export | NOT STARTED |
 | Desktop | Explorer startup file | Required | `MeshMe360.exe "path"` opens supported model/project | NOT STARTED |
 | Desktop | Drag and drop | Required | Single supported model/project opens; multiple drop handled explicitly | NOT STARTED |

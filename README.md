@@ -114,20 +114,21 @@ Mesh Me360 v1.0 is complete only when:
 9. AGPL and third-party notices are visible from **Help > About > Licenses / Source Code**.
 10. Source, build instructions, and release process are reproducible from this repository.
 
-## Developer attribution
-
 ## Development checkpoint
 
 See `docs/implementation-notes/CHECKPOINTS.md` for verified milestone status.
 The solution targets .NET 8 WPF on Windows x64. Build with a supported .NET SDK:
 
 ```powershell
-python build/verify-upstream.py
-dotnet build MeshMe360.sln -c Debug
+./build/Test-M1.ps1 -Publish
 ```
 
-Python is a development provenance-check tool only. The end-user application
-does not require it. This is an implementation baseline, not a qualified release.
+Python and Node are development verification tools only. The end-user application
+does not require them. M0 passes; M1 automated preparation passes and awaits its
+manual Windows/offline checkpoint. Follow `docs/implementation-notes/M1_WINDOWS_HANDOFF.md`.
+The self-contained test build is `artifacts/m1-windows/MeshMe360.exe`; keep its
+whole directory together and supply an installed WebView2 runtime for M1 testing.
+This is not a qualified release. M2–M11 have not begun.
 
 ## Developer attribution
 
