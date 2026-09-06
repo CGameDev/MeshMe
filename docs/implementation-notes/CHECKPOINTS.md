@@ -106,11 +106,11 @@ successful recent/title/ReadyClean acknowledgements. The app remains open for
 manual testing. This verifies the startup path through the actual executable;
 visible geometry and native modal interactions still require user acceptance.
 
-## M3 — Locked UI scope adopted; INCOMPLETE (backend blocker)
+## M3 — Locked UI scope adopted; INCOMPLETE
 
 The owner explicitly supplied and requested the locked PNG milestone, superseding
 older UI/single-model scope. See LOCKED_UI_STATUS.md for actual phase status,
-remaining controls and the reproduced candidate-backend CSP failure. M2 manual
+remaining controls and resolution of the candidate-backend CSP failure. M2 manual
 acceptance is still pending; M4–M11 are not implicitly completed.
 
 Current build and M2 regression suite pass (36 Core, 5 asset, 6 Node, actual WebView
@@ -121,3 +121,13 @@ Capture `artifacts/m2-integration-77a9c7340a704a1ba45608607012dfc8/locked-layout
 passes measured region/toolbar positions. `locked-gate.json` deliberately reports
 NOT COMPLETE: pixel appearance, human review and full controls are pending.
 No skipped control or numeric-only transform is counted as full acceptance.
+
+### Locked UI continuation — backend and scene tools
+
+Manifold source build with dynamic JavaScript execution disabled is adopted and
+passes real WebView2 deterministic fixtures. Boolean/Split/Hollow tool workflows
+pass initial preview/commit/undo tests; worker cancel/restart preserves originals.
+Three.js Move gizmo passes an actual mouse-drag/undo test. Material state has
+validated transactions and round-trip tests. `build/Test-Locked.ps1` repeats these
+checks and produces a fresh visual capture without claiming milestone acceptance.
+Full functional, visual, stress, drain/minimum-wall and physical gates remain open.

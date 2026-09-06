@@ -129,9 +129,9 @@ rows. No row below is PASS; partial handlers do not satisfy a full contract.
 | Transform | Move/Rotate/Scale gizmos, numeric controls and undo | IN PROGRESS |
 | Relief | Emboss, Deboss, Linear/Grid/Radial Pattern, preview/commit/cancel | NOT STARTED |
 | Geometry | Repair pipeline, report, safe holes and diagnostics | NOT STARTED |
-| Geometry | Hollow, thickness, watertightness, undo | BLOCKED |
-| Geometry | Boolean Union/Subtract/Intersect with validated backend | BLOCKED |
-| Geometry | Split by interactive plane, keep sides, undo | BLOCKED |
+| Geometry | Hollow, thickness, watertightness, undo | IN PROGRESS |
+| Geometry | Boolean Union/Subtract/Intersect with validated backend | IN PROGRESS |
+| Geometry | Split by interactive plane, keep sides, undo | IN PROGRESS |
 | Geometry | Combine, optional weld, group preservation, undo | NOT STARTED |
 | Geometry | Make Solid, quality/preview/diagnostics/undo | BLOCKED |
 | Measure | Distance, angle, bounds, ray thickness, persistent tree entries | NOT STARTED |

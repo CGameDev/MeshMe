@@ -14,50 +14,46 @@ constitute confirmation of the previous M2 manual checkpoint. That remains pendi
 | Phase | State | Actual work / remaining requirements |
 |---|---|---|
 | A — shell | IN PROGRESS | Locked region layout, toolbar order/centers, tabs, shelf, existing viewport, camera modes/navigation and comparison presentation hook; typography, icon fidelity, source thumbnails, full inspector layout, responsiveness and human/pixel review remain. |
-| B — project | IN PROGRESS | Versioned ZIP `.mm360` data model, multiple sequential imports, scene selection/visibility, numeric transforms/center, history and actual native save/reopen tested. Multi-file chooser workflow, gizmos, full embedded texture restoration, legacy fidelity, safe close, autosave/recovery and broader tests remain. |
+| B — project | IN PROGRESS | Versioned ZIP `.mm360` data model, multiple sequential imports, scene selection/visibility, numeric transforms/center, history and actual native save/reopen tested. Multi-file chooser workflow, full gizmo qualification, full embedded texture restoration, legacy fidelity, safe close, autosave/recovery and broader tests remain. |
 | C — engine relocation | IN PROGRESS | Existing scale/depth/invert/projection controls relocated with handlers intact; original advanced controls remain accessible. Complete masking/refinement/decimation relocation, source-strength/blending, commit/undo integration remain. |
-| D — new tools | BACKEND BLOCKER + INCOMPLETE | Procedural generation/data tests exist. Boolean/hollow/solidification backend cannot yet be adopted; remaining tool workflows and geometry tests are incomplete. |
+| D — new tools | IN PROGRESS | CSP-compatible Manifold build adopted with pinned source/licenses/hashes. Boolean, plane Split and inward Hollow previews/commits/undo pass initial real WebView2 tests. Drain placement, minimum-wall qualification, repair/solidification, remaining tools and broad geometry tests remain. |
 | E — export/profiles | INCOMPLETE | Existing STL/3MF preserved and native `.mm360` save added; full multi-object export, OBJ/material packaging, profile execution and warnings remain. |
 | F — verification | INCOMPLETE | Build, baseline geometry, initial scene tests and real WebView captures exist. Full functional matrix, stress/DPI/offline tests and human visual acceptance have not passed. |
 
 **Do not mark this milestone or any visible tool complete based on registry
 `implemented` flags.** Those flags indicate a handler exists; they are not proof
-that all subrequirements pass. Numeric Move/Rotate/Scale still lack viewport
-gizmos. Material editing still needs scene transactions and complete persistence.
+that all subrequirements pass. Move/Rotate/Scale now use pinned Three.js viewport
+gizmos; an actual Move drag/undo passes, while full rotation/scale/multi-object/DPI
+qualification remains. Material transactions, reset and project persistence exist;
+export-capability integration remains.
 The checker always fails the overall gate while these requirements remain open.
 
-## Verified technical blocker: candidate geometry backend
+## Geometry backend blocker resolved — full milestone still incomplete
 
-Candidate: npm `manifold-3d` **3.5.1**, package license **Apache-2.0**. The actual
-package/API was inspected in `.tools/manifold-3.5.1`; it has not been added to the
-runtime vendor manifest or distributed product. Its full transitive license/source
-and build audit remains a prerequisite for adoption.
+The published npm Manifold 3.5.1 loader failed actual WebView2 initialization
+because it generated JavaScript functions at runtime. That failure is preserved
+in `artifacts/m2-integration-bcf3038a73324966a20b488e18e25666/backend-probe.txt`.
 
-The published Emscripten loader uses `new Function` in `createJsInvoker` and
-`craftInvokerFunction`. An actual WebView2 probe with:
+A source build of the same pinned version with Emscripten 5.0.2 and
+`DYNAMIC_EXECUTION=0` now passes under `script-src 'self' 'wasm-unsafe-eval'`.
+General JavaScript `unsafe-eval` is still prohibited. Source revisions, licenses,
+compiler settings and rebuild instructions are in MANIFOLD_BUILD.md and
+THIRD_PARTY_NOTICES.md; all vendored files are hashed and verified offline.
 
-`script-src 'self' 'wasm-unsafe-eval'`
+Initial real WebView2 controls evidence:
+`artifacts/m2-integration-4e289b7920b94fb484c8a600ba1e7aba`.
+Boolean preview/cancel/commit/undo, Split/Hollow preview/commit/undo and
+worker cancellation/restart pass. Operations run in isolated workers; no document
+arrays transfer ownership, and originals change only after explicit Commit.
+The application uses Manifold operations directly; no replacement mesh Boolean
+or hollow algorithm was implemented. The 32-segment spherical erosion kernel is
+an approximate offset. Drain placement and minimum-wall qualification remain.
 
-fails during initialization with:
-
-> EvalError: Evaluating a string as JavaScript violates the following Content
-> Security Policy directive because 'unsafe-eval' is not an allowed source of script.
-
-Stack: `createJsInvoker` → `craftInvokerFunction` →
-`__embind_register_class_constructor` in `manifold.js`.
-
-Evidence: `artifacts/m2-integration-bcf3038a73324966a20b488e18e25666/backend-probe.txt`.
-The application CSP was not weakened. No naïve replacement Boolean/hollow
-algorithm was written. The installed environment has no `emcc`, `emcmake`,
-`cmake`, `ninja`, or `clang` on PATH.
-
-Resolution requires a reproducible, licensed CSP-compatible build (for example,
-verify an Emscripten build with dynamic JavaScript execution disabled), or another
-verified backend. Validate actual initialization and deterministic geometry before
-adoption; do not assume a compiler option is sufficient without testing it.
-
-Primary sources inspected: [Manifold API](https://manifoldcad.org/docs/jsapi/classes/manifold.Manifold.html)
-and the actual versioned npm package, downloaded only to the development cache.
+Move gizmo mouse-drag evidence:
+`artifacts/m2-integration-b692133d59534cfcbf2f5fbe778bf87e`.
+The real Three.js handle changes position in one undo transaction and Undo
+restores it. Linked scale and independent single-object local scale exist;
+full Rotate/Scale and multi-object interaction qualification remains pending.
 
 ## Repeatable evidence
 

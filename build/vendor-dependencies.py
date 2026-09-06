@@ -12,7 +12,7 @@ import shutil
 root = Path(__file__).resolve().parents[1]
 downloads = root / '.tools/downloads'
 vendor = root / 'src/MeshMe360.EngineWeb/vendor'
-packages = {}
+packages = json.loads((vendor / 'manifest.json').read_text(encoding='utf-8')) if (vendor / 'manifest.json').exists() else {}
 for name, version in [('three', '0.170.0'), ('fflate', '0.8.2'), ('meshstep', '0.1.0')]:
     metadata = json.loads((downloads / f'{name}-metadata.json').read_text(encoding='utf-8-sig'))
     assert metadata['name'] == name and metadata['version'] == version
@@ -29,7 +29,7 @@ for name, version in [('three', '0.170.0'), ('fflate', '0.8.2'), ('meshstep', '0
     for filename in ['LICENSE', 'package.json', 'README.md']:
         copy(filename)
     if name == 'three':
-        pending = ['build/three.module.js', 'examples/jsm/controls/OrbitControls.js',
+        pending = ['build/three.module.js', 'examples/jsm/controls/OrbitControls.js', 'examples/jsm/controls/TransformControls.js',
                    'examples/jsm/lines/LineSegments2.js', 'examples/jsm/lines/LineSegmentsGeometry.js',
                    'examples/jsm/lines/LineMaterial.js', 'examples/jsm/loaders/STLLoader.js',
                    'examples/jsm/loaders/OBJLoader.js']

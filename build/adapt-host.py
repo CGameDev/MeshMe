@@ -21,7 +21,7 @@ def adapt_host(output: Path, notice: str):
     replace("    await _applyImportedTexture(unzipped, data);\n\n    _autoSaveSettings();\n  } finally {", "    await _applyImportedTexture(unzipped, data);\n\n    _autoSaveSettings();\n    return true;\n  } finally {")
     replace("function _downloadBlob(blob, filename) {", "function _downloadBlob(blob, filename) {\n  if (window.meshMe360) { void window.meshMe360.download(blob, filename); return; }")
     text += "\n// " + notice + "\nexport { handleModelFile as desktopLoadModel, importProject as desktopLoadProject, setViewerTheme as desktopSetTheme, setLang as desktopSetLanguage };\n"
-    text += "\nexport function desktopSceneCapture() { return { geometry: currentGeometry?.clone(), settings: getSettingsSnapshot(), mask: _collectCurrentMask() }; }\nexport function desktopSceneActivate(geometry, snapshot, mask) { adoptBakedGeometry(geometry, computeBounds(geometry)); applySettingsSnapshot(snapshot); if (mask) _restoreMask(mask); }\n"
+    text += "\nexport function desktopSceneCapture() { return { geometry: currentGeometry?.clone(), settings: getSettingsSnapshot(), mask: _collectCurrentMask() }; }\nexport function desktopSceneActivate(geometry, snapshot, mask) { const name = currentStlName; const work = geometry.index ? geometry.toNonIndexed() : geometry; if (work !== geometry) geometry.dispose(); adoptBakedGeometry(work, computeBounds(work)); currentStlName = name; applySettingsSnapshot(snapshot); if (mask) _restoreMask(mask); }\n"
     main_path.write_text('// ' + notice + '\n' + text, encoding='utf-8', newline='\n')
     exporter_path = output / 'js/exporter.js'
     exporter = exporter_path.read_text(encoding='utf-8')

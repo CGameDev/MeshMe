@@ -8,6 +8,7 @@ export function validateObject(object){
  if(object.indices && (!(object.indices instanceof Uint32Array)||object.indices.length%3||!object.indices.every(i=>i<object.positions.length/3)))throw new Error('Invalid triangle indices');
  if(!object.indices&&object.positions.length%9)throw new Error('Incomplete triangles');
  if(!finite(object.position,3)||!finite(object.rotation,4)||!finite(object.scale,3)||object.scale.some(v=>v<=0))throw new Error('Invalid object transform');
+ const m=object.material;if(!m||!/^#[0-9a-f]{6}$/i.test(m.color)||!['metallic','roughness','opacity'].every(k=>Number.isFinite(m[k])&&m[k]>=0&&m[k]<=1))throw new Error('Invalid object material');
  return object;
 }
 export function objectFromGeometry(geometry,name,sourceFormat='stl'){
@@ -30,6 +31,7 @@ export class SceneDocument {
  add(geometry,name,sourceFormat){const object=objectFromGeometry(geometry,name,sourceFormat);this.transact('Import',s=>{s.objects.push(object);s.selection=[object.id];});return object;}
  select(ids){if(ids.some(id=>!this.state.objects.some(o=>o.id===id)))throw new Error('Unknown selection');this.state.selection=[...new Set(ids)];}
  transform({position,rotation,scale}){this.transact('Transform',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');if(position)o.position=[...position];if(rotation)o.rotation=[...rotation];if(scale)o.scale=[...scale];}});}
+ setMaterial(material){this.transact('Material',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');o.material={...material};}});}
  center(){this.transact('Center Model',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');const g=geometryFromObject(o,{world:true});g.computeBoundingBox();const b=g.boundingBox,c=b.getCenter(new THREE.Vector3());o.position[0]-=c.x;o.position[1]-=c.y;o.position[2]-=b.min.z;g.dispose();}});}
  removeSelected(){this.transact('Delete',s=>{if(this.selected.some(o=>o.locked))throw new Error('Unlock the selected object');s.objects=s.objects.filter(o=>!s.selection.includes(o.id));s.selection=[];});}
  duplicate(){this.transact('Duplicate',s=>{const copies=this.selected.map(o=>({...structuredClone(o),id:crypto.randomUUID(),name:o.name+' copy',locked:false}));s.objects.push(...copies);s.selection=copies.map(o=>o.id);});}

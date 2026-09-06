@@ -75,7 +75,7 @@ for old, new in [('https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module
     page = page.replace(old, new)
 import_map = re.search(r'<script type="importmap">(.*?)</script>', page, re.S)[1]
 digest = base64.b64encode(hashlib.sha256(import_map.encode()).digest()).decode()
-csp = (f"default-src 'self'; script-src 'self' 'sha256-{digest}'; "
+csp = (f"default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-{digest}'; "
        "style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; "
        "worker-src 'self' blob:; connect-src 'self' https://bridge.meshme360.local; font-src 'self'; "
        "object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'")

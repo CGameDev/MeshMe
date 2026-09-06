@@ -121,3 +121,31 @@
 - Candidate Manifold 3.5.1 is not adopted: actual WebView initialization fails
   under the required CSP even with WebAssembly compilation enabled. See
   LOCKED_UI_STATUS.md. No `unsafe-eval` exception or substitute geometry is used.
+
+
+## 2026-09-06 — Verified solid backend and transform continuation
+
+- The earlier Manifold CSP blocker is resolved with a source build of the same
+  version using its CI's Emscripten 5.0.2 and DYNAMIC_EXECUTION=0. No upstream
+  geometry source changes. Preserve the failed npm probe as historical evidence.
+- Each new solid operation owns an isolated worker/WASM heap. Cancel terminates
+  it; inputs are cloned, results remain preview-only until one scene transaction.
+- Split/Hollow results are converted back into the source object's local frame;
+  Boolean results use world coordinates and an identity transform. Split plane
+  normal/offset controls and a slider render an interactive plane. Offset is in
+  canonical millimetres. Invalid/open inputs fail without committing.
+- Hollow uses Manifold morphological erosion with a 32-segment sphere, followed
+  by subtraction. This is an approximation, not an asserted minimum-wall proof.
+  Drain-hole workflow and minimum-wall qualification remain acceptance work.
+- Scene activation now converts indexed meshes to non-indexed geometry before
+  passing them to BumpMesh, whose geometry/export contracts require triangle soup.
+  It also preserves the display basename instead of accumulating `_baked` on each
+  selection change. These are adapter changes, not geometry algorithm changes.
+- TransformControls comes unchanged from the already pinned Three.js package.
+  Gizmo preview changes only displayed transforms; mouse-up commits one history
+  entry. Escape cancels. Group scale is uniform to avoid introducing shear into
+  a TRS-only object model. Independent scaling is single-object/local; numeric
+  transforms retain canonical mm and convert display inches without rescaling.
+- The static CSP gate now distinguishes the exact general `'unsafe-eval'` token
+  from `'wasm-unsafe-eval'`; the latter is explicitly required for the verified
+  local WASM backend. Loader tests reject runtime JavaScript compilation.

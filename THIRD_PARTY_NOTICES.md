@@ -60,6 +60,32 @@ Required local release modules include only the pieces actually used by the pinn
 
 Do not write an assumed version/license into release metadata. Inspect the pinned upstream source first.
 
+### Manifold solid geometry backend
+
+- Manifold 3.5.1, source commit `cc8a7f66d7d5a560da94346258c5b546af27811e`
+  from https://github.com/elalish/manifold; Copyright The Manifold Authors;
+  Apache-2.0. No Manifold geometry source was edited.
+- Clipper2 commit `46f639177fe418f9689e8ddb74f08a870c71f5b4`, selected by
+  that Manifold revision, from https://github.com/AngusJohnson/Clipper2;
+  Copyright Angus Johnson; Boost Software License 1.0. Manifold's own carried
+  `CLIPPER2_NO_IOSTREAM` patch is applied by its original CMake configuration.
+- Built with Emscripten 5.0.2, SDK commit
+  `c817c0ca4ba889ee24a185fd954cff7de1bd8afa`, CMake 3.31.6, Ninja 1.11.1.4.
+  `DYNAMIC_EXECUTION=0`, `ENVIRONMENT=web,worker`, serial Manifold,
+  MinSizeRel. Rebuild instructions: `docs/implementation-notes/MANIFOLD_BUILD.md`.
+- Role: offline worker Boolean, plane split and morphological erosion/hollow
+  operations. These extend the application; BumpMesh algorithms remain intact.
+- Redistributed: the generated JS/WASM under
+  `src/MeshMe360.EngineWeb/vendor/manifold-3.5.1-csp/`, with exact SHA-256 inventory.
+  The npm loader is not used. No runtime download or compiler is required.
+- Included notices: Manifold Apache license, Clipper2 Boost license, Emscripten
+  MIT/NCSA license and authors, musl MIT/copyright exceptions, LLVM libc++,
+  libc++abi and compiler-rt Apache/LLVM exception and legacy notices. These
+  accompany the compiled runtime in the same vendor directory.
+- Manifold acknowledges Sterling Orsten's public-domain linalg and Antti Kuukka's
+  public-domain quickhull; its derivative source retains those acknowledgements.
+  Emscripten's dlmalloc is public domain (Doug Lea), with Emscripten modifications.
+
 ## Desktop dependencies planned for Mesh Me360
 
 The following are architecture selections. Codex must record the exact installed package/runtime versions and licenses after project creation.

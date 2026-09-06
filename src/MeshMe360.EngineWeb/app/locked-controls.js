@@ -5,9 +5,9 @@ export const presets = ['Stone','Rock','Scales','Bricks','Wood','Metal','Fabric'
 export const inspectorTabs = ['Texture','Material','Properties'];
 export const shelfTabs = ['Library','Presets','Recent','Favorites'];
 export class CommandRegistry {
-  constructor() { this.commands = new Map(); }
+  constructor() { this.commands = new Map(); this.busy=false; }
   register(name, execute, available = () => true, requirement = '') { this.commands.set(name, { execute, available, requirement }); }
-  state(name) { const c = this.commands.get(name); return c ? { implemented:true, enabled:!!c.available(), reason:c.requirement } : {implemented:false, enabled:false, reason:'Implementation pending — milestone acceptance has not passed'}; }
-  execute(name) { const c = this.commands.get(name); if (!c || !c.available()) throw new Error(this.state(name).reason); return c.execute(); }
+  state(name) { const c = this.commands.get(name);const blocked=this.busy&&!/^(mode:|view:|tab:|Pan$|Orbit$|Zoom$|Fit$)/.test(name);return c ? { implemented:true, enabled:!blocked&&!!c.available(), reason:blocked?'Finish or cancel the current operation':c.requirement } : {implemented:false, enabled:false, reason:'Implementation pending — milestone acceptance has not passed'}; }
+  execute(name) { const c = this.commands.get(name),state=this.state(name); if (!state.enabled) throw new Error(state.reason); return c.execute(); }
   report(names) { return names.map(name => ({name,...this.state(name)})); }
 }

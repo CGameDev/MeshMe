@@ -11,6 +11,12 @@ WEB = ROOT / 'artifacts/web'
 UPSTREAM = ROOT / 'src/MeshMe360.EngineWeb/upstream'
 
 class OfflineAssets(unittest.TestCase):
+    def test_solid_backend_has_no_dynamic_javascript_execution(self):
+        loader = (WEB / 'vendor/manifold-3.5.1-csp/manifold.js').read_text(encoding='utf-8')
+        for forbidden in ['new Function', 'eval(', 'node:module']:
+            self.assertNotIn(forbidden, loader)
+        self.assertTrue((WEB / 'vendor/manifold-3.5.1-csp/manifold.wasm').is_file())
+
     def test_only_declared_upstream_changes(self):
         changed = {'index.html', 'js/threeCompat.js', 'js/stepWorker.js', 'js/main.js', 'js/exporter.js', 'js/viewer.js'}
         for path in WEB.rglob('*'):
@@ -33,7 +39,8 @@ class OfflineAssets(unittest.TestCase):
         self.assertIn("'sha256-" + digest + "'", csp)
         scripts = csp.split('script-src ')[1].split(';')[0]
         self.assertNotIn('unsafe-inline', scripts)
-        self.assertNotIn('unsafe-eval', scripts)
+        self.assertNotIn("'unsafe-eval'", scripts.split())
+        self.assertIn("'wasm-unsafe-eval'", scripts.split())
         self.assertNotIn('*', csp)
         self.assertNotIn('cdn.jsdelivr.net', page)
         for attrs, body in re.findall(r'<script([^>]*)>(.*?)</script>', page, re.S):

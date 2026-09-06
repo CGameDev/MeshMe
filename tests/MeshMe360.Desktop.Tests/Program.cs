@@ -31,6 +31,8 @@ internal static class Program
                 var environment = await CoreWebView2Environment.CreateAsync(null, Path.Combine(testRoot, "WebView2")).WaitAsync(TimeSpan.FromSeconds(30));
                 await web.EnsureCoreWebView2Async(environment).WaitAsync(TimeSpan.FromSeconds(30));
                 var core = web.CoreWebView2;
+                core.GetDevToolsProtocolEventReceiver("Runtime.exceptionThrown").DevToolsProtocolEventReceived += (_,e)=>Console.Error.WriteLine("Web runtime error: "+e.ParameterObjectAsJson);
+                await core.CallDevToolsProtocolMethodAsync("Runtime.enable","{}");
                 core.NavigationStarting += (_, e) => { if (!HostOrigins.IsApp(e.Uri)) e.Cancel = true; };
                 core.SetVirtualHostNameToFolderMapping("app.meshme360.local", Path.Combine(root, "artifacts", "web"), CoreWebView2HostResourceAccessKind.DenyCors);
                 var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -50,6 +52,7 @@ internal static class Program
                     await Until(async()=>{result=JsonSerializer.Deserialize<string>(await core.ExecuteScriptAsync("document.body.innerText"))??"";return result.StartsWith("PASS:")||result.StartsWith("BLOCKED:");});
                     await File.WriteAllTextAsync(Path.Combine(testRoot,"backend-probe.txt"),result);
                     Console.WriteLine(result);Console.WriteLine("Backend probe evidence: "+testRoot);
+                    if(!result.StartsWith("PASS:")) throw new Exception("Backend probe failed: "+result);
                     await session.CompleteAsync();return;
                 }
                 core.Navigate(HostOrigins.App + "/index.html");
@@ -66,6 +69,60 @@ internal static class Program
                     using var parsed = JsonDocument.Parse(raw);
                     if (parsed.RootElement.TryGetProperty("exceptionDetails", out var error)) throw new Exception(error.ToString());
                     return parsed.RootElement.GetProperty("result").GetProperty("value").Clone();
+                }
+                if(args.Contains("--transform"))
+                {
+                    await Evaluate("(()=>{document.querySelector('[data-command=Move]').click();return true})()");
+                    await Evaluate("new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r(true))))");
+                    var point=await Evaluate("(async()=>{const v=await import('./js/viewer.js');const T=await import('three');const root=v.getScene().children.find(x=>x.isTransformControlsRoot);if(!root)throw new Error('No transform controls');root.updateMatrixWorld(true);const h=root.controls._gizmo.gizmo.translate.children.find(x=>x.name==='X'&&x.isMesh&&x.visible);h.geometry.computeBoundingBox();const p=h.geometry.boundingBox.getCenter(new T.Vector3()).applyMatrix4(h.matrixWorld).project(v.getCamera()),r=v.getRenderer().domElement.getBoundingClientRect();return{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2}})()");
+                    var x=point.GetProperty("x").GetDouble();var y=point.GetProperty("y").GetDouble();
+                    var before=await Evaluate("({position:window.meshMe360Locked.scene.document.selected[0].position,history:window.meshMe360Locked.scene.document.undoStack.length})");
+                    foreach(var item in new[]{new{type="mouseMoved",x,y,button="none",buttons=0},new{type="mousePressed",x,y,button="left",buttons=1},new{type="mouseMoved",x=x+40,y,button="left",buttons=1},new{type="mouseReleased",x=x+40,y,button="left",buttons=0}})
+                        await core.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",JsonSerializer.Serialize(new{item.type,item.x,item.y,item.button,item.buttons,clickCount=1}));
+                    var after=await Evaluate("({position:window.meshMe360Locked.scene.document.selected[0].position,history:window.meshMe360Locked.scene.document.undoStack.length})");
+                    if(before.GetProperty("position").GetRawText()==after.GetProperty("position").GetRawText()||after.GetProperty("history").GetInt32()!=before.GetProperty("history").GetInt32()+1)throw new Exception("Actual gizmo drag did not commit exactly one transform: "+after);
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if((await Evaluate("window.meshMe360Locked.scene.document.selected[0].position")).GetRawText()!=before.GetProperty("position").GetRawText())throw new Exception("Gizmo undo failed");
+                    Console.WriteLine("PASS: actual mouse drag on Three.js Move gizmo creates one undoable transform");
+                    Console.WriteLine("Transform evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if(args.Contains("--solid"))
+                {
+                    await bridge.OpenFileAsync(fixture);
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==2);
+                    await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[5,0,0]});s.document.select(s.document.state.objects.map(o=>o.id));s.refreshScene({activate:true});return true})()");
+                    var before = await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
+                    await Evaluate("(()=>{document.querySelector('[data-command=Boolean]').click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()");
+                    await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]')?.dataset.solidStatus??''")).GetString() is "ready" or "error");
+                    if((await Evaluate("document.querySelector('[data-solid-status]').dataset.solidStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-solid-status]').textContent")).GetString());
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=before.GetString())throw new Exception("Preview mutated originals");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Cancel').click();return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=before.GetString())throw new Exception("Cancel mutated originals");
+                    await Evaluate("(()=>{document.querySelector('[data-command=Boolean]').click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()");
+                    await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]').dataset.solidStatus")).GetString()=="ready");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Commit').click();return true})()");
+                    if((await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()!=1)throw new Exception("Boolean commit failed");
+                    var exportCheck=await Evaluate("(async()=>{const engine=await import('./js/main.js'),{exportSTL}=await import('./js/exporter.js'),{STLLoader}=await import('three/addons/loaders/STLLoader.js');const snapshot=engine.desktopSceneCapture(),g=snapshot.geometry;const bytes=exportSTL(g,null),roundTrip=new STLLoader().parse(bytes);const expected=window.meshMe360Locked.scene.document.selected[0].indices.length/3;const valid=!g.index&&new DataView(bytes).getUint32(80,true)===expected&&roundTrip.attributes.position.count===expected*3;g.dispose();roundTrip.dispose();return valid})()");
+                    if(!exportCheck.GetBoolean())throw new Exception("Indexed solid result failed preserved engine/STL export boundary");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=before.GetString())throw new Exception("Boolean undo did not restore scene");
+                    var workerTests=await Evaluate("(async()=>{const {startSolidOperation}=await import('./app/solid-client.js');const o=window.meshMe360Locked.scene.document.state.objects[0];const job=startSolidOperation({operation:'validate',objects:[o]});job.cancel();let cancelled=false;try{await job.promise}catch(e){cancelled=e.name==='AbortError'}const result=await startSolidOperation({operation:'validate',objects:[o]}).promise;return{cancelled,status:result.results[0].diagnostics.status}})()");
+                    if(!workerTests.GetProperty("cancelled").GetBoolean()||workerTests.GetProperty("status").GetString()!="NoError")throw new Exception("Worker cancel/restart failed");
+                    await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.select([s.document.state.objects[0].id]);s.refreshScene({activate:true});return true})()");
+                    foreach(var command in new[]{"Split","Hollow"})
+                    {
+                        var original=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
+                        await Evaluate($"(()=>{{document.querySelector('[data-command={command}]').click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
+                        await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]')?.dataset.solidStatus??''")).GetString() is "ready" or "error");
+                        if((await Evaluate("document.querySelector('[data-solid-status]').dataset.solidStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-solid-status]').textContent")).GetString());
+                        await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Commit').click();return true})()");
+                        if((await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()!=(command=="Split"?3:2))throw new Exception(command+" commit failed");
+                        await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=original.GetString())throw new Exception(command+" undo failed");
+                    }
+                    Console.WriteLine("PASS: actual Boolean toolbar preview/cancel/commit/undo, originals unchanged, worker cancellation and restart under application CSP");
+                    Console.WriteLine("PASS: actual Split and Hollow controls preview/commit/undo");
+                    Console.WriteLine("Solid controls evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--scene"))
                 {
