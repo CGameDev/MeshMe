@@ -21,6 +21,7 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
     private readonly Dictionary<string, (string Filename, string RequestId, DateTimeOffset Expiry)> _downloads = [];
     private readonly Dictionary<string, string> _activations = [];
     private bool _disposed;
+    private string? _activeFileRequestId;
     public event Action? Ready;
     public event Action<string>? FatalError;
     public Func<SaveOperation, string, string?>? SaveDialogOverride { get; init; } // integration tests only
@@ -93,8 +94,12 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
                         foreach (var expired in _downloads.Where(d => d.Value.Expiry <= DateTimeOffset.UtcNow).Select(d => d.Key).ToArray()) _downloads.Remove(expired);
                         if (_downloads.Count >= 4) throw new InvalidOperationException("Too many pending downloads.");
                         _downloads.Add(url, (filename, message.RequestId, DateTimeOffset.UtcNow.AddMinutes(5)));
+                        result = new {requestId=message.RequestId};
                     }
-                    else if (message.Payload.TryGetProperty("state", out var state) && state.GetString() == "ReadyClean")
+                    else if (message.Payload.TryGetProperty("state", out var state) && state.GetString() == "ReadyClean"
+                        && message.Payload.TryGetProperty("activationId", out var completedActivation)
+                        && completedActivation.ValueKind == JsonValueKind.String
+                        && completedActivation.GetString() == _activeFileRequestId)
                     {
                         _files.RevokeAll(); // Loaded Blob/File is now owned by the engine.
                     }
@@ -132,6 +137,7 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
     {
         _files.RevokeAll(); _activations.Clear();
         var requestId = Guid.NewGuid().ToString();
+        _activeFileRequestId = requestId;
         var grant = _files.Issue(path, requestId);
         _activations.Add(requestId, grant.Path);
         Send(BridgeMessage.Create("host.startupFile", requestId, new
@@ -190,10 +196,11 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
                 try
                 {
                     var completed = download.State == CoreWebView2DownloadState.Completed;
-                    if (completed && operation.Extension == ".bumpmesh") await _recent.AddAsync(selected);
+                    if (completed && operation.Extension is ".bumpmesh" or ".mm360") await _recent.AddAsync(selected);
+                    Send(BridgeMessage.Create("document.stateChanged", grant.RequestId, new {downloadCompleted=completed,filename=grant.Filename,savedFilename=Path.GetFileName(selected)}));
                     await _log.WriteAsync("bridge.downloadResult", new { requestId = grant.RequestId, completed, reason = download.InterruptReason.ToString() });
                 }
-                catch (Exception error) { await _log.WriteAsync("bridge.downloadResultError", new { requestId = grant.RequestId, error.Message }); }
+                catch (Exception error) { await _log.WriteAsync("bridge.downloadResultError", new { requestId = grant.RequestId, error=error.ToString() }); }
             };
             download.StateChanged += changed;
             await _log.WriteAsync("bridge.downloadStarting", new { requestId = grant.RequestId, operation = operation.Label });

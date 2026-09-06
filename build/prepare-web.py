@@ -47,7 +47,7 @@ for path in (output / 'vendor').rglob('*'):
 for path in (output / 'app').glob('.gitkeep'):
     path.unlink()
 
-notice = 'Modified for Mesh Me360 by CGameDev / Brian Hinds, 2026. Original work: BumpMesh by CNC Kitchen and contributors. SPDX-License-Identifier: AGPL-3.0-only'
+notice = 'Modified for Mesh Me360 by Computer Universal Technology Systems, 2026. Original work: BumpMesh by CNC Kitchen and contributors. SPDX-License-Identifier: AGPL-3.0-only'
 def replace_exact(filename, old, new):
     path = output / filename
     text = path.read_text(encoding='utf-8')
@@ -82,6 +82,7 @@ csp = (f"default-src 'self'; script-src 'self' 'sha256-{digest}'; "
 page = page.replace('<meta charset="UTF-8" />', '<meta charset="UTF-8" />\n  <meta http-equiv="Content-Security-Policy" content="' + csp + '" />')
 page = page.replace('<script type="module" src="js/main.js"></script>', '<script type="module" src="app/bootstrap.js"></script>')
 page = page.replace('</head>', '<link rel="stylesheet" href="app/desktop.css" />\n</head>')
+page = page.replace('</head>', '<link rel="stylesheet" href="app/locked-ui.css" />\n</head>')
 page = page.replace('<!DOCTYPE html>', '<!DOCTYPE html>\n<!-- ' + notice + ' -->')
 (output / 'index.html').write_text(page, encoding='utf-8', newline='\n')
 shutil.copyfile(root / 'THIRD_PARTY_NOTICES.md', output / 'THIRD_PARTY_NOTICES.md')

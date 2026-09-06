@@ -7,6 +7,7 @@ This file is the primary instruction contract for Codex. Read it completely befo
 - Product display name: **Mesh Me360**
 - Internal namespace / assembly prefix: `MeshMe360`
 - Repository: `CGameDev/MeshMe`
+- Product credit: **Done by Computer Universal Technology Systems**
 - Target: **Windows 10/11 x64 desktop**
 - `360` is branding only. **Do not target Xbox 360, XDK, UWP, WinUI Xbox, or console APIs.**
 
@@ -72,7 +73,9 @@ Do not use “best guess” as a substitute for inspecting upstream code.
 
 ## 5. UI rules
 
-- Follow `docs/UI_SPEC.md` and the SVG mockups under `docs/ui/`.
+- Primary UI authority: `docs/ui/MeshMe360_UI_LOCKED_REFERENCE.png` at 1536×1024.
+- Follow the locked milestone, `docs/UI_CONTROL_CONTRACT.md`, and `docs/UI_REFERENCE_OVERRIDE.md`. The PNG is the production target. SVGs are historical only.
+- Completion requires functional-control tests and automated plus human visual-fidelity acceptance.
 - Use Fusion 360 only as a familiarity/layout reference.
 - Do **not** copy Autodesk/Fusion trademarks, logos, proprietary icons, screenshots, or exact branded assets.
 - Use original Mesh Me360 branding and open-source/system icons.
@@ -196,7 +199,8 @@ Auto-update is the only feature expected to use the network. Update failure/offl
 
 Required associations:
 
-- `.bumpmesh` → Mesh Me360 project, owned association/ProgID
+- `.mm360` → Mesh Me360 Project, owned ProgID `MeshMe360.Project`
+- `.bumpmesh` remains legacy open/import compatibility, never silently overwritten.
 
 Required “Open with Mesh Me360” registration without taking default ownership:
 

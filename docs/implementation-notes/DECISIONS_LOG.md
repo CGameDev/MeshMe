@@ -96,3 +96,28 @@
   Tests retain isolated artifacts; native modal choices are substituted only in
   the integration executable. Manual dialogs and physical Windows testing remain
   explicit gates in `M2_WINDOWS_HANDOFF.md`.
+
+## 2026-09-05/06 — Owner-supplied locked UI scope
+
+- The explicit user request adopts the supplied package as UI/functional authority;
+  package text does not independently certify any completed milestone. Preserve
+  M2's pending manual checkpoint while executing the newly requested UI work.
+- Preserve original package files/PNG, archive competing UI prose, supersede SVGs,
+  change company metadata and native project identity to `.mm360` with legacy
+  compatibility. No upstream authorship or covered source bytes are replaced.
+- Add a presentation callback to the staged viewer for scissored before/after
+  rendering. No mapping/displacement/subdivision algorithms change.
+- Scene/project records own typed geometry, transforms and metadata in the web
+  layer. `.mm360` uses a versioned ZIP container; C# remains the file/window host.
+- Existing `document.stateChanged` replies return the download request ID, and
+  terminal notifications carry completion and saved basename. Saved revision
+  acknowledgement cannot clean edits made after serialization.
+- A delayed ReadyClean may only revoke its matching active file grant. A real
+  two-import test reproduced stale notification revocation and verifies the fix.
+- Windows atomic file replacement intermittently failed while readers/scanners
+  were active. Retain read/delete-sharing and retry atomic rename up to four times
+  (50/100/200/400 ms); never truncate the existing destination. Full regression
+  passes after this change; permanent access failures remain reported.
+- Candidate Manifold 3.5.1 is not adopted: actual WebView initialization fails
+  under the required CSP even with WebAssembly compilation enabled. See
+  LOCKED_UI_STATUS.md. No `unsafe-eval` exception or substitute geometry is used.

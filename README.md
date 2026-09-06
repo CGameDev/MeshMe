@@ -129,10 +129,16 @@ user. M2 automated checks pass and await the manual Windows checkpoint in
 `docs/implementation-notes/M2_WINDOWS_HANDOFF.md`.
 The self-contained test build is `artifacts/m2-windows/MeshMe360.exe`; keep its
 whole directory together and supply an installed WebView2 runtime for testing.
-This is not a qualified release. M3–M11 have not begun.
+This is not a qualified release. The locked M3 milestone is now in progress; see `docs/implementation-notes/LOCKED_UI_STATUS.md`. M4–M11 have not begun.
 
 ## Developer attribution
 
-Mesh Me360 project direction: **Brian Hinds / CGameDev**.
+**Done by Computer Universal Technology Systems**.
 
 Upstream BumpMesh / stlTexturizer engine: **CNC Kitchen (Stefan Hermann) and contributors**. See the upstream repository and licensing documentation for details.
+
+## Locked UI milestone
+
+The [production PNG](docs/ui/MeshMe360_UI_LOCKED_REFERENCE.png) and locked milestone
+supersede older UI/single-model scope. Primary project: `.mm360`; legacy: `.bumpmesh`.
+Implementation and acceptance remain in progress.

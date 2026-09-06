@@ -1,5 +1,10 @@
 # Mesh Me360 — Architecture Specification
 
+> Locked milestone amendment: the locked PNG and UI_CONTROL_CONTRACT.md supersede
+> conflicting UI, single-model and tool exclusions. Native projects: `.mm360`
+> (MeshMe360.Project); `.bumpmesh` remains legacy compatibility. The .NET 8 WPF /
+> WebView2 architecture, preserved upstream algorithms and licensing remain fixed.
+
 This architecture is fixed for v1.0 unless the repository owner explicitly changes it.
 
 ## 1. High-level design

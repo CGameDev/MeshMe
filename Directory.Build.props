@@ -3,7 +3,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Version>0.1.0</Version>
-    <Company>CGameDev / Brian Hinds</Company>
+    <Company>Computer Universal Technology Systems</Company>
     <Product>Mesh Me360</Product>
     <RepositoryUrl>https://github.com/CGameDev/MeshMe</RepositoryUrl>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>

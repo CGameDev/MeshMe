@@ -114,3 +114,36 @@ Status values during implementation: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `P
 ## Completion rule
 
 A release candidate may not be called v1.0-ready while any `Required` row remains `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, or `FAIL`, unless the repository owner explicitly approves a documented exception.
+
+## Locked UI scope amendment — all rows required
+
+The production PNG and UI_CONTROL_CONTRACT.md supersede conflicting older UI
+rows. No row below is PASS; partial handlers do not satisfy a full contract.
+
+| Area | Required capability | Status |
+|---|---|---|
+| Visual | 1536×1024 PNG fidelity, exact order/positions, human review | IN PROGRESS |
+| Project | .mm360 multi-object round-trip, assets/materials/measurements/profiles | IN PROGRESS |
+| Project | Legacy .bumpmesh migration without overwriting original | IN PROGRESS |
+| Scene | Multi-import, tree/viewport selection, visibility, rename, lock, search | IN PROGRESS |
+| Transform | Move/Rotate/Scale gizmos, numeric controls and undo | IN PROGRESS |
+| Relief | Emboss, Deboss, Linear/Grid/Radial Pattern, preview/commit/cancel | NOT STARTED |
+| Geometry | Repair pipeline, report, safe holes and diagnostics | NOT STARTED |
+| Geometry | Hollow, thickness, watertightness, undo | BLOCKED |
+| Geometry | Boolean Union/Subtract/Intersect with validated backend | BLOCKED |
+| Geometry | Split by interactive plane, keep sides, undo | BLOCKED |
+| Geometry | Combine, optional weld, group preservation, undo | NOT STARTED |
+| Geometry | Make Solid, quality/preview/diagnostics/undo | BLOCKED |
+| Measure | Distance, angle, bounds, ray thickness, persistent tree entries | NOT STARTED |
+| Texture | Procedural/Image/Library sources, strength/invert/blend/direction | IN PROGRESS |
+| Texture | Noise/ridges/cells/waves/checker/brick, seed/frequency/contrast/blur | IN PROGRESS |
+| Library | Twelve reference sources, persistent custom/recent/favorites | IN PROGRESS |
+| Material | PBR controls, reset, undo, export-aware persistence | IN PROGRESS |
+| View | Shaded/Wireframe/Textures/X-Ray, comparison, cube/nav/ruler/stats | IN PROGRESS |
+| Print | Prepare for Print, Bambu Lab 0.20mm and Generic STL profiles | NOT STARTED |
+| Export | Native STL/3MF/OBJ, selected/all, profile/capability warnings | IN PROGRESS |
+| UX | Every menu, Quick Action, inspector control and keyboard flow | IN PROGRESS |
+| Quality | Responsive/DPI/stress/offline/full functional-control gates | NOT STARTED |
+
+See implementation-notes/LOCKED_UI_STATUS.md for the verified backend blocker
+and explicit remaining requirements; older single-model exclusions are superseded.

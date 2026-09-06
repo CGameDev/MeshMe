@@ -49,7 +49,10 @@ export function attachHost(transport) {
         if (!response.ok) throw new Error('Native file access failed. Please reopen the file.');
         const file = new File([await response.blob()], filename, { type: contentType });
         activations.set(file, message.requestId);
-        if (/\.bumpmesh$/i.test(filename)) {
+        if (/\.mm360$/i.test(filename)) {
+          await window.meshMe360Locked.openProject(file);
+          await finishModel({ detail: {file,success:true} });
+        } else if (/\.bumpmesh$/i.test(filename)) {
           const success = await engine.desktopLoadProject(file);
           await finishModel({ detail: { file, success: success === true, error: 'Project load cancelled or failed' } });
         } else await engine.desktopLoadModel(file); // Includes the preserved STEP quality dialog.
@@ -61,10 +64,11 @@ export function attachHost(transport) {
     async download(blob, filename) {
       const url = URL.createObjectURL(blob);
       try {
-        await rpc.request('document.stateChanged', { state: 'Exporting', downloadUrl: url, filename });
+        const registered = await rpc.request('document.stateChanged', { state: 'Exporting', downloadUrl: url, filename });
         const anchor = document.createElement('a');
         anchor.href = url; anchor.download = filename; anchor.style.display = 'none';
         document.body.appendChild(anchor); anchor.click(); anchor.remove();
+        return registered;
       } catch (error) { logError(error); }
       finally { setTimeout(() => URL.revokeObjectURL(url), 60000); }
     },

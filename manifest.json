@@ -1,0 +1,15 @@
+{
+  "package": "MeshMe360_UI_Locked_Milestone_v1.0",
+  "date": "2026-09-05",
+  "repository": "CGameDev/MeshMe",
+  "product": "Mesh Me360",
+  "publisher_credit": "Computer Universal Technology Systems",
+  "reference_image": "docs/ui/MeshMe360_UI_LOCKED_REFERENCE.png",
+  "reference_resolution": "1536x1024",
+  "authority": [
+    "docs/ui/MeshMe360_UI_LOCKED_REFERENCE.png",
+    "docs/milestones/MILESTONE_03_LOCKED_UI_AND_FUNCTIONAL_TOOLSET.md",
+    "docs/UI_CONTROL_CONTRACT.md",
+    "docs/UI_REFERENCE_OVERRIDE.md"
+  ]
+}

@@ -46,7 +46,14 @@ public sealed class JsonFile<T> where T : new()
                 await stream.FlushAsync();
                 stream.Flush(true);
             }
-            File.Move(temp, _path, true);
+            // Windows scanners/indexers may briefly hold the destination without
+            // delete sharing. Retry only the atomic rename; never truncate it.
+            for (var attempt = 0; ; attempt++)
+            {
+                try { File.Move(temp, _path, true); break; }
+                catch (IOException) when (attempt < 4) { await Task.Delay(50 << attempt); }
+                catch (UnauthorizedAccessException) when (attempt < 4) { await Task.Delay(50 << attempt); }
+            }
             return value;
         }
         finally

@@ -510,3 +510,21 @@ Before v1.0 tag:
 - license/source/third-party notices reviewed;
 - no required CDN/network calls remain;
 - no Autodesk proprietary assets included.
+
+## Locked UI milestone gate (mandatory scope expansion)
+
+Run every test category in milestones/MILESTONE_03_LOCKED_UI_AND_FUNCTIONAL_TOOLSET.md
+and every applicable subrequirement in UI_CONTROL_CONTRACT.md. Required additions:
+.mm360 multi-object/assets/materials/measurements/profile round-trip and legacy
+migration; dirty state/recovery; transform gizmos/numerics/undo; selection/tree;
+Emboss/Deboss/Pattern; Repair/Hollow/Make Solid/Boolean/Split/Combine with finite
+vertices, valid indices, counts, bounds, normals and expected watertightness;
+Measure distance/angle/bounds/thickness; procedural and image texture composition;
+STL/3MF/OBJ native export/capability warnings; every menu/tab/shelf/Quick Action;
+100k/1M/multi-million triangle workloads; 1280×720 through 1920×1080 and DPI.
+
+Capture the actual WebView client at 1536×1024. Compare against the supplied PNG,
+not a generated screenshot baseline. Only dynamic model and OS-frame pixels may
+be masked. Require ±3 px major edges and ±4 px control centers, full appearance
+review and human visual acceptance. The structural checker intentionally does
+not certify full appearance or functionality. All gates are currently incomplete.

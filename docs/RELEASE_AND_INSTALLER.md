@@ -1,5 +1,10 @@
 # Mesh Me360 — Release, Installer, and Update Specification
 
+> Locked milestone amendment: the locked PNG and UI_CONTROL_CONTRACT.md supersede
+> conflicting UI, single-model and tool exclusions. Native projects: `.mm360`
+> (MeshMe360.Project); `.bumpmesh` remains legacy compatibility. The .NET 8 WPF /
+> WebView2 architecture, preserved upstream algorithms and licensing remain fixed.
+
 ## 1. Release target
 
 Primary artifact:

@@ -102,40 +102,14 @@ Create a narrow, documented bridge between WPF and the web app.
 
 ---
 
-## Milestone 3 — Fusion 360-inspired Mesh Me360 UI shell
+## Milestone 3 — Locked UI and functional toolset
 
-### Goal
-Replace the upstream page layout with the Mesh Me360 desktop workspace while preserving engine behavior.
-
-### Required references
-- `docs/UI_SPEC.md`
-- `docs/ui/MeshMe360_Main_Workspace.svg`
-- `docs/ui/MeshMe360_Texture_Workspace.svg`
-- `docs/ui/MeshMe360_Recovery_Dialog.svg`
-
-### Tasks
-1. Implement the defined top menu/application row.
-2. Implement workspace tabs:
-   - DESIGN
-   - TEXTURE
-   - MESH
-   - INSPECT
-3. Implement top command groups and command enable/disable states.
-4. Implement left Browser tree.
-5. Keep the central Three.js viewport dominant.
-6. Implement view cube and view/navigation controls without copying Autodesk artwork.
-7. Implement right context-sensitive Properties/Tool panel.
-8. Implement bottom status/history strip.
-9. Wire all existing upstream controls into the new locations; do not leave hidden duplicate controls as the permanent implementation.
-10. Preserve keyboard navigation, focus states, tooltips, and accessibility labels.
-11. Implement light/dark themes and OS-theme default.
-
-### Checkpoint
-- mockup layout is recognizable at 1600x900;
-- usable at 1366x768 without blocking the viewport;
-- high-DPI scaling at 125%, 150%, and 200% does not clip essential controls;
-- every upstream control has an intentional new location;
-- no upstream feature is lost because of UI redesign.
+Replaced by [the locked milestone](milestones/MILESTONE_03_LOCKED_UI_AND_FUNCTIONAL_TOOLSET.md).
+Execute phases A–F against the [production PNG](ui/MeshMe360_UI_LOCKED_REFERENCE.png)
+and [control contract](UI_CONTROL_CONTRACT.md). Require visual-fidelity and full
+functional-control gates, including human comparison. Scope now includes
+multi-object scenes, `.mm360`, geometry tools and OBJ export. Pending earlier
+acceptance and remaining later tests are not implicitly waived.
 
 ---
 

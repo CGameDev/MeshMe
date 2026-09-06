@@ -1,5 +1,10 @@
 # Mesh Me360 — Decisions and Non-Goals
 
+> Locked milestone amendment: the locked PNG and UI_CONTROL_CONTRACT.md supersede
+> conflicting UI, single-model and tool exclusions. Native projects: `.mm360`
+> (MeshMe360.Project); `.bumpmesh` remains legacy compatibility. The .NET 8 WPF /
+> WebView2 architecture, preserved upstream algorithms and licensing remain fixed.
+
 This file exists to prevent Codex from “helpfully” changing product intent while implementing it.
 
 ## Locked v1.0 decisions

@@ -105,3 +105,19 @@ matching file-issued/file-consumed ID `2d97ef21-ec02-4954-89c9-918c5ab5f3e4`, an
 successful recent/title/ReadyClean acknowledgements. The app remains open for
 manual testing. This verifies the startup path through the actual executable;
 visible geometry and native modal interactions still require user acceptance.
+
+## M3 — Locked UI scope adopted; INCOMPLETE (backend blocker)
+
+The owner explicitly supplied and requested the locked PNG milestone, superseding
+older UI/single-model scope. See LOCKED_UI_STATUS.md for actual phase status,
+remaining controls and the reproduced candidate-backend CSP failure. M2 manual
+acceptance is still pending; M4–M11 are not implicitly completed.
+
+Current build and M2 regression suite pass (36 Core, 5 asset, 6 Node, actual WebView
+integration). Five additional locked-core tests pass. Actual multi-object import,
+native `.mm360` save, dirty acknowledgement and token-based reopen pass.
+
+Capture `artifacts/m2-integration-77a9c7340a704a1ba45608607012dfc8/locked-layout.json`
+passes measured region/toolbar positions. `locked-gate.json` deliberately reports
+NOT COMPLETE: pixel appearance, human review and full controls are pending.
+No skipped control or numeric-only transform is counted as full acceptance.

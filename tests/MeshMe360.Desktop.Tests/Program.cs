@@ -26,6 +26,7 @@ internal static class Program
             WebViewHostBridge? bridge = null;
             try
             {
+                if (args.Contains("--locked")) await new SettingsService(paths).PatchAsync(JsonSerializer.SerializeToElement(new {theme="Dark"}));
                 await session.StartAsync();
                 var environment = await CoreWebView2Environment.CreateAsync(null, Path.Combine(testRoot, "WebView2")).WaitAsync(TimeSpan.FromSeconds(30));
                 await web.EnsureCoreWebView2Async(environment).WaitAsync(TimeSpan.FromSeconds(30));
@@ -42,6 +43,15 @@ internal static class Program
                 };
                 bridge.Ready += () => ready.TrySetResult();
                 bridge.FatalError += error => ready.TrySetException(new Exception(error));
+                if(args.Contains("--backend-probe"))
+                {
+                    core.Navigate(HostOrigins.App+"/candidate/probe.html");
+                    string result="";
+                    await Until(async()=>{result=JsonSerializer.Deserialize<string>(await core.ExecuteScriptAsync("document.body.innerText"))??"";return result.StartsWith("PASS:")||result.StartsWith("BLOCKED:");});
+                    await File.WriteAllTextAsync(Path.Combine(testRoot,"backend-probe.txt"),result);
+                    Console.WriteLine(result);Console.WriteLine("Backend probe evidence: "+testRoot);
+                    await session.CompleteAsync();return;
+                }
                 core.Navigate(HostOrigins.App + "/index.html");
                 await ready.Task.WaitAsync(TimeSpan.FromSeconds(60));
                 Console.WriteLine("PASS: actual WebView2 startup handshake");
@@ -56,6 +66,37 @@ internal static class Program
                     using var parsed = JsonDocument.Parse(raw);
                     if (parsed.RootElement.TryGetProperty("exceptionDetails", out var error)) throw new Exception(error.ToString());
                     return parsed.RootElement.GetProperty("result").GetProperty("value").Clone();
+                }
+                if(args.Contains("--scene"))
+                {
+                    await bridge.OpenFileAsync(fixture);
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==2);
+                    await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[30,12,8],scale:[2,1,1]});s.refreshScene();return true})()");
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");
+                    var scenePath=Path.Combine(testRoot,"native-export.mm360");
+                    await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==scenePath));
+                    await Until(async()=> !(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean());
+                    using(var sceneZip=ZipFile.OpenRead(scenePath))
+                    { if(sceneZip.GetEntry("project.json") is null || sceneZip.GetEntry("meshes/1.positions.bin") is null)throw new Exception("Scene container incomplete"); }
+                    await bridge.OpenFileAsync(scenePath);
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
+                    var restored=await Evaluate("window.meshMe360Locked.scene.document.state.objects.map(o=>({position:o.position,scale:o.scale}))");
+                    if(restored.GetArrayLength()!=2||restored[1].GetProperty("position")[0].GetInt32()!=30||restored[1].GetProperty("scale")[0].GetInt32()!=2)throw new Exception("Scene state was lost");
+                    Console.WriteLine("PASS: actual multi-object import, transform, native mm360 save and binary-bridge reopen; dirty cleared after download completion");
+                    Console.WriteLine("Scene evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if (args.Contains("--locked"))
+                {
+                    await core.CallDevToolsProtocolMethodAsync("Emulation.setDeviceMetricsOverride", "{\"width\":1536,\"height\":1024,\"deviceScaleFactor\":1,\"mobile\":false}");
+                    await Evaluate("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))");
+                    var report = await Evaluate("({size:[innerWidth,innerHeight],regions:window.meshMe360Locked.regions(),controls:window.meshMe360Locked.report(),toolbar:[...document.querySelectorAll('.locked-toolbar button')].map(b=>({name:b.textContent,rect:{x:b.getBoundingClientRect().x,y:b.getBoundingClientRect().y,width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height}}))})");
+                    await File.WriteAllTextAsync(Path.Combine(testRoot,"locked-layout.json"),report.GetRawText());
+                    var capture = await core.CallDevToolsProtocolMethodAsync("Page.captureScreenshot", "{\"format\":\"png\",\"captureBeyondViewport\":true}");
+                    using var png=JsonDocument.Parse(capture);
+                    await File.WriteAllBytesAsync(Path.Combine(testRoot,"locked-1536x1024.png"),Convert.FromBase64String(png.RootElement.GetProperty("data").GetString()!));
+                    Console.WriteLine("LOCKED UI EVIDENCE (not an acceptance pass): "+testRoot);
+                    await session.CompleteAsync();
+                    return;
                 }
                 var response = await Evaluate("(async()=>{try{return (await fetch('https://bridge.meshme360.local/file/'+'0'.repeat(64))).status}catch{return 403}})()");
                 if (response.GetInt32() != 403) throw new Exception("Unknown token accepted");

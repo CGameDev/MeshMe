@@ -7,12 +7,12 @@ namespace MeshMe360.Core;
 public sealed record StartupFile(string? Path, string? Warning);
 public static class HostFiles
 {
-    public static readonly string[] Extensions = [".stl", ".obj", ".3mf", ".step", ".stp", ".bumpmesh"];
+    public static readonly string[] Extensions = [".stl", ".obj", ".3mf", ".step", ".stp", ".mm360", ".bumpmesh"];
     public static string Validate(string path)
     {
         var full = System.IO.Path.GetFullPath(path);
         if (!Extensions.Contains(System.IO.Path.GetExtension(full), StringComparer.OrdinalIgnoreCase))
-            throw new InvalidDataException("Supported files: STL, OBJ, 3MF, STEP/STP and .bumpmesh.");
+            throw new InvalidDataException("Supported files: STL, OBJ, 3MF, STEP/STP, .mm360 and legacy .bumpmesh.");
         if (!File.Exists(full)) throw new FileNotFoundException("The selected file no longer exists.", full);
         return full;
     }
@@ -75,6 +75,8 @@ public sealed record SaveOperation(string Extension, string Label, string Filter
 {
     public static SaveOperation FromFilename(string filename) => System.IO.Path.GetExtension(filename).ToLowerInvariant() switch
     {
+        ".mm360" => new(".mm360", "Save Project", "Mesh Me360 project (*.mm360)|*.mm360"),
+        ".obj" => new(".obj", "Export OBJ", "Wavefront OBJ (*.obj)|*.obj"),
         ".bumpmesh" => new(".bumpmesh", "Save Project", "Mesh Me360 project (*.bumpmesh)|*.bumpmesh"),
         ".stl" => new(".stl", "Export STL", "Binary STL (*.stl)|*.stl"),
         ".3mf" => new(".3mf", "Export 3MF", "3MF (*.3mf)|*.3mf"),

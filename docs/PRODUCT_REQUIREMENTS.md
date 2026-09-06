@@ -1,5 +1,10 @@
 # Mesh Me360 — Product Requirements
 
+> Locked milestone amendment: the locked PNG and UI_CONTROL_CONTRACT.md supersede
+> conflicting UI, single-model and tool exclusions. Native projects: `.mm360`
+> (MeshMe360.Project); `.bumpmesh` remains legacy compatibility. The .NET 8 WPF /
+> WebView2 architecture, preserved upstream algorithms and licensing remain fixed.
+
 ## 1. Product statement
 
 Mesh Me360 is an offline-first Windows 10/11 x64 desktop application for loading 3D models, applying displacement textures, masking surfaces, previewing the result, diagnosing mesh quality, simplifying/refining the mesh, and exporting printable geometry.

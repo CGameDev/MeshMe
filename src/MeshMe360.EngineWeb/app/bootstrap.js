@@ -1,6 +1,7 @@
 // Copyright (c) 2026 CGameDev / Brian Hinds
 // SPDX-License-Identifier: AGPL-3.0-only
 import { attachHost } from './host-bridge.js';
+import { mountLockedUi } from './locked-ui.js';
 const host = window.chrome?.webview ? attachHost(window.chrome.webview) : null;
 window.meshMe360 = host;
 function report(type, payload) {
@@ -21,6 +22,7 @@ try {
   const engine = await import('../js/main.js');
   const canvas = document.querySelector('canvas');
   if (!canvas) throw new Error('The engine did not create its viewport.');
+  mountLockedUi(host, engine);
   if (host) await host.start(engine);
 } catch (error) {
   failure(error, true);
