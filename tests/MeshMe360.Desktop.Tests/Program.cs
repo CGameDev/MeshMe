@@ -168,6 +168,35 @@ internal static class Program
                     Console.WriteLine("PASS: actual Split, Hollow, Make Solid, Repair and Repair Mesh controls preview/cancel/commit/undo");
                     Console.WriteLine("Solid controls evidence: "+testRoot);await session.CompleteAsync();return;
                 }
+                if(args.Contains("--combine"))
+                {
+                    await bridge.OpenFileAsync(fixture);
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==2);
+                    await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[20,0,0]});s.document.setMaterial({color:'#ff4400',metallic:.5,roughness:.4,opacity:1});s.document.select(s.document.state.objects.map(o=>o.id));s.refreshScene({activate:true});return true})()");
+                    var original=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
+                    const string launch="(()=>{document.querySelector('[data-command=Combine]').click();const weld=document.querySelector('[aria-label=\"Weld exactly coincident vertices\"]');weld.checked=true;weld.dispatchEvent(new Event('input'));[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()";
+                    foreach(var finish in new[]{"Cancel","Commit"})
+                    {
+                        await Evaluate(launch);
+                        await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]')?.dataset.solidStatus??''")).GetString() is "ready" or "error");
+                        if((await Evaluate("document.querySelector('[data-solid-status]').dataset.solidStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-solid-status]').textContent")).GetString());
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=original.GetString())throw new Exception("Combine preview mutated source");
+                        await Evaluate($"(()=>{{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='{finish}').click();return true}})()");
+                    }
+                    var valid=await Evaluate("(async()=>{const s=window.meshMe360Locked.scene,o=s.document.selected[0],v=await import('./js/viewer.js'),m=v.getCurrentMesh();return s.document.state.objects.length===1&&o.positions.length===36&&o.indices.length===72&&o.groups.length===2&&o.materials[1].color==='#ff4400'&&m.geometry.groups.length===2&&m.userData.groupMaterials[1].color.getHexString()==='ff4400'})()");
+                    if(!valid.GetBoolean())throw new Exception("Combine failed group geometry/material rendering boundary: "+await Evaluate("(async()=>{const s=window.meshMe360Locked.scene,o=s.document.selected[0],v=await import('./js/viewer.js'),m=v.getCurrentMesh();return {objects:s.document.state.objects.length,positions:o.positions.length,indices:o.indices.length,groups:o.groups,materials:o.materials,engineGroups:m.geometry.groups,palette:m.userData.groupMaterials?.map(x=>x.color.getHexString())}})()"));
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=original.GetString())throw new Exception("Combine undo failed");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Redo');return true})()");
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");
+                    var combinedSaved=Path.Combine(testRoot,"native-export.mm360");
+                    await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==combinedSaved));
+                    await bridge.OpenFileAsync(combinedSaved);
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
+                    if(!(await Evaluate("window.meshMe360Locked.scene.document.selected[0].materials[1].color==='#ff4400'&&window.meshMe360Locked.scene.document.selected[0].groups.length===2")).GetBoolean())throw new Exception("Combined material groups lost on native reopen");
+                    Console.WriteLine("PASS: actual Combine preview/cancel/commit/undo/redo, exact welding, rendered material groups and native project reopen");
+                    Console.WriteLine("Combine evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--scene"))
                 {
                     await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('preset:Bricks');return true})()");

@@ -12,9 +12,13 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
   const actions=el('div'),form=el('div');
   function field(label,type,value){const row=el('label','locked-field'),input=el('input');input.type=type;input.value=value;input.setAttribute('aria-label',label);row.append(el('span','',label),input);form.append(row);input.addEventListener('input',invalidate);return input;}
   function choices(label,values){const row=el('label','locked-field'),input=el('select');input.setAttribute('aria-label',label);for(const [value,text]of values){const option=el('option','',text);option.value=value;input.append(option);}row.append(el('span','',label),input);form.append(row);input.onchange=invalidate;return input;}
-  let operation,thickness,normal,offset,keep,cellSize,maxHoleDiameter;
+  let operation,thickness,normal,offset,keep,cellSize,maxHoleDiameter,weld;
   if(kind==='Boolean')operation=choices('Operation',[['union','Union'],['subtract','Subtract (first selected minus the others)'],['intersect','Intersect']]);
   if(kind==='Hollow')thickness=field('Wall thickness (mm)','number',1);
+  if(kind==='Combine'){
+   weld=field('Weld exactly coincident vertices','checkbox','');
+   form.append(el('p','','Combine merges geometry and retains material groups. Intersections remain; this does not create a Boolean union. Uncommitted texture/displacement previews are not baked. Apply relief first if you want it in the merged geometry.'));
+  }
   if(kind==='Repair'){
    maxHoleDiameter=field('Maximum hole diameter (mm)','number',1);maxHoleDiameter.min='0';maxHoleDiameter.step='.1';
    form.append(el('p','','Preview removes invalid/zero-area triangles, merges exact duplicate vertices and corrects unambiguous winding. Only boundary loops within this diameter and 64 edges are eligible for filling; use 0 to leave all openings. Review the report before Commit.'));
@@ -43,8 +47,8 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
    invalidate();setBusy(true);preview.disabled=true;status.dataset.solidStatus='running';status.textContent='Processing in background… Cancel preserves the original objects.';
    try{
     if(document.revision!==revision)throw new Error('The document changed. Reopen the tool.');
-    const objects=inputs.map(o=>{const g=geometryFromObject(o,{world:true});const data={positions:new Float32Array(g.attributes.position.array),indices:g.index?new Uint32Array(g.index.array):null};g.dispose();return data;});
-    const request={operation:kind==='Boolean'?operation.value:kind==='Make Solid'?'solidify':kind.toLowerCase(),objects,thickness:thickness?.valueAsNumber,normal:normal?.map(i=>i.valueAsNumber),offset:offset?.valueAsNumber,cellSize:cellSize?.valueAsNumber,maxHoleDiameter:maxHoleDiameter?.valueAsNumber};
+    const objects=inputs.map(o=>{const g=geometryFromObject(o,{world:true});const data={positions:new Float32Array(g.attributes.position.array),indices:g.index?new Uint32Array(g.index.array):null,material:o.material,materials:o.materials,groups:o.groups};g.dispose();return data;});
+    const request={operation:kind==='Boolean'?operation.value:kind==='Make Solid'?'solidify':kind.toLowerCase(),objects,thickness:thickness?.valueAsNumber,normal:normal?.map(i=>i.valueAsNumber),offset:offset?.valueAsNumber,cellSize:cellSize?.valueAsNumber,maxHoleDiameter:maxHoleDiameter?.valueAsNumber,weld:weld?.checked};
     const currentJob=startSolidOperation(request);job=currentJob;const response=await currentJob.promise;if(closed||job!==currentJob)return;
     job=null;result=response;if(kind==='Split'&&keep.value!=='both')result.results=[response.results[keep.value==='positive'?0:1]];
     result.request=request;
@@ -64,6 +68,7 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
      if(kind!=='Boolean')g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...inputs[0].position),new THREE.Quaternion(...inputs[0].rotation),new THREE.Vector3(...inputs[0].scale)).invert());
      const object=objectFromGeometry(g,`${inputs[0].name} ${kind.toLowerCase()}${result.results.length>1?' '+(i+1):''}`,'meshme');g.dispose();
      object.material=structuredClone(inputs[0].material);
+     if(r.materials){object.materials=structuredClone(r.materials);object.groups=structuredClone(r.groups);}
      if(kind!=='Boolean')for(const key of ['position','rotation','scale'])object[key]=[...inputs[0][key]];
      object.modifiers=[{name:kind+' (baked)',operation:result.request.operation,thickness:result.request.thickness,normal:result.request.normal,offset:result.request.offset,cellSize:result.request.cellSize,maxHoleDiameter:result.request.maxHoleDiameter,diagnostics:r.diagnostics,repairReport:r.repairReport}];return object;
     });
@@ -79,4 +84,5 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
  registry.register('Make Solid',()=>launch('Make Solid'),()=>editable()&&document.selected.length===1,'Select one unlocked mesh with an enclosed interior');
  registry.register('Repair',()=>launch('Repair'),()=>editable()&&document.selected.length===1,'Select one unlocked mesh');
  registry.register('Repair Mesh',()=>registry.execute('Repair'),()=>registry.state('Repair').enabled,'Select one unlocked mesh');
+ registry.register('Combine',()=>launch('Combine'),()=>editable()&&document.selected.length>=2,'Select at least two unlocked objects');
 }

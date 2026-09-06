@@ -8,7 +8,9 @@ export function validateObject(object){
  if(object.indices && (!(object.indices instanceof Uint32Array)||object.indices.length%3||!object.indices.every(i=>i<object.positions.length/3)))throw new Error('Invalid triangle indices');
  if(!object.indices&&object.positions.length%9)throw new Error('Incomplete triangles');
  if(!finite(object.position,3)||!finite(object.rotation,4)||!finite(object.scale,3)||object.scale.some(v=>v<=0))throw new Error('Invalid object transform');
- const m=object.material;if(!m||!/^#[0-9a-f]{6}$/i.test(m.color)||!['metallic','roughness','opacity'].every(k=>Number.isFinite(m[k])&&m[k]>=0&&m[k]<=1))throw new Error('Invalid object material');
+ const materials=object.materials??[object.material];if(!Array.isArray(materials)||!materials.length)throw new Error('Invalid object materials');
+ for(const m of [object.material,...materials])if(!m||!/^#[0-9a-f]{6}$/i.test(m.color)||!['metallic','roughness','opacity'].every(k=>Number.isFinite(m[k])&&m[k]>=0&&m[k]<=1))throw new Error('Invalid object material');
+ if(object.groups){let end=0;if(!Array.isArray(object.groups)||!object.groups.length)throw new Error('Invalid material groups');for(const g of object.groups){if(!Number.isInteger(g.start)||g.start!==end||!Number.isInteger(g.count)||g.count<=0||g.count%3||!Number.isInteger(g.materialIndex)||g.materialIndex<0||g.materialIndex>=materials.length)throw new Error('Invalid material group');end+=g.count;}if(end!==(object.indices?.length??object.positions.length/3))throw new Error('Incomplete material groups');}
  return object;
 }
 export function objectFromGeometry(geometry,name,sourceFormat='stl'){
@@ -16,6 +18,7 @@ export function objectFromGeometry(geometry,name,sourceFormat='stl'){
 }
 export function geometryFromObject(object,{world=false}={}){
  validateObject(object);const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(object.positions.slice(),3));if(object.indices)g.setIndex(new THREE.BufferAttribute(object.indices.slice(),1));g.computeVertexNormals();
+ for(const group of object.groups??[])g.addGroup(group.start,group.count,group.materialIndex);
  if(world)g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...object.position),new THREE.Quaternion(...object.rotation),new THREE.Vector3(...object.scale)));return g;
 }
 export class SceneDocument {
@@ -31,7 +34,7 @@ export class SceneDocument {
  add(geometry,name,sourceFormat){const object=objectFromGeometry(geometry,name,sourceFormat);this.transact('Import',s=>{s.objects.push(object);s.selection=[object.id];});return object;}
  select(ids){if(ids.some(id=>!this.state.objects.some(o=>o.id===id)))throw new Error('Unknown selection');this.state.selection=[...new Set(ids)];}
  transform({position,rotation,scale}){this.transact('Transform',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');if(position)o.position=[...position];if(rotation)o.rotation=[...rotation];if(scale)o.scale=[...scale];}});}
- setMaterial(material){this.transact('Material',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');o.material={...material};}});}
+ setMaterial(material){this.transact('Material',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');o.material={...material};if(o.materials)o.materials=o.materials.map(()=>({...material}));}});}
  center(){this.transact('Center Model',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');const g=geometryFromObject(o,{world:true});g.computeBoundingBox();const b=g.boundingBox,c=b.getCenter(new THREE.Vector3());o.position[0]-=c.x;o.position[1]-=c.y;o.position[2]-=b.min.z;g.dispose();}});}
  removeSelected(){this.transact('Delete',s=>{if(this.selected.some(o=>o.locked))throw new Error('Unlock the selected object');s.objects=s.objects.filter(o=>!s.selection.includes(o.id));s.selection=[];});}
  duplicate(){this.transact('Duplicate',s=>{const copies=this.selected.map(o=>({...structuredClone(o),id:crypto.randomUUID(),name:o.name+' copy',locked:false}));s.objects.push(...copies);s.selection=copies.map(o=>o.id);});}

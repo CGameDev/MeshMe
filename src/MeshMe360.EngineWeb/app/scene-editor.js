@@ -4,16 +4,19 @@ import {SceneDocument,serializeProject,deserializeProject,geometryFromObject} fr
 import {attachSolidTools} from './solid-tools.js';
 import {createSceneGizmo} from './scene-gizmo.js';
 import {attachReliefTools} from './relief-tools.js';
+import {remapMaterialGroups} from './combine-geometry.js';
 export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName,propertiesPanel,search,openDialog,el,refresh,updateStats,viewport,setPreview}){
- const document=new SceneDocument();let activeId=null,busy=false,gizmo;const otherMeshes=new THREE.Group();viewer.getScene().add(otherMeshes);const pendingSaves=new Map();
+ const document=new SceneDocument();let activeId=null,busy=false,gizmo;const otherMeshes=new THREE.Group();viewer.getScene().add(otherMeshes);const pendingSaves=new Map();let ownedMaterials=[];
+ function renderMaterials(object){const list=(object.materials??[object.material]).map(m=>new THREE.MeshStandardMaterial({color:m.color,metalness:m.metallic,roughness:m.roughness,opacity:m.opacity,transparent:m.opacity<1}));ownedMaterials.push(...list);return object.groups?list:list[0];}
  const editable=()=>!busy&&document.selected.length>0&&document.selected.every(o=>!o.locked);
  function applySnapshot(object,snapshot){object.engineSettings=snapshot.settings;object.engineMask=snapshot.mask;object.textureId=snapshot.texture?.id??null;if(snapshot.texture&&!document.state.textures.some(t=>t.id===snapshot.texture.id))document.state.textures.push(snapshot.texture);}
  function capture(){const object=document.state.objects.find(o=>o.id===activeId);if(!object)return;const snapshot=engine.desktopSceneCapture();applySnapshot(object,snapshot);snapshot.geometry?.dispose();}
  function applyTransform(mesh,object){mesh.position.fromArray(object.position);mesh.quaternion.fromArray(object.rotation);mesh.scale.fromArray(object.scale);mesh.visible=object.visible;mesh.userData.sceneObjectId=object.id;}
  function refreshScene({activate=false}={}){
   if(activate){const selected=document.selected[0]??document.state.objects[0];if(selected){activeId=selected.id;engine.desktopSceneActivate(geometryFromObject(selected),selected.engineSettings,selected.engineMask,document.state.textures.find(t=>t.id===selected.textureId));}else{activeId=null;const mesh=viewer.getCurrentMesh();if(mesh)mesh.visible=false;}}
-  for(const mesh of [...otherMeshes.children]){otherMeshes.remove(mesh);mesh.geometry.dispose();mesh.material.dispose();}
-  for(const object of document.state.objects){if(object.id===activeId){const mesh=viewer.getCurrentMesh();if(mesh)applyTransform(mesh,object);continue;}const g=geometryFromObject(object),m=object.material;const mesh=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:m.color,metalness:m.metallic,roughness:m.roughness,opacity:m.opacity,transparent:m.opacity<1}));applyTransform(mesh,object);otherMeshes.add(mesh);}
+  for(const mesh of [...otherMeshes.children]){otherMeshes.remove(mesh);mesh.geometry.dispose();}
+  for(const material of ownedMaterials)material.dispose();ownedMaterials=[];
+  for(const object of document.state.objects){if(object.id===activeId){const mesh=viewer.getCurrentMesh();if(mesh){applyTransform(mesh,object);mesh.userData.groupMaterials=object.groups?renderMaterials(object):null;mesh.userData.hasTexture=!!object.textureId;}continue;}const g=geometryFromObject(object);const mesh=new THREE.Mesh(g,renderMaterials(object));applyTransform(mesh,object);otherMeshes.add(mesh);}
   documentName.textContent=document.state.name+(document.dirty?' *':'');window.dispatchEvent(new CustomEvent('meshme:scene-changed',{detail:{units:document.state.units,material:document.selected[0]?.material,editable:editable()}}));updateStats();renderTree();renderProperties();refresh();gizmo?.sync();viewer.requestRender();void host?.rpc.request('document.dirtyChanged',{dirty:document.dirty}).catch(()=>{});
  }
  function select(ids){capture();document.select(ids);refreshScene({activate:true});}
@@ -52,6 +55,6 @@ export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName
  gizmo=createSceneGizmo({document,viewer,meshes:()=>[viewer.getCurrentMesh(),...otherMeshes.children].filter(Boolean),refreshScene,showError,isBusy:()=>busy});
  const setBusy=value=>{busy=value;registry.busy=value;if(value)gizmo.activate(null);for(const panel of window.document.querySelectorAll('.locked-project,.locked-inspector-body,.locked-shelf'))panel.inert=value;refresh();};
  attachSolidTools({document,viewer,registry,editable,setBusy,refreshScene,openDialog,el});
- attachReliefTools({engine,document,registry,openDialog,el,setBusy,setPreview,refreshScene,commitResult:(name,result,input)=>{try{document.transact(name,()=>{const object=document.selected[0];engine.desktopAdoptDisplacement(result,input);const snapshot=engine.desktopSceneCapture();try{object.positions=new Float32Array(snapshot.geometry.attributes.position.array);object.indices=null;applySnapshot(object,snapshot);object.modifiers.push({name:name+' (baked)',source:object.textureId,settings:structuredClone(input.settings)});}finally{snapshot.geometry.dispose();}});refreshScene();}catch(error){refreshScene({activate:true});throw error;}}});
+ attachReliefTools({engine,document,registry,openDialog,el,setBusy,setPreview,refreshScene,commitResult:(name,result,input)=>{try{document.transact(name,()=>{const object=document.selected[0],groups=remapMaterialGroups(object.groups,result.faceParentId);engine.desktopAdoptDisplacement(result,input);const snapshot=engine.desktopSceneCapture();try{object.positions=new Float32Array(snapshot.geometry.attributes.position.array);object.indices=null;if(groups)object.groups=groups;applySnapshot(object,snapshot);object.modifiers.push({name:name+' (baked)',source:object.textureId,settings:structuredClone(input.settings)});}finally{snapshot.geometry.dispose();}});refreshScene({activate:true});}catch(error){refreshScene({activate:true});throw error;}}});
  search.oninput=renderTree;refreshScene();return{document,openProject,renderTree,renderProperties,refreshScene,capture};
 }

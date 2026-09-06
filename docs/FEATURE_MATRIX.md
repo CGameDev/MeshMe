@@ -132,7 +132,7 @@ rows. No row below is PASS; partial handlers do not satisfy a full contract.
 | Geometry | Hollow, thickness, watertightness, undo | IN PROGRESS |
 | Geometry | Boolean Union/Subtract/Intersect with validated backend | IN PROGRESS |
 | Geometry | Split by interactive plane, keep sides, undo | IN PROGRESS |
-| Geometry | Combine, optional weld, group preservation, undo | NOT STARTED |
+| Geometry | Combine, optional weld, group preservation, undo | IN PROGRESS — worker/UI/native round-trip tests pass; grouped relief and full stress/visual qualification pending |
 | Geometry | Make Solid, quality/preview/diagnostics/undo | IN PROGRESS — offline libigl/Manifold reconstruction; fixture and control qualification, stress/manual acceptance pending |
 | Measure | Distance, angle, bounds, ray thickness, persistent tree entries | NOT STARTED |
 | Texture | Procedural/Image/Library sources, strength/invert/blend/direction | IN PROGRESS |

@@ -5,6 +5,23 @@ import * as THREE from '../../src/MeshMe360.EngineWeb/vendor/three-0.170.0/build
 import {SceneDocument,serializeProject,deserializeProject,geometryFromObject} from '../../src/MeshMe360.EngineWeb/app/scene-document.js';
 import {generateHeight} from '../../src/MeshMe360.EngineWeb/app/procedural.js';
 import {CommandRegistry,toolbar} from '../../src/MeshMe360.EngineWeb/app/locked-controls.js';
+import {combineGeometry,remapMaterialGroups} from '../../src/MeshMe360.EngineWeb/app/combine-geometry.js';
+
+test('Combine preserves world geometry, material groups and exact optional welding',()=>{
+ const doc=new SceneDocument();doc.add(new THREE.BoxGeometry(10,10,10),'First');doc.add(new THREE.BoxGeometry(10,10,10),'Second');doc.transform({position:[20,0,0]});doc.setMaterial({color:'#ff4400',metallic:.5,roughness:.4,opacity:1});
+ const inputs=doc.state.objects.map(o=>{const g=geometryFromObject(o,{world:true});return{positions:g.attributes.position.array,indices:g.index.array,material:o.material};});
+ const combined=combineGeometry(inputs);assert.equal(combined.indices.length,72);assert.equal(combined.groups.length,2);assert.equal(combined.materials[1].color,'#ff4400');assert.equal(Math.max(...combined.positions.filter((_,i)=>i%3===0)),25);
+ const welded=combineGeometry(inputs,{weld:true});assert.equal(welded.positions.length,16*3);assert.equal(welded.indices.length,72);assert.deepEqual(welded.groups,combined.groups);
+ const object={...structuredClone(doc.state.objects[0]),positions:combined.positions,indices:combined.indices,groups:combined.groups,materials:combined.materials};doc.transact('Combine',s=>{s.objects=[object];s.selection=[object.id];});
+ const reopened=deserializeProject(serializeProject(doc.state));assert.deepEqual(reopened.objects[0].groups,combined.groups);assert.deepEqual(reopened.objects[0].materials,combined.materials);assert.equal(geometryFromObject(reopened.objects[0]).groups.length,2);doc.undo();assert.equal(doc.state.objects.length,2);
+ const invalid=structuredClone(reopened);invalid.objects[0].groups[1].start=1;assert.throws(()=>serializeProject(invalid),/group/);
+});
+
+test('Subdivision parent metadata preserves combined material membership',()=>{
+ const groups=[{start:0,count:6,materialIndex:0},{start:6,count:3,materialIndex:1}];
+ assert.deepEqual(remapMaterialGroups(groups,new Uint32Array([0,0,2,2,1])),[{start:0,count:6,materialIndex:0},{start:6,count:6,materialIndex:1},{start:12,count:3,materialIndex:0}]);
+ assert.throws(()=>remapMaterialGroups(groups,new Uint32Array([3])),/parent/);
+});
 test('mm360 multi-object/texture/material/measurement round trip and dirty undo',()=>{
  const doc=new SceneDocument();const box=new THREE.BoxGeometry(20,20,20);doc.add(box,'Cube');doc.add(box,'Second');doc.state.textures.push({name:'custom',mime:'image/png',bytes:new Uint8Array([1,2,3])});doc.state.measurements.push({id:'distance',name:'Distance',points:[[0,0,0],[3,4,0]],valueMm:5});doc.transform({position:[30,10,5],scale:[2,1,1]});
  assert.equal(doc.dirty,true);const reopened=deserializeProject(serializeProject(doc.state));assert.equal(reopened.objects.length,2);assert.deepEqual(reopened.objects[1].position,[30,10,5]);assert.deepEqual(reopened.textures[0].bytes,new Uint8Array([1,2,3]));assert.equal(reopened.measurements[0].valueMm,5);assert.deepEqual(reopened.objects[1].material,doc.state.objects[1].material);doc.markSaved();assert.equal(doc.dirty,false);doc.undo();assert.equal(doc.dirty,true);doc.redo();assert.equal(doc.dirty,false);

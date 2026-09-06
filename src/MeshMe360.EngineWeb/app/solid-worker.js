@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import createManifold from '../vendor/manifold-3.5.1-csp/manifold.js';
 import {runSolidOperation} from './solid-operations.js';
+import {combineGeometry} from './combine-geometry.js';
 const ready=createManifold({locateFile:name=>new URL('../vendor/manifold-3.5.1-csp/'+name,import.meta.url).href}).then(module=>{module.setup();return module;});
 self.onmessage=async({data})=>{
  try{
   const module=await ready;
   let result;
-  if(data.request.operation==='repair'){
+  if(data.request.operation==='combine'){
+   result={results:[combineGeometry(data.request.objects,{weld:data.request.weld})]};
+  }else if(data.request.operation==='repair'){
    if(data.request.objects.length!==1)throw new Error('Select one mesh for Repair.');
    const {default:createRepair}=await import('../vendor/meshme-repair-1/repair.js');
    const backend=await createRepair({locateFile:name=>new URL('../vendor/meshme-repair-1/'+name,import.meta.url).href});

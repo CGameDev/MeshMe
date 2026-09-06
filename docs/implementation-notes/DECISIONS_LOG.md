@@ -204,3 +204,22 @@ orientation; reverse globally only one closed patch with negative enclosed
 volume. Never claim self-intersections are fixed by topological validation.
 Reports survive in baked modifiers. The pinned plain-MIT PMP revision and full
 source closure are documented in `REPAIR_BUILD.md`.
+
+## Locked UI: Combine and material groups
+
+Combine assembles world-space geometry in a worker, preserving face counts and
+explicit contiguous material groups. It does not remove intersections or act as
+Boolean Union. Optional welding merges exactly equal coordinates only. Inputs
+remain recoverable through one Undo; preview and Cancel do not change them.
+The result uses the first object's coordinate frame while retaining world
+placement. Uncommitted relief previews must be applied first, as explained in
+the tool. Geometry assembly has a three-million vertex/triangle resource limit.
+
+Version-1 scene objects now optionally contain a validated `materials` palette
+and contiguous `groups` covering every triangle. Existing singular-material
+objects remain compatible. The actual render boundary preserves the palette,
+and native project reopening restores it. Object-level Material edits affect
+all groups. Relief maps material membership using the unchanged engine's
+`faceParentId` metadata, preserving subdivision provenance without changing its
+geometry algorithms. Full grouped relief/render-mode stress acceptance remains
+pending beyond the metadata and existing relief tests.

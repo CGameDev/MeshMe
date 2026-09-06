@@ -154,3 +154,14 @@ Five named commands remain entirely unimplemented: Pattern, Measure, Combine,
 OBJ and Prepare for Print. Full control subrequirements, self-intersection
 qualification, stress, pixel appearance and human/physical acceptance remain
 open. M3 remains NOT COMPLETE.
+
+### Combine continuation
+
+Combine now runs in the geometry worker with preview/cancel/commit/undo/redo,
+optional exact vertex welding and material groups. Actual renderer/native project
+reopen checks pass (`artifacts/m2-integration-4e962cecbbb34aa58f53905e387d1dff`).
+The full current regression suite passes: 16 Node checks, 6 asset checks, 36 Core
+checks, all actual application modes and three geometry fixture probes.
+Four named commands remain entirely unimplemented: Pattern, Measure, OBJ and
+Prepare for Print. Broader control, grouped-relief, visual, stress and physical
+acceptance remain open. M3 is NOT COMPLETE.
