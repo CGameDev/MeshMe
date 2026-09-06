@@ -149,3 +149,37 @@
 - The static CSP gate now distinguishes the exact general `'unsafe-eval'` token
   from `'wasm-unsafe-eval'`; the latter is explicitly required for the verified
   local WASM backend. Loader tests reject runtime JavaScript compilation.
+
+
+## 2026-09-06 — Texture assets and preserved-pipeline relief
+
+- `.mm360` embeds the exact upstream sampled image bytes as
+  `application/x-meshme-rgba8` assets with id/name/width/height. Original upstream
+  sampling is capped at 512 pixels; project restore validates dimensions up to
+  4096 and exact RGBA length. ZIP compression retains these pixels losslessly.
+  The adapter constructs the same CanvasTexture/ImageData structure synchronously,
+  avoiding asynchronous object-switch texture races. Named source-load sequencing
+  discards superseded image decodes without replacing the current selection.
+- Project opening now rejects compressed input above 500 MiB, a decompressed
+  inventory above 512 MiB, individual assets above 256 MiB, more than 10,000
+  entries and a manifest above 8 MiB before accepting the document. Broader
+  untrusted-format stress and migration qualification remain required.
+- The custom library is a per-WebView-profile IndexedDB store. It holds original
+  image blobs and generator parameters; built-ins remain immutable outside the
+  store. Custom blobs are capped at 32 MiB and image-decoded before saving.
+- The generator runs in its own worker and adds deterministic periodic separable
+  box smoothing. This is application procedural-source code, not a replacement
+  for any upstream mesh/mapping algorithm.
+- Relief uses the unchanged upstream exportWorker and exportPipeline. Preview
+  passes exactly the original bake input fields. Commit adopts returned geometry
+  and the original parent-face masking semantics inside one document transaction.
+  The adapter exposes existing pipeline/settings helpers; the upstream source
+  directory remains byte-identical. The actual tests prove positive Emboss and
+  negative Deboss geometry movement, not a shading-only change.
+- A module worker with asynchronous imports can lose an early run message before
+  installing its handler. The relief client now waits for the original `ready`
+  protocol and fails initialization after 20 seconds; Cancel safely terminates it.
+- View presentation swaps geometry/material only during a render and restores the
+  engine-owned references afterward, preventing mode switches from retaining a
+  disposed shader material. The comparison divider uses actual base/preview mesh
+  geometry and offers a hover/focus close control without discarding the preview.

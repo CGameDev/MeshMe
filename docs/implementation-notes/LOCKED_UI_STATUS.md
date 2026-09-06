@@ -14,8 +14,8 @@ constitute confirmation of the previous M2 manual checkpoint. That remains pendi
 | Phase | State | Actual work / remaining requirements |
 |---|---|---|
 | A — shell | IN PROGRESS | Locked region layout, toolbar order/centers, tabs, shelf, existing viewport, camera modes/navigation and comparison presentation hook; typography, icon fidelity, source thumbnails, full inspector layout, responsiveness and human/pixel review remain. |
-| B — project | IN PROGRESS | Versioned ZIP `.mm360` data model, multiple sequential imports, scene selection/visibility, numeric transforms/center, history and actual native save/reopen tested. Multi-file chooser workflow, full gizmo qualification, full embedded texture restoration, legacy fidelity, safe close, autosave/recovery and broader tests remain. |
-| C — engine relocation | IN PROGRESS | Existing scale/depth/invert/projection controls relocated with handlers intact; original advanced controls remain accessible. Complete masking/refinement/decimation relocation, source-strength/blending, commit/undo integration remain. |
+| B — project | IN PROGRESS | Versioned ZIP `.mm360` data model, multiple sequential imports, scene selection/visibility, numeric transforms/center, history and actual native save/reopen tested. Multi-file chooser workflow, full gizmo qualification, full legacy/texture stress qualification, safe close, autosave/recovery and broader tests remain. |
+| C — engine relocation | IN PROGRESS | Existing scale/depth/invert/projection controls relocated with handlers intact; original advanced controls remain accessible. Emboss/Deboss/Apply Texture use the preserved worker with preview/commit/undo and signed geometry tests. Complete masking/refinement/decimation relocation, source-strength/blending, Pattern and broader integration remain. |
 | D — new tools | IN PROGRESS | CSP-compatible Manifold build adopted with pinned source/licenses/hashes. Boolean, plane Split and inward Hollow previews/commits/undo pass initial real WebView2 tests. Drain placement, minimum-wall qualification, repair/solidification, remaining tools and broad geometry tests remain. |
 | E — export/profiles | INCOMPLETE | Existing STL/3MF preserved and native `.mm360` save added; full multi-object export, OBJ/material packaging, profile execution and warnings remain. |
 | F — verification | INCOMPLETE | Build, baseline geometry, initial scene tests and real WebView captures exist. Full functional matrix, stress/DPI/offline tests and human visual acceptance have not passed. |
@@ -85,3 +85,39 @@ claim fidelity. The production PNG remains the sole visual reference.
   untrusted ZIP stress, migration and full recovery tests remain required.
 - Scene history currently has a 256 MiB budget and rejects a transaction when a
   single prior state exceeds it. Broader performance/UX qualification is pending.
+
+## Texture/library/relief continuation
+
+Per-object sampled texture pixels are now stored as versioned raw RGBA8 assets
+inside the compressed `.mm360` container and reconstructed in the engine's
+original CanvasTexture/ImageData representation. Native project tests retain two
+different sources and verify every sampled byte after save/reopen and switching.
+No duplicate C# geometry or texture state is introduced.
+
+The persistent IndexedDB custom library supports import, rename, delete, favorite,
+apply and procedural PNG generation. Noise/ridges/cells/waves/checker/brick,
+seed/frequency/contrast/periodic blur/invert are wired. Actual UI tests generate,
+save, reopen the store and verify exact pixels after applying to the engine.
+Built-in presets never enter the mutable custom store.
+
+Relief previews call the unchanged exportWorker/exportPipeline in bake mode with
+input fields matching upstream bakeTextures(). The adapter retains the original
+parent-face exclusion rule when adopting a preview at explicit Commit. A real
+worker-ready handshake is required: sending before ready initially lost the job
+and is now covered by the actual browser regression. Cancellation terminates
+only the owned worker. Emboss/Deboss/Apply Texture tests verify the direction of
+actual geometry movement and full scene Undo. Advanced region/precision masking,
+large-job qualification and every control subrequirement are still pending.
+
+Latest full `build/Test-Locked.ps1` run passes 36 Core, 6 static asset, 14 Node
+checks, actual host/scene/solid/Move/library/relief runs and deterministic solid
+fixtures. Representative artifacts:
+- `artifacts/m2-integration-77a15d9cd02c415f8661f6ab73ea272c` — scene/texture reopen
+- `artifacts/m2-integration-ca37d96b70e84b32a83aca7ae2f01f8c` — library
+- `artifacts/m2-integration-80f46cbe7e9f4c9697480e3e51df921c` — relief
+- `artifacts/m2-integration-2e54e37979fc43d595206d94baf348a1` — visual capture
+
+The PNG appearance and full functional gate have not passed. Remaining entirely
+unimplemented named commands at this point are Pattern, Repair, Measure, Combine,
+OBJ, Repair Mesh, Make Solid and Prepare for Print. Implemented handlers still
+need all listed subrequirements and tests before acceptance.

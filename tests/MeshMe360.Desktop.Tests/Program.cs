@@ -70,6 +70,44 @@ internal static class Program
                     if (parsed.RootElement.TryGetProperty("exceptionDetails", out var error)) throw new Exception(error.ToString());
                     return parsed.RootElement.GetProperty("result").GetProperty("value").Clone();
                 }
+                if(args.Contains("--relief"))
+                {
+                    await Evaluate("(async()=>{const e=await import('./js/main.js'),c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,8,8);const blob=await new Promise(r=>c.toBlob(r));await e.desktopLoadTexture(new File([blob],'white.png',{type:'image/png'}));e.desktopConfigureTexture({textureHeight:1,refineLength:3,maxTriangles:50000,smoothBottom:false,noDownwardZ:false,boundaryFalloff:0,topAngleLimit:0,bottomAngleLimit:0});return true})()");
+                    foreach(var command in new[]{"Emboss","Deboss","Apply Texture"})
+                    {
+                        await Evaluate("(async()=>{(await import('./js/main.js')).desktopConfigureTexture({textureHeight:1,refineLength:3,maxTriangles:50000,smoothBottom:false,noDownwardZ:false,boundaryFalloff:0,topAngleLimit:0,bottomAngleLimit:0});return true})()");
+                        var before=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
+                        var oldMax=(await Evaluate("(()=>{const p=window.meshMe360Locked.scene.document.selected[0].positions;let z=-Infinity;for(let i=2;i<p.length;i+=3)z=Math.max(z,p[i]);return z})()")).GetDouble();
+                        await Evaluate($"(()=>{{document.querySelector('[data-command=\"{command}\"]').click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
+                        try{await Until(async()=> (await Evaluate("document.querySelector('[data-relief-status]')?.dataset.reliefStatus??''")).GetString() is "ready" or "error");}
+                        catch{Console.Error.WriteLine(command+" state: "+await Evaluate("({dialog:document.querySelector('.locked-dialog').innerText,status:document.querySelector('[data-relief-status]')?.dataset.reliefStatus})"));throw;}
+                        if((await Evaluate("document.querySelector('[data-relief-status]').dataset.reliefStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-relief-status]').textContent")).GetString());
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=before.GetString())throw new Exception(command+" preview changed document");
+                        await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Commit').click();return true})()");
+                        var newMax=(await Evaluate("(()=>{const p=window.meshMe360Locked.scene.document.selected[0].positions;let z=-Infinity;for(let i=2;i<p.length;i+=3)z=Math.max(z,p[i]);return z})()")).GetDouble();
+                        if(command=="Deboss"?newMax>=oldMax-.05:newMax<=oldMax+.05)throw new Exception(command+" did not change actual surface in expected direction: "+oldMax+" -> "+newMax);
+                        await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=before.GetString())throw new Exception(command+" undo failed");
+                    }
+                    Console.WriteLine("PASS: actual Emboss, Deboss and Apply Texture worker preview/commit/undo; originals untouched until commit and signed geometry displacement verified");
+                    Console.WriteLine("Relief evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if(args.Contains("--library"))
+                {
+                    await Evaluate("(()=>{document.querySelector('[data-command=\"Generate Texture\"]').click();for(const [name,value]of [['Seed',7],['Blur',2]]){const input=document.querySelector('.locked-dialog [aria-label=\"'+name+'\"]');input.value=value;input.dispatchEvent(new Event('input'));}[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Generate Preview').click();return true})()");
+                    await Until(async()=> (await Evaluate("!![...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Save to Library'&&!b.disabled)")).GetBoolean());
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Save to Library').click();return true})()");
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.library.items.length")).GetInt32()==1);
+                    var libraryResult=await Evaluate("(async()=>{const l=window.meshMe360Locked.library;l.store.close();await l.refresh();const item=l.items[0];await window.meshMe360Locked.registry.execute('preset:'+item.id);const e=await import('./js/main.js'),p=await import('./app/procedural.js'),snapshot=e.desktopSceneCapture(),expected=p.generateHeight(item.parameters);const exact=expected.every((v,i)=>snapshot.texture.bytes[i*4]===v&&snapshot.texture.bytes[i*4+1]===v&&snapshot.texture.bytes[i*4+2]===v&&snapshot.texture.bytes[i*4+3]===255);snapshot.geometry.dispose();return{seed:item.parameters.seed,blur:item.parameters.blur,exact}})()");
+                    if(libraryResult.GetProperty("seed").GetInt32()!=7||libraryResult.GetProperty("blur").GetInt32()!=2||!libraryResult.GetProperty("exact").GetBoolean())throw new Exception("Generated library texture differs after persistence/apply");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Texture Library');const input=document.querySelector('.locked-dialog [aria-label=\"Texture name\"]');input.value='Saved noise';[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Rename').click();return true})()");
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.library.items[0].name")).GetString()=="Saved noise");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Favorite').click();return true})()");
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.library.items[0].favorite")).GetBoolean());
+                    if(!(await Evaluate("(async()=>{try{await window.meshMe360Locked.library.store.remove('Stone');return false}catch{return true}})()")).GetBoolean())throw new Exception("Built-in texture deletion accepted");
+                    Console.WriteLine("PASS: actual procedural generator, blur/seed, PNG save to IndexedDB, store reopen, exact pixel application, rename/favorite and built-in protection");
+                    Console.WriteLine("Library evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--transform"))
                 {
                     await Evaluate("(()=>{document.querySelector('[data-command=Move]').click();return true})()");
@@ -126,8 +164,10 @@ internal static class Program
                 }
                 if(args.Contains("--scene"))
                 {
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('preset:Bricks');return true})()");
                     await bridge.OpenFileAsync(fixture);
                     await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==2);
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('preset:Wood');return true})()");
                     await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[30,12,8],scale:[2,1,1]});s.refreshScene();return true})()");
                     await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");
                     var scenePath=Path.Combine(testRoot,"native-export.mm360");
@@ -139,7 +179,10 @@ internal static class Program
                     await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
                     var restored=await Evaluate("window.meshMe360Locked.scene.document.state.objects.map(o=>({position:o.position,scale:o.scale}))");
                     if(restored.GetArrayLength()!=2||restored[1].GetProperty("position")[0].GetInt32()!=30||restored[1].GetProperty("scale")[0].GetInt32()!=2)throw new Exception("Scene state was lost");
+                    var textures=await Evaluate("(async()=>{const s=window.meshMe360Locked.scene,e=await import('./js/main.js');const names=[];for(const o of s.document.state.objects){s.document.select([o.id]);s.refreshScene({activate:true});const c=e.desktopSceneCapture();const asset=s.document.state.textures.find(t=>t.id===o.textureId);if(!asset||!c.texture.bytes.every((b,i)=>b===asset.bytes[i]))throw new Error('Texture pixels differ');names.push(c.texture.name);c.geometry.dispose();}return names})()");
+                    if(textures[0].GetString()!="Bricks.png"||textures[1].GetString()!="Wood.png")throw new Exception("Per-object textures lost: "+textures);
                     Console.WriteLine("PASS: actual multi-object import, transform, native mm360 save and binary-bridge reopen; dirty cleared after download completion");
+                    Console.WriteLine("PASS: distinct embedded Bricks/Wood sampled pixels restore exactly on object selection after native project reopen");
                     Console.WriteLine("Scene evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if (args.Contains("--locked"))

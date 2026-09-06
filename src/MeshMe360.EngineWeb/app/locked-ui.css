@@ -18,6 +18,7 @@ body.locked-ui{margin:0;display:block;overflow:hidden;background:#161c20;color:#
 .locked-toolbar button{position:absolute;top:8px;transform:translateX(-50%);height:76px;width:clamp(49px,4.7vw,72px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-size:12px!important}
 .locked-toolbar button svg{width:29px;height:29px}.locked-toolbar .separator{position:absolute;top:17px;height:60px;width:1px;background:#3a454d}
 .locked-comparison{position:absolute;top:4px;bottom:3px;z-index:6;width:7px;margin-left:-3px;cursor:ew-resize;background:linear-gradient(90deg,transparent 3px,#bbc8d0 3px,#bbc8d0 4px,transparent 4px);touch-action:none}.locked-comparison[hidden]{display:none}
+.locked-comparison>button{position:absolute;top:3px;left:-11px;width:28px;height:28px;padding:0!important;opacity:0;background:#253643!important}.locked-comparison:hover>button,.locked-comparison>button:focus-visible{opacity:1}
 .locked-work{min-height:0;display:grid;grid-template-columns:288px minmax(0,1fr) 373px;grid-template-rows:minmax(0,1fr) 195px;gap:7px;padding:0 7px 3px}
 .locked-panel{background:linear-gradient(115deg,#1e262b,#192025);border:1px solid var(--edge);border-radius:9px;min-height:0;overflow:hidden}
 .locked-project{grid-column:1;grid-row:1}.locked-project h2{font-size:14px;font-weight:600;margin:0;height:42px;padding:11px;border-bottom:1px solid var(--edge)}

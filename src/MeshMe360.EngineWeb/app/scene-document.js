@@ -43,10 +43,12 @@ export function serializeProject(state){
  files['project.json']=strToU8(JSON.stringify(manifest));return zipSync(files);
 }
 export function deserializeProject(bytes){
- const files=unzipSync(bytes),raw=files['project.json'];if(!raw)throw new Error('Not a Mesh Me360 project');const state=JSON.parse(strFromU8(raw));
+ if(!(bytes instanceof Uint8Array)||bytes.byteLength>500*1024*1024)throw new Error('Project exceeds the 500 MiB compressed input limit');
+ let total=0,count=0;const files=unzipSync(bytes,{filter:entry=>{total+=entry.originalSize;if(++count>10000||total>512*1024*1024||entry.originalSize>256*1024*1024)throw new Error('Project exceeds the asset memory budget');return true;}}),raw=files['project.json'];if(!raw)throw new Error('Not a Mesh Me360 project');if(raw.length>8*1024*1024)throw new Error('Project manifest is too large');const state=JSON.parse(strFromU8(raw));
  if(state.format!=='MeshMe360'||state.version!==1||!Array.isArray(state.objects)||!Array.isArray(state.textures)||!Array.isArray(state.measurements)||!Array.isArray(state.selection))throw new Error('Unsupported project schema');
  const typed=(path,Type)=>{const bytes=files[path];if(!bytes||bytes.byteLength%4)throw new Error('Missing or truncated geometry asset');return new Type(bytes.slice().buffer);};
  state.objects=state.objects.map(o=>validateObject({...o,positions:typed(o.positions,Float32Array),indices:o.indices?typed(o.indices,Uint32Array):null}));
  if(new Set(state.objects.map(o=>o.id)).size!==state.objects.length||state.selection.some(id=>!state.objects.some(o=>o.id===id)))throw new Error('Invalid project object identity');
- state.textures=state.textures.map(t=>{if(!files[t.bytes])throw new Error('Missing texture asset');return{...t,bytes:files[t.bytes].slice()};});return state;
+ state.textures=state.textures.map(t=>{if(!files[t.bytes])throw new Error('Missing texture asset');const asset={...t,bytes:files[t.bytes].slice()};if(asset.mime==='application/x-meshme-rgba8'&&(!Number.isInteger(asset.width)||!Number.isInteger(asset.height)||asset.width<1||asset.height<1||asset.width>4096||asset.height>4096||asset.bytes.length!==asset.width*asset.height*4))throw new Error('Invalid embedded texture dimensions');return asset;});
+ if(state.objects.some(o=>o.textureId&&!state.textures.some(t=>t.id===o.textureId)))throw new Error('Missing object texture reference');return state;
 }
