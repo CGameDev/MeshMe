@@ -183,7 +183,7 @@
   engine-owned references afterward, preventing mode switches from retaining a
   disposed shader material. The comparison divider uses actual base/preview mesh
   geometry and offers a hover/focus close control without discarding the preview.
- 
+
 ## Locked UI: approximate Make Solid
 
 Use unmodified libigl signed-distance queries with Manifold LevelSet in an owned
@@ -193,3 +193,14 @@ reconstruction may close openings and lose sub-cell detail; show this explicitly
 and reject inputs without a recoverable enclosed interior. Retain exact pinned
 dependency source closures and all runtime notices. No BumpMesh algorithm changes.
 See `SOLIDIFY_BUILD.md` for reproducible source/build pins, limits and actual tests.
+
+## Locked UI: bounded repair
+
+Repair uses exact duplicate welding, libigl winding on orientable patches, and
+PMP hole filling on copies with explicit size/count limits. Default 1 mm maximum
+hole diameter, 64 boundary edges and 32 patches limit automatic repair; zero
+leaves all holes. Larger openings remain reported. Preserve nested component
+orientation; reverse globally only one closed patch with negative enclosed
+volume. Never claim self-intersections are fixed by topological validation.
+Reports survive in baked modifiers. The pinned plain-MIT PMP revision and full
+source closure are documented in `REPAIR_BUILD.md`.

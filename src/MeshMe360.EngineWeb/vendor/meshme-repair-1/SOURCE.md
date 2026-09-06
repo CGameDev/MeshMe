@@ -1,0 +1,1 @@
+App-owned adapter: build/geometry/repair.cpp, AGPL-3.0-only. Rebuild using build/Build-Repair.ps1. Exact libigl, Eigen and PMP source closures and licenses are provided in sibling vendor directories. See docs/implementation-notes/REPAIR_BUILD.md for pins and limitations.

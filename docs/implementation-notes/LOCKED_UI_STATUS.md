@@ -138,3 +138,19 @@ The structural visual check passes. Functional, pixel appearance and human
 visual acceptance remain incomplete. Seven named commands are still entirely
 unimplemented: Pattern, Repair, Measure, Combine, OBJ, Repair Mesh and Prepare
 for Print. Full subrequirements for already wired controls remain open.
+
+### Repair continuation
+
+Repair and Repair Mesh share the same worker pipeline and retained report.
+The complete current regression suite passes, including damaged mesh cleanup,
+bounded holes, large-opening/cavity retention, non-manifold reporting and both
+actual UI entry points. See `REPAIR_BUILD.md` for pins and limitations.
+
+- solid controls: `artifacts/m2-integration-94ba261b9dce4bc5bb28452cfb23e0b3`
+- repair fixtures: `artifacts/m2-integration-5516dbf58b124be2bb107cc616e028c0`
+- visual capture: `artifacts/m2-integration-f59e4a48df844ec68449fd2cbb6436f9`
+
+Five named commands remain entirely unimplemented: Pattern, Measure, Combine,
+OBJ and Prepare for Print. Full control subrequirements, self-intersection
+qualification, stress, pixel appearance and human/physical acceptance remain
+open. M3 remains NOT COMPLETE.

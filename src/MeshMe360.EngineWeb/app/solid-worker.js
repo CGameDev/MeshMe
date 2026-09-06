@@ -6,7 +6,19 @@ self.onmessage=async({data})=>{
  try{
   const module=await ready;
   let result;
-  if(data.request.operation==='solidify'){
+  if(data.request.operation==='repair'){
+   if(data.request.objects.length!==1)throw new Error('Select one mesh for Repair.');
+   const {default:createRepair}=await import('../vendor/meshme-repair-1/repair.js');
+   const backend=await createRepair({locateFile:name=>new URL('../vendor/meshme-repair-1/'+name,import.meta.url).href});
+   const input=data.request.objects[0];
+   const indices=input.indices??Uint32Array.from({length:input.positions.length/3},(_,i)=>i);
+   const output=backend.repair(input.positions,indices,data.request.maxHoleDiameter);
+   if(output.error)throw new Error(output.error);
+   let diagnostics;
+   try{diagnostics=runSolidOperation(module,{operation:'validate',objects:[output]}).results[0].diagnostics;}
+   catch(error){diagnostics={...output.report.after,status:'Not a closed manifold',volume:null,validationError:String(error.message??error)};}
+   result={results:[{positions:output.positions,indices:output.indices,diagnostics,repairReport:output.report}],warning:output.report.unresolved.join(' ')};
+  }else if(data.request.operation==='solidify'){
    if(data.request.objects.length!==1)throw new Error('Select one mesh for Make Solid.');
    const {default:createSolidify}=await import('../vendor/meshme-solidify-1/solidify.js');
    const backend=await createSolidify({locateFile:name=>new URL('../vendor/meshme-solidify-1/'+name,import.meta.url).href});

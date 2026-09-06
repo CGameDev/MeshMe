@@ -128,7 +128,7 @@ rows. No row below is PASS; partial handlers do not satisfy a full contract.
 | Scene | Multi-import, tree/viewport selection, visibility, rename, lock, search | IN PROGRESS |
 | Transform | Move/Rotate/Scale gizmos, numeric controls and undo | IN PROGRESS |
 | Relief | Emboss, Deboss, Linear/Grid/Radial Pattern, preview/commit/cancel | IN PROGRESS |
-| Geometry | Repair pipeline, report, safe holes and diagnostics | NOT STARTED |
+| Geometry | Repair pipeline, report, safe holes and diagnostics | IN PROGRESS — libigl/PMP cleanup and bounded holes, retained report; self-intersection/stress/manual qualification pending |
 | Geometry | Hollow, thickness, watertightness, undo | IN PROGRESS |
 | Geometry | Boolean Union/Subtract/Intersect with validated backend | IN PROGRESS |
 | Geometry | Split by interactive plane, keep sides, undo | IN PROGRESS |

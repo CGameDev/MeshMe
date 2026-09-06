@@ -140,3 +140,11 @@ actual Make Solid preview/cancel/commit/undo controls. The entire current
 at `artifacts/m2-integration-dde6513c630645bcb8490b1362c891e8`.
 M3 remains NOT COMPLETE: seven named commands, broader subrequirements, pixel
 appearance, human visual review, stress and physical Windows gates are open.
+
+### Locked UI continuation — Repair
+
+Repair/Repair Mesh share the tested libigl/PMP worker backend. Current complete
+regression suite passes, including cavity/opening retention and both actual
+preview/cancel/commit/undo entry points. Evidence is recorded in LOCKED_UI_STATUS.
+M3 remains NOT COMPLETE; five entirely missing commands and broader functional,
+visual, stress, self-intersection and physical/human gates remain.

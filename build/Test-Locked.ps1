@@ -29,5 +29,9 @@ try {
     Copy-Item tests/engine-web/solidify-probe.js artifacts/web/candidate/probe.js
     & $runner $repo --backend-probe
     if($LASTEXITCODE -ne 0){throw 'Solidification fixture gate failed'}
+    Copy-Item src/MeshMe360.EngineWeb/vendor/meshme-repair-1/repair.js,src/MeshMe360.EngineWeb/vendor/meshme-repair-1/repair.wasm artifacts/web/candidate
+    Copy-Item tests/engine-web/repair-probe.js artifacts/web/candidate/probe.js
+    & $runner $repo --backend-probe
+    if($LASTEXITCODE -ne 0){throw 'Repair fixture gate failed'}
     Write-Output 'Current locked implementation regressions passed. Full control coverage, pixel/human fidelity, stress and physical Windows gates remain incomplete.'
 } finally {Pop-Location}

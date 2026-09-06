@@ -155,6 +155,22 @@ License/notice file included where required:
 
 ## Asset rules
 
+### Repair adapter and PMP
+
+- Name: Polygon Mesh Processing Library (PMP); version: source revision
+  `215975ca1efafab97477b18187a4a23b87529036`; source:
+  https://github.com/pmp-library/pmp-library; license: MIT at this exact revision.
+  Copyright 2011–2026 the PMP developers and 2001–2005 Computer Graphics Group,
+  RWTH Aachen. Role: bounded repair hole filling and halfedge validation.
+  Redistributed in release: yes, compiled into the repair adapter. Exact source
+  closure and full license: `vendor/pmp-215975c/src` and `LICENSE.txt`.
+- Name: Mesh Me360 repair adapter; version 1; source `build/geometry/repair.cpp`;
+  license AGPL-3.0-only. Runtime is `vendor/meshme-repair-1/repair.js` and `.wasm`,
+  using the same pinned MPL-2.0 libigl/Eigen and Emscripten dependencies described
+  below. Runtime/compiler notices are retained beside it. Full rebuild/source
+  instructions: `docs/implementation-notes/REPAIR_BUILD.md`. Release corresponding
+  source archives must include the unmodified vendor closures and their notices.
+
 ### Solidification adapter and header dependencies
 
 - Name: libigl; version 2.6.0; source https://github.com/libigl/libigl at
