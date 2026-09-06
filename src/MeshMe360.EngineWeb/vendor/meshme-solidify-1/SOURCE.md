@@ -1,0 +1,1 @@
+The app-owned adapter is build/geometry/solidify.cpp (AGPL-3.0-only). Rebuild with build/Build-Solidify.ps1. Exact unmodified libigl/Eigen header closures and MPL notices are distributed in sibling vendor directories. Source pins and limitations are documented in docs/implementation-notes/SOLIDIFY_BUILD.md. Manifold and compiler notices are included here.

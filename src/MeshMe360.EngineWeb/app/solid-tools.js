@@ -12,9 +12,14 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
   const actions=el('div'),form=el('div');
   function field(label,type,value){const row=el('label','locked-field'),input=el('input');input.type=type;input.value=value;input.setAttribute('aria-label',label);row.append(el('span','',label),input);form.append(row);input.addEventListener('input',invalidate);return input;}
   function choices(label,values){const row=el('label','locked-field'),input=el('select');input.setAttribute('aria-label',label);for(const [value,text]of values){const option=el('option','',text);option.value=value;input.append(option);}row.append(el('span','',label),input);form.append(row);input.onchange=invalidate;return input;}
-  let operation,thickness,normal,offset,keep;
+  let operation,thickness,normal,offset,keep,cellSize;
   if(kind==='Boolean')operation=choices('Operation',[['union','Union'],['subtract','Subtract (first selected minus the others)'],['intersect','Intersect']]);
   if(kind==='Hollow')thickness=field('Wall thickness (mm)','number',1);
+  if(kind==='Make Solid'){
+   const g=geometryFromObject(inputs[0],{world:true});g.computeBoundingBox();const size=g.boundingBox.getSize(new THREE.Vector3());g.dispose();
+   cellSize=field('Cell size (mm)','number',Math.max(size.x,size.y,size.z)/32);cellSize.min='.001';cellSize.step='.1';
+   form.append(el('p','','Approximate reconstruction for meshes with a coherent enclosed interior. Smaller cells retain more detail and create more triangles. Open sheets may have no valid interior.'));
+  }
   if(kind==='Split'){
    normal=[field('Plane normal X','number',0),field('Plane normal Y','number',0),field('Plane normal Z','number',1)];
    const g=geometryFromObject(inputs[0],{world:true});g.computeBoundingBox();const b=g.boundingBox;g.dispose();
@@ -35,12 +40,12 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
    try{
     if(document.revision!==revision)throw new Error('The document changed. Reopen the tool.');
     const objects=inputs.map(o=>{const g=geometryFromObject(o,{world:true});const data={positions:new Float32Array(g.attributes.position.array),indices:g.index?new Uint32Array(g.index.array):null};g.dispose();return data;});
-    const request={operation:kind==='Boolean'?operation.value:kind.toLowerCase(),objects,thickness:thickness?.valueAsNumber,normal:normal?.map(i=>i.valueAsNumber),offset:offset?.valueAsNumber};
+    const request={operation:kind==='Boolean'?operation.value:kind==='Make Solid'?'solidify':kind.toLowerCase(),objects,thickness:thickness?.valueAsNumber,normal:normal?.map(i=>i.valueAsNumber),offset:offset?.valueAsNumber,cellSize:cellSize?.valueAsNumber};
     const currentJob=startSolidOperation(request);job=currentJob;const response=await currentJob.promise;if(closed||job!==currentJob)return;
     job=null;result=response;if(kind==='Split'&&keep.value!=='both')result.results=[response.results[keep.value==='positive'?0:1]];
     result.request=request;
     clearPreview();viewer.getScene().traverse(mesh=>{if(mesh.isMesh&&mesh.visible&&inputs.some(o=>o.id===mesh.userData.sceneObjectId)){hiddenOriginals.push(mesh);mesh.visible=false;}});for(const item of result.results){const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.BufferAttribute(item.positions,3));geometry.setIndex(new THREE.BufferAttribute(item.indices,1));geometry.computeVertexNormals();previewGroup.add(new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({color:0x54b7ef,transparent:true,opacity:.72,roughness:.6,side:THREE.DoubleSide})));}
-    status.dataset.solidStatus='ready';status.textContent=result.results.map((r,i)=>`Result ${i+1}: ${r.diagnostics.triangles.toLocaleString()} triangles; ${r.diagnostics.volume.toFixed(3)} mm³; ${r.diagnostics.status}.`).join(' ')+(response.warning?' '+response.warning+' Minimum wall thickness still requires verification.':'');commit.disabled=false;viewer.requestRender();
+    status.dataset.solidStatus='ready';status.textContent=result.results.map((r,i)=>`Result ${i+1}: ${r.diagnostics.triangles.toLocaleString()} triangles; ${r.diagnostics.volume.toFixed(3)} mm³; ${r.diagnostics.status}.`).join(' ')+(response.warning?' '+response.warning:'')+(kind==='Hollow'?' Minimum wall thickness still requires verification.':'')+(result.results.some(r=>r.diagnostics.triangles>250000)?' High triangle count: saving and later edits may require substantial memory.':'');commit.disabled=false;viewer.requestRender();
    }catch(error){if(closed||error.name==='AbortError')return;status.dataset.solidStatus='error';status.textContent=String(error.message??error);setBusy(false);}
    finally{if(!closed)preview.disabled=false;}
   };
@@ -54,7 +59,7 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
      const object=objectFromGeometry(g,`${inputs[0].name} ${kind.toLowerCase()}${result.results.length>1?' '+(i+1):''}`,'meshme');g.dispose();
      object.material=structuredClone(inputs[0].material);
      if(kind!=='Boolean')for(const key of ['position','rotation','scale'])object[key]=[...inputs[0][key]];
-     object.modifiers=[{name:kind+' (baked)',operation:result.request.operation,thickness:result.request.thickness,normal:result.request.normal,offset:result.request.offset,diagnostics:r.diagnostics}];return object;
+     object.modifiers=[{name:kind+' (baked)',operation:result.request.operation,thickness:result.request.thickness,normal:result.request.normal,offset:result.request.offset,cellSize:result.request.cellSize,diagnostics:r.diagnostics}];return object;
     });
     document.transact(kind,s=>{s.objects=s.objects.filter(o=>!inputs.some(input=>input.id===o.id));s.objects.push(...output);s.selection=output.map(o=>o.id);});
     closeDialog();refreshScene({activate:true});
@@ -65,4 +70,5 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
  registry.register('Boolean',()=>launch('Boolean'),()=>editable()&&document.selected.length>=2,'Select at least two unlocked closed meshes');
  for(const kind of ['Split','Hollow'])registry.register(kind,()=>launch(kind),()=>editable()&&document.selected.length===1,'Select one unlocked closed mesh');
  registry.register('Hollow Model',()=>registry.execute('Hollow'),()=>registry.state('Hollow').enabled,'Select one unlocked closed mesh');
+ registry.register('Make Solid',()=>launch('Make Solid'),()=>editable()&&document.selected.length===1,'Select one unlocked mesh with an enclosed interior');
 }

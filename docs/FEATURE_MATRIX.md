@@ -133,7 +133,7 @@ rows. No row below is PASS; partial handlers do not satisfy a full contract.
 | Geometry | Boolean Union/Subtract/Intersect with validated backend | IN PROGRESS |
 | Geometry | Split by interactive plane, keep sides, undo | IN PROGRESS |
 | Geometry | Combine, optional weld, group preservation, undo | NOT STARTED |
-| Geometry | Make Solid, quality/preview/diagnostics/undo | BLOCKED |
+| Geometry | Make Solid, quality/preview/diagnostics/undo | IN PROGRESS — offline libigl/Manifold reconstruction; fixture and control qualification, stress/manual acceptance pending |
 | Measure | Distance, angle, bounds, ray thickness, persistent tree entries | NOT STARTED |
 | Texture | Procedural/Image/Library sources, strength/invert/blend/direction | IN PROGRESS |
 | Texture | Noise/ridges/cells/waves/checker/brick, seed/frequency/contrast/blur | IN PROGRESS |

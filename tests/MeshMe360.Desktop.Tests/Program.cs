@@ -147,19 +147,25 @@ internal static class Program
                     var workerTests=await Evaluate("(async()=>{const {startSolidOperation}=await import('./app/solid-client.js');const o=window.meshMe360Locked.scene.document.state.objects[0];const job=startSolidOperation({operation:'validate',objects:[o]});job.cancel();let cancelled=false;try{await job.promise}catch(e){cancelled=e.name==='AbortError'}const result=await startSolidOperation({operation:'validate',objects:[o]}).promise;return{cancelled,status:result.results[0].diagnostics.status}})()");
                     if(!workerTests.GetProperty("cancelled").GetBoolean()||workerTests.GetProperty("status").GetString()!="NoError")throw new Exception("Worker cancel/restart failed");
                     await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.select([s.document.state.objects[0].id]);s.refreshScene({activate:true});return true})()");
-                    foreach(var command in new[]{"Split","Hollow"})
+                    foreach(var command in new[]{"Split","Hollow","Make Solid"})
                     {
                         var original=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
-                        await Evaluate($"(()=>{{document.querySelector('[data-command={command}]').click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
+                        var launch=$"(()=>{{[...document.querySelectorAll('[data-command]')].find(b=>b.dataset.command==='{command}').click();const cell=document.querySelector('[aria-label=\"Cell size (mm)\"]');if(cell){{cell.value='1';cell.dispatchEvent(new Event('input'));}}[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()";
+                        await Evaluate(launch);
                         await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]')?.dataset.solidStatus??''")).GetString() is "ready" or "error");
                         if((await Evaluate("document.querySelector('[data-solid-status]').dataset.solidStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-solid-status]').textContent")).GetString());
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=original.GetString())throw new Exception(command+" preview mutated originals");
+                        await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Cancel').click();return true})()");
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=original.GetString())throw new Exception(command+" cancel mutated originals");
+                        await Evaluate(launch);
+                        await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]')?.dataset.solidStatus??''")).GetString()=="ready");
                         await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Commit').click();return true})()");
                         if((await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()!=(command=="Split"?3:2))throw new Exception(command+" commit failed");
                         await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
                         if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=original.GetString())throw new Exception(command+" undo failed");
                     }
                     Console.WriteLine("PASS: actual Boolean toolbar preview/cancel/commit/undo, originals unchanged, worker cancellation and restart under application CSP");
-                    Console.WriteLine("PASS: actual Split and Hollow controls preview/commit/undo");
+                    Console.WriteLine("PASS: actual Split, Hollow and Make Solid controls preview/cancel/commit/undo");
                     Console.WriteLine("Solid controls evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--scene"))

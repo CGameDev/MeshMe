@@ -528,3 +528,11 @@ not a generated screenshot baseline. Only dynamic model and OS-frame pixels may
 be masked. Require ±3 px major edges and ±4 px control centers, full appearance
 review and human visual acceptance. The structural checker intentionally does
 not certify full appearance or functionality. All gates are currently incomplete.
+
+The current repeatable suite additionally exercises Make Solid's actual
+preview/cancel/commit/undo controls and libigl/Manifold reconstruction fixtures.
+Compare closed/open-cube triangle counts, finite vertices, indices, bounds,
+volume, manifold round-trip and repeated samples within 1e-6 mm, with exact
+topology. Test resolution changes, resource-limit rejection, invalid/degenerate
+inputs and an open sheet with no interior. See `SOLIDIFY_BUILD.md` for evidence
+and limits. These checks do not replace arbitrary scan/stress/human acceptance.

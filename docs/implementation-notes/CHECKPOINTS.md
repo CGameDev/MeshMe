@@ -131,3 +131,12 @@ Three.js Move gizmo passes an actual mouse-drag/undo test. Material state has
 validated transactions and round-trip tests. `build/Test-Locked.ps1` repeats these
 checks and produces a fresh visual capture without claiming milestone acceptance.
 Full functional, visual, stress, drain/minimum-wall and physical gates remain open.
+
+### Locked UI continuation — Make Solid
+
+The offline libigl/Manifold reconstruction adapter passes geometry fixtures and
+actual Make Solid preview/cancel/commit/undo controls. The entire current
+`build/Test-Locked.ps1` regression set passes. Fresh structural layout check passes
+at `artifacts/m2-integration-dde6513c630645bcb8490b1362c891e8`.
+M3 remains NOT COMPLETE: seven named commands, broader subrequirements, pixel
+appearance, human visual review, stress and physical Windows gates are open.

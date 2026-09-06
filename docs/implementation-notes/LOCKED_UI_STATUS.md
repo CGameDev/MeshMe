@@ -121,3 +121,20 @@ The PNG appearance and full functional gate have not passed. Remaining entirely
 unimplemented named commands at this point are Pattern, Repair, Measure, Combine,
 OBJ, Repair Mesh, Make Solid and Prepare for Print. Implemented handlers still
 need all listed subrequirements and tests before acceptance.
+
+### Solidification continuation
+
+Make Solid is now implemented with an offline, CSP-safe libigl/Manifold adapter,
+adjustable cell size, resource/count warnings, worker preview/cancellation,
+validated output diagnostics and undoable commit. See `SOLIDIFY_BUILD.md` for
+source pins, complete licensing/source closure, applicability and limitations.
+All current regressions in `build/Test-Locked.ps1` passed after this addition:
+
+- actual solid controls: `artifacts/m2-integration-752d90c4ab96438b8326578321ac60a3`
+- reconstruction fixtures: `artifacts/m2-integration-6d26dc1a7f1142daae501484b8802d56`
+- fresh UI capture: `artifacts/m2-integration-dde6513c630645bcb8490b1362c891e8`
+
+The structural visual check passes. Functional, pixel appearance and human
+visual acceptance remain incomplete. Seven named commands are still entirely
+unimplemented: Pattern, Repair, Measure, Combine, OBJ, Repair Mesh and Prepare
+for Print. Full subrequirements for already wired controls remain open.

@@ -155,6 +155,30 @@ License/notice file included where required:
 
 ## Asset rules
 
+### Solidification adapter and header dependencies
+
+- Name: libigl; version 2.6.0; source https://github.com/libigl/libigl at
+  `40e7900ccbd767f1f360e0eb10f0f1a6432e0993`; license MPL-2.0 with retained
+  permissive helper notices. Role: signed-distance queries for approximate
+  Make Solid. Redistributed in release: yes, compiled into the local WASM adapter.
+  Exact unmodified header closure and full MPL text are in
+  `vendor/libigl-2.6.0/src` and `vendor/libigl-2.6.0/LICENSE.MPL2`.
+- Name: Eigen; version 3.4.0; source https://gitlab.com/libeigen/eigen at
+  `3147391d946bb4b6c68edd901f2add6ac1f31f8c`; license MPL-2.0 with permissive
+  exceptions, built with EIGEN_MPL2_ONLY. Role: libigl matrix dependency.
+  Redistributed in release: yes, compiled. Exact header closure and COPYING
+  notices are in `vendor/eigen-3.4.0`. The included BFloat16 header is
+  Copyright 2017 The TensorFlow Authors, Apache-2.0.
+- Name: Mesh Me360 solidification adapter; version 1; source
+  `build/geometry/solidify.cpp`; license AGPL-3.0-only. Redistributed in release:
+  yes, `vendor/meshme-solidify-1/solidify.js` and `.wasm`. Uses the already pinned
+  Manifold and Emscripten toolchain. Full runtime/system notices, Apache text,
+  and Side Effects Software Inc. 2018 MIT notice are included in that directory.
+  libigl's Tomas Moller ray-triangle helper retains its upstream public-domain
+  acknowledgment. Source and rebuild instructions are in this repository at
+  `docs/implementation-notes/SOLIDIFY_BUILD.md`; release source archives must
+  retain the vendor source closure and original notices.
+
 - Do not copy Autodesk/Fusion 360 icons, screenshots, logos, or proprietary UI assets.
 - Mesh Me360 SVG mockups in `docs/ui/` are original project reference assets.
 - Built-in texture assets imported from BumpMesh remain subject to the upstream repository's licensing/notices; preserve provenance.
