@@ -340,3 +340,22 @@ New deterministic source kinds stone/woodgrain/plates serve the named locked
 presets. Previously supported generator kinds are unchanged, so saved parameters
 for those kinds retain their behavior. No reference screenshot pixels are used
 as UI or texture assets and no upstream mesh algorithm changes are involved.
+
+## 2026-09-07 — Native document menus and selection order
+
+Inspected the existing SettingsService, RecentFilesService and WebViewHostBridge
+contracts before wiring menus. Recent paths stay owned/validated by the host;
+the UI sends only the path of a returned recent entry. Missing entries are
+retained with a disabled open action and can be removed. Clearing the list does
+not delete source files. Project units/profile edits share existing version-1
+project fields and normal Undo. Appearance patches preserve unrelated settings
+and reapply host/engine theme. Additional preference categories are still open.
+
+Scene selection previously filtered import order and Ctrl-click only appended.
+The first-picked operand now remains first, as the Boolean workflow describes;
+Ctrl-click toggles without changing the geometry revision. Upstream mesh
+algorithms and on-disk geometry representation are unchanged.
+
+The generated Scales raster is retained as a candidate under ignored artifacts,
+with the exact built-in generation prompt. It is not substituted into the
+production procedural source before seamlessness/height/fidelity verification.

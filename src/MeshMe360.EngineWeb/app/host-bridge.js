@@ -61,6 +61,11 @@ export function attachHost(transport) {
   });
   return {
     rpc,
+    async updateSettings(patch) {
+      settings = await rpc.request('settings.set', patch);
+      applyTheme();
+      return settings;
+    },
     async download(blob, filename) {
       const url = URL.createObjectURL(blob);
       try {

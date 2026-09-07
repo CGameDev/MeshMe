@@ -264,3 +264,28 @@ Screenshot: `artifacts/m2-integration-b809ee184f764f228e6d3e7e59718882`.
 This is progress toward the supplied PNG, not a pixel/human fidelity pass.
 M3 remains NOT COMPLETE; control, visual, stress/recovery and physical gates
 remain open.
+
+### Selection order and native menus (2026-09-07)
+
+Ctrl-click now toggles object membership in both the tree and viewport. The
+selected-object accessor follows pick order so the first Boolean Subtract
+operand is the first picked object, independent of import order. Selection
+alone does not add geometry history. Regression covers toggle/order and project
+serialization; the actual Windows tree path is also exercised.
+
+File now exposes the host-owned recent list with open, missing-file state,
+remove and clear. Project Settings changes display units and export profile in
+one undoable transaction without rescaling geometry; profile tree buttons also
+select the actual active export profile. Preferences currently exposes the
+working host-persisted System/Light/Dark appearance setting. This is partial
+Preferences coverage; autosave/update/recovery controls remain outstanding and
+are not represented as functional merely because their settings schema exists.
+
+Native menu evidence: artifacts/m2-integration-cb045beaa22f45a1ad9673ea9e805572.
+Full milestone acceptance remains NOT COMPLETE. Other menus, control details,
+visual fidelity, DPI/stress, recovery compatibility and human/physical gates
+remain open.
+Full current regression suite passed after this change: build (zero warnings),
+6 asset checks, 24 Node checks, 38 Core checks, all 14 native app modes and
+three geometry backend probes. Latest screenshot:
+artifacts/m2-integration-50a7fe5321454a3b83ff38e8f85de8b8.

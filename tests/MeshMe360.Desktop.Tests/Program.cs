@@ -76,6 +76,38 @@ internal static class Program
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
                 }
+                if(args.Contains("--menus"))
+                {
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Preferences');return true})()");
+                    await Evaluate("(()=>{document.querySelector('[aria-label=\"Application theme\"]').value='Dark';[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Apply preferences').click();return true})()");
+                    await Until(async()=> (await new SettingsService(paths).GetAsync()).Theme=="Dark");
+                    await Until(async()=> (await Evaluate("document.documentElement.dataset.theme==='dark'&&document.querySelector('.locked-dialog').hidden")).GetBoolean());
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Preferences');return true})()");
+                    if((await Evaluate("document.querySelector('[aria-label=\"Application theme\"]').value")).GetString()!="Dark")throw new Exception("Preferences did not reopen persisted theme");
+                    await Evaluate("(()=>{document.querySelector('.locked-dialog .close').click();window.meshMe360Locked.registry.execute('Project Settings');document.querySelector('[aria-label=\"Project display units\"]').value='in';document.querySelector('[aria-label=\"Project export profile\"]').value='bambu-020';[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Apply project settings').click();return true})()");
+                    if(!(await Evaluate("(()=>{const d=window.meshMe360Locked.scene.document;return d.state.units==='in'&&d.state.activeProfile==='bambu-020'&&Math.max(...d.selected[0].positions)===10})()")).GetBoolean())throw new Exception("Project settings changed scale or failed to set profile");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if(!(await Evaluate("(()=>{const d=window.meshMe360Locked.scene.document;return d.state.units==='mm'&&d.state.activeProfile==='generic-stl'})()")).GetBoolean())throw new Exception("Project settings undo failed");
+                    await Evaluate("(()=>{document.querySelector('[data-export-profile=\"bambu-020\"]').click();return true})()");
+                    if(!(await Evaluate("window.meshMe360Locked.scene.document.state.activeProfile==='bambu-020'&&document.querySelector('[data-export-profile=\"bambu-020\"]').getAttribute('aria-pressed')==='true'")).GetBoolean())throw new Exception("Tree export profile failed");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Save');return true})()");
+                    await Until(()=>Task.FromResult(File.Exists(chosen)&&chosen.EndsWith(".mm360")));
+                    await Until(async()=>!(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean());
+                    await ReopenNativeProject(chosen);
+                    if((await Evaluate("window.meshMe360Locked.scene.document.state.activeProfile")).GetString()!="bambu-020")throw new Exception("Profile project round trip failed");
+                    var menuObjectCount=(await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32();
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Open Recent');return true})()");
+                    await Evaluate($"(()=>{{[...document.querySelectorAll('[data-recent-path]')].find(b=>b.dataset.recentPath==={JsonSerializer.Serialize(fixture)}).click();return true}})()");
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==menuObjectCount+1);
+                    if(!(await Evaluate("(()=>{const rows=[...document.querySelectorAll('.model-name')],d=window.meshMe360Locked.scene.document;rows[1].click();rows[0].dispatchEvent(new MouseEvent('click',{bubbles:true,ctrlKey:true}));if(d.selected[0].id!==d.state.objects[1].id||d.selected.length!==2)return false;rows[1]=document.querySelectorAll('.model-name')[1];rows[1].dispatchEvent(new MouseEvent('click',{bubbles:true,ctrlKey:true}));return d.selected.length===1&&d.selected[0].id===d.state.objects[0].id})()")).GetBoolean())throw new Exception("Native tree Ctrl toggle or operand order failed");
+                    await recent.RemoveAsync(fixture);
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Open Recent');return true})()");
+                    if((await Evaluate($"[...document.querySelectorAll('[data-recent-path]')].some(b=>b.dataset.recentPath==={JsonSerializer.Serialize(fixture)})")).GetBoolean())throw new Exception("Recent list did not refresh host removal");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Clear recent files').click();return true})()");
+                    await Until(async()=> (await recent.ListAsync()).Count==0);
+                    Console.WriteLine("PASS: Windows preferences persistence, project settings/undo/native reopen, export profile tree, recent native open/clear, Ctrl selection and operand order");
+                    Console.WriteLine("Menu evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--relief"))
                 {
                     await Evaluate("(async()=>{const e=await import('./js/main.js'),c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,8,8);const blob=await new Promise(r=>c.toBlob(r));await e.desktopLoadTexture(new File([blob],'white.png',{type:'image/png'}));e.desktopConfigureTexture({textureHeight:1,refineLength:3,maxTriangles:50000,smoothBottom:false,noDownwardZ:false,boundaryFalloff:0,topAngleLimit:0,bottomAngleLimit:0});return true})()");

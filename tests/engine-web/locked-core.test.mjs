@@ -10,6 +10,13 @@ import {pointMeasurement,formatMeasurement,estimateWall} from '../../src/MeshMe3
 import {patternLayout,composePattern} from '../../src/MeshMe360.EngineWeb/app/pattern.js';
 import {composeSource} from '../../src/MeshMe360.EngineWeb/app/source-composition.js';
 
+test('Ctrl selection toggles membership and preserves first-picked Boolean operand order',()=>{
+ const d=new SceneDocument(),a=d.add(new THREE.BoxGeometry(10,10,10),'First imported'),b=d.add(new THREE.BoxGeometry(10,10,10),'Second imported');
+ const revision=d.revision;d.select(d.selectionForClick(b.id));d.select(d.selectionForClick(a.id,true));assert.deepEqual(d.selected.map(o=>o.id),[b.id,a.id]);
+ d.select(d.selectionForClick(b.id,true));assert.deepEqual(d.selected.map(o=>o.id),[a.id]);d.select(d.selectionForClick(b.id,true));assert.deepEqual(d.selected.map(o=>o.id),[a.id,b.id]);assert.equal(d.revision,revision);
+ const reopened=deserializeProject(serializeProject(d.state));d.state=reopened;assert.deepEqual(d.selected.map(o=>o.id),[a.id,b.id]);
+});
+
 test('Source influence, inversion and blend modes compose real height bytes without mutating sources',()=>{
  const asset=v=>({mime:'application/x-meshme-rgba8',width:1,height:1,bytes:new Uint8Array([v,v,v,255])}),source=asset(64),base=asset(128),before=structuredClone([source,base]);
  for(const [blend,expected]of [['normal',64],['multiply',32],['add',192],['subtract',64],['min',64]])assert.equal(composeSource(source,base,{blend}).bytes[0],expected);

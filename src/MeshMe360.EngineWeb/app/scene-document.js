@@ -25,7 +25,7 @@ export function geometryFromObject(object,{world=false}={}){
 export class SceneDocument {
  constructor({historyBytes=256*1024*1024}={}){this.state={format:'MeshMe360',version:1,publisher,name:'Untitled.mm360',objects:[],textures:[],measurements:[],exportProfiles:[{id:'generic-stl',name:'Generic STL',format:'stl'},{id:'bambu-020',name:'Bambu Lab (0.20mm)',format:'3mf',layerHeightMm:.2}],activeProfile:'generic-stl',units:'mm',selection:[]};this.undoStack=[];this.redoStack=[];this.historyBytes=historyBytes;this.revision=0;this.savedRevision=0;this.nextRevision=1;}
  get dirty(){return this.revision!==this.savedRevision;}
- get selected(){return this.state.objects.filter(o=>this.state.selection.includes(o.id));}
+ get selected(){const objects=new Map(this.state.objects.map(o=>[o.id,o]));return this.state.selection.map(id=>objects.get(id)).filter(Boolean);}
  get historySize(){return [...this.undoStack,...this.redoStack].reduce((n,s)=>n+s.bytes,0);}
  snapshot(){const state=structuredClone(this.state);return{state,revision:this.revision,bytes:state.objects.reduce((n,o)=>n+o.positions.byteLength+(o.indices?.byteLength??0),0)+state.textures.reduce((n,t)=>n+t.bytes.byteLength,0)};}
  transact(label,change){const prior=this.snapshot();if(prior.bytes>this.historyBytes)throw new Error('Operation requires more undo memory than the 256 MiB history budget; reduce model size before editing.');try{change(this.state);this.state.objects.forEach(validateObject);}catch(e){this.state=prior.state;throw e;}this.undoStack.push({...prior,label});this.redoStack=[];while(this.historySize>this.historyBytes&&this.undoStack.length>1)this.undoStack.shift();this.revision=this.nextRevision++;}
@@ -34,6 +34,7 @@ export class SceneDocument {
  markSaved(){this.savedRevision=this.revision;}
  add(geometry,name,sourceFormat){const object=objectFromGeometry(geometry,name,sourceFormat);this.transact('Import',s=>{s.objects.push(object);s.selection=[object.id];});return object;}
  select(ids){if(ids.some(id=>!this.state.objects.some(o=>o.id===id)))throw new Error('Unknown selection');this.state.selection=[...new Set(ids)];}
+ selectionForClick(id,extend=false){return extend?(this.state.selection.includes(id)?this.state.selection.filter(selected=>selected!==id):[...this.state.selection,id]):[id];}
  transform({position,rotation,scale}){this.transact('Transform',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');if(position)o.position=[...position];if(rotation)o.rotation=[...rotation];if(scale)o.scale=[...scale];}});}
  setMaterial(material){this.transact('Material',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');o.material={...material};if(o.materials)o.materials=o.materials.map(()=>({...material}));}});}
  center(){this.transact('Center Model',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');const g=geometryFromObject(o,{world:true});g.computeBoundingBox();const b=g.boundingBox,c=b.getCenter(new THREE.Vector3());o.position[0]-=c.x;o.position[1]-=c.y;o.position[2]-=b.min.z;g.dispose();}});}
