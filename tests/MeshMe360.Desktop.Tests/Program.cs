@@ -108,6 +108,37 @@ internal static class Program
                     Console.WriteLine("PASS: actual procedural generator, blur/seed, PNG save to IndexedDB, store reopen, exact pixel application, rename/favorite and built-in protection");
                     Console.WriteLine("Library evidence: "+testRoot);await session.CompleteAsync();return;
                 }
+                if(args.Contains("--pattern"))
+                {
+                    await Evaluate("(async()=>{const e=await import('./js/main.js'),c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,8,8);const blob=await new Promise(r=>c.toBlob(r));await e.desktopLoadTexture(new File([blob],'detail.png',{type:'image/png'}));return true})()");
+                    var patternSamples=new HashSet<string>();
+                    foreach(var patternType in new[]{"linear","grid","radial"})
+                    {
+                        await Evaluate("(async()=>{(await import('./js/main.js')).desktopConfigureTexture({textureHeight:1,refineLength:1,maxTriangles:50000,smoothBottom:false,noDownwardZ:false,boundaryFalloff:0,topAngleLimit:0,bottomAngleLimit:0,mappingMode:0});window.meshMe360Locked.scene.capture();return true})()");
+                        var patternBefore=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
+                        async Task PreviewPattern()
+                        {
+                            await Evaluate($"(()=>{{document.querySelector('[data-command=Pattern]').click();const select=document.querySelector('[aria-label=\"Pattern type\"]');select.value='{patternType}';select.dispatchEvent(new Event('change'));[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
+                            await Until(async()=> (await Evaluate("document.querySelector('[data-relief-status]').dataset.reliefStatus")).GetString() is "ready" or "error");
+                            if((await Evaluate("document.querySelector('[data-relief-status]').dataset.reliefStatus")).GetString()!="ready")throw new Exception("Pattern preview failed: "+await Evaluate("document.querySelector('[data-relief-status]').textContent"));
+                        }
+                        await PreviewPattern();
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=patternBefore.GetString())throw new Exception("Pattern preview changed original state");
+                        await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Cancel').click();return true})()");
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=patternBefore.GetString())throw new Exception("Pattern cancellation changed original state");
+                        await PreviewPattern();
+                        await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Commit').click();return true})()");
+                        var patternResult=await Evaluate("(async()=>{const s=window.meshMe360Locked.scene.document,o=s.selected[0],p=o.positions;let changed=false;for(let i=2;i<p.length;i+=3)if(p[i]>10.05)changed=true;const digest=await crypto.subtle.digest('SHA-256',p);return{valid:p.every(Number.isFinite)&&p.length%9===0,changed,triangles:p.length/9,pattern:o.modifiers.at(-1).pattern,hash:Array.from(new Uint8Array(digest)).join(',')}})()");
+                        if(!patternResult.GetProperty("valid").GetBoolean()||!patternResult.GetProperty("changed").GetBoolean()||patternResult.GetProperty("triangles").GetInt32()<=12||patternResult.GetProperty("pattern").GetProperty("kind").GetString()!=patternType)throw new Exception("Pattern did not commit valid displaced geometry: "+patternResult);
+                        patternSamples.Add(patternResult.GetProperty("hash").GetString()!);
+                        if(!(await Evaluate("(async()=>{const {serializeProject,deserializeProject}=await import('./app/scene-document.js'),s=window.meshMe360Locked.scene.document.state;return JSON.stringify(deserializeProject(serializeProject(s)).objects[0].modifiers)===JSON.stringify(s.objects[0].modifiers)})()")).GetBoolean())throw new Exception("Pattern metadata round trip failed");
+                        await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=patternBefore.GetString())throw new Exception("Pattern undo did not restore original geometry and texture");
+                    }
+                    if(patternSamples.Count!=3)throw new Exception("Pattern types did not create distinct geometry");
+                    Console.WriteLine("PASS: actual Linear/Grid/Radial preview/cancel/commit/undo, distinct finite displaced meshes and persisted pattern metadata");
+                    Console.WriteLine("Pattern evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--measure"))
                 {
                     await Evaluate("(()=>{window.meshMe360Locked.registry.execute('view:Front');return true})()");

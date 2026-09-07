@@ -7,6 +7,18 @@ import {generateHeight} from '../../src/MeshMe360.EngineWeb/app/procedural.js';
 import {CommandRegistry,toolbar} from '../../src/MeshMe360.EngineWeb/app/locked-controls.js';
 import {combineGeometry,remapMaterialGroups} from '../../src/MeshMe360.EngineWeb/app/combine-geometry.js';
 import {pointMeasurement,formatMeasurement,estimateWall} from '../../src/MeshMe360.EngineWeb/app/measurement.js';
+import {patternLayout,composePattern} from '../../src/MeshMe360.EngineWeb/app/pattern.js';
+
+test('Pattern count, physical spacing, rotation and repeated source heights are deterministic',()=>{
+ const options={kind:'linear',count:3,rows:2,spacing:6,width:4,height:2,orientation:0};
+ const linear=patternLayout(options);assert.deepEqual(linear.stamps.map(p=>p.x),[-6,0,6]);assert.equal(linear.stamps.length,3);
+ const grid=patternLayout({...options,kind:'grid'});assert.equal(grid.stamps.length,6);assert.equal(grid.stamps[3].y-grid.stamps[0].y,6);
+ const radial=patternLayout({...options,kind:'radial',count:4});assert.equal(radial.stamps.length,4);assert.ok(Math.abs(radial.stamps[0].x-24/(2*Math.PI))<1e-12);assert.equal(radial.stamps[1].angle,Math.PI/2);
+ const turned=patternLayout({...options,orientation:90});assert.ok(Math.abs(turned.stamps[0].x)<1e-12);assert.equal(turned.stamps[0].y,-6);
+ const source={width:2,height:2,data:new Uint8Array([255,0,0,255,80,255,255,255,0,0,0,255,180,0,0,255])};
+ for(const kind of ['linear','grid','radial']){const a=composePattern(source,{...options,kind},128),b=composePattern(source,{...options,kind},128);assert.deepEqual(a.imageData.data,b.imageData.data);const heights=new Set(a.imageData.data.filter((_,i)=>i%4===0));assert.deepEqual(heights,new Set([0,80,180,255]));}
+ assert.throws(()=>patternLayout({...options,count:65}),/counts/);assert.throws(()=>patternLayout({...options,kind:'grid',count:9,rows:9}),/64 details/);assert.throws(()=>patternLayout({...options,spacing:0}),/positive/);
+});
 
 test('Measurements use canonical distances, angles and opposite-surface rays',()=>{
  assert.equal(pointMeasurement('distance',[[0,0,0],[3,4,0]]).valueMm,5);

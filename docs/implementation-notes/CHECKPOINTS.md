@@ -163,3 +163,10 @@ mouse input tests. Tree rename/delete/undo and native project reopen preserve
 saved values without changing geometry. Full current regression suite passes;
 evidence is in LOCKED_UI_STATUS. M3 remains NOT COMPLETE: Pattern, Prepare for
 Print, broader controls, visual, stress and physical/human gates remain open.
+
+### Locked UI continuation — Pattern (2026-09-07)
+
+All three repeat modes pass layout/raster and actual worker/control regression
+checks, preserving original state until commit and restoring it with undo.
+The full current regression suite passes. M3 is NOT COMPLETE: Prepare for Print,
+broader controls, visual fidelity, stress and physical/human gates remain open.

@@ -192,3 +192,16 @@ actual application modes and all three backend fixture probes. Locked screenshot
 `artifacts/m2-integration-b8232a8ac42a4a558e7830f0c0e784a7` (evidence, not acceptance).
 Pattern and Prepare for Print remain unwired. Broader controls, visual fidelity,
 stress and physical/human acceptance remain open. M3 is NOT COMPLETE.
+
+### Pattern continuation (2026-09-07)
+
+Linear/Grid/Radial Pattern now composes repeated source-height tiles in a worker
+and runs the preserved displacement pipeline. Count, spacing, detail dimensions,
+orientation, preview/commit/cancel and undo are wired. Deterministic layout and
+height tests pass; actual app tests verify distinct finite meshes, original-state
+retention and saved metadata. Evidence: `artifacts/m2-integration-0ed66828c6c1449fbea26259882f06ea`.
+Full current suite passes: 21 Node, 6 assets, 38 Core checks, all actual modes and
+three geometry probes. Locked screenshot evidence:
+`artifacts/m2-integration-d8cd3d3c3b6047ccb6549db6fd3d6a34`.
+Prepare for Print remains entirely unwired. Broader controls, visual fidelity,
+stress and physical/human acceptance remain open. M3 is NOT COMPLETE.

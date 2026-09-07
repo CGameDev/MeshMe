@@ -269,3 +269,21 @@ Normal-ray estimates reject missing or insufficiently opposite surfaces and do
 not claim a global minimum wall or self-intersection certification. Measurements
 are undoable and malformed saved values are rejected before display. No upstream
 mapping, displacement or mesh algorithm was changed.
+
+### 2026-09-07 — Repeat detail without replacing displacement
+
+The Pattern contract allows repeated masks/displacement and requires Linear,
+Grid, Radial, count, spacing, orientation and preview/commit/cancel. Upstream
+mapping.js already defines physical U/V tile sizes and repeating projection.
+Compose a source-height tile in an isolated worker, then call the unchanged
+runExportPipeline. Counts are per UV tile, explicitly stated in the form; the
+current projection repeats that tile. Linear/Grid spacing is centre-to-centre;
+Radial spacing is arc length (radius = spacing × count / 2π), details point
+outward, and orientation rotates the whole layout. Detail width/height are
+explicit. Overlaps retain the maximum red-channel height, matching the upstream
+height channel. A 5% detail-size border separates tiles. Fixed 1024² nearest
+source samples, 64 detail cap and the existing subdivision budget are visible
+limits. No new surface sampler or subdivision algorithm is substituted.
+The baked modifier retains parameters/tile dimensions/resolution; this is a
+snapshot, not an editable parametric feature. Exact layout/raster tests plus
+actual distinct displaced geometry, cancel/undo and project metadata checks pass.
