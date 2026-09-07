@@ -255,3 +255,17 @@ legacy export path. Authored scene placement is therefore not accidentally
 undone by that legacy single-model behavior. The operation has a three-million
 triangle resource cap and reports original edge/sliver diagnostics without
 claiming self-intersection or minimum-wall certification.
+
+### 2026-09-07 — Saved measurements
+
+The control contract requires point picks, bounds, valid local wall estimates and
+persistent named tree entries. Three.js Raycaster supplies the surface picks and
+opposite-surface tests; Manifold first qualifies closed, positive-volume winding
+for the wall mode. Results are world-space snapshots in canonical millimetres
+(angle in degrees), with display conversion only. They intentionally retain the
+measured value after later object edits/deletion, clearly labelled in the tool
+and tree details. This avoids pretending a parametric attachment exists.
+Normal-ray estimates reject missing or insufficiently opposite surfaces and do
+not claim a global minimum wall or self-intersection certification. Measurements
+are undoable and malformed saved values are rejected before display. No upstream
+mapping, displacement or mesh algorithm was changed.

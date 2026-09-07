@@ -108,6 +108,44 @@ internal static class Program
                     Console.WriteLine("PASS: actual procedural generator, blur/seed, PNG save to IndexedDB, store reopen, exact pixel application, rename/favorite and built-in protection");
                     Console.WriteLine("Library evidence: "+testRoot);await session.CompleteAsync();return;
                 }
+                if(args.Contains("--measure"))
+                {
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('view:Front');return true})()");
+                    var measureOriginal=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.objects)");
+                    async Task MeasureButton(string label)=>await Evaluate($"(()=>{{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='{label}').click();return true}})()");
+                    async Task PickMeasurement(double px,double py,double pz)
+                    {
+                        var measurePoint=await Evaluate($"(async()=>{{const v=await import('./js/viewer.js'),T=await import('three');const p=new T.Vector3({px},{py},{pz}).project(v.getCamera()),r=v.getRenderer().domElement.getBoundingClientRect();return{{x:r.left+(p.x+1)*r.width/2,y:r.top+(1-p.y)*r.height/2}}}})()");
+                        foreach(var eventType in new[]{"mouseMoved","mousePressed","mouseReleased"})
+                            await core.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",JsonSerializer.Serialize(new{type=eventType,x=measurePoint.GetProperty("x").GetDouble(),y=measurePoint.GetProperty("y").GetDouble(),button=eventType=="mouseMoved"?"none":"left",buttons=eventType=="mousePressed"?1:0,clickCount=1}));
+                    }
+                    foreach(var measureKind in new[]{"distance","angle","bounds","thickness"})
+                    {
+                        await Evaluate($"(()=>{{document.querySelector('[data-command=Measure]').click();const select=document.querySelector('[aria-label=\"Measurement type\"]');select.value='{measureKind}';select.dispatchEvent(new Event('change'));return true}})()");
+                        await Until(async()=> (await Evaluate("document.querySelector('[data-measure-status]').dataset.measureStatus")).GetString() is "picking" or "ready" or "error");
+                        if(measureKind=="distance"){await PickMeasurement(-5,-10,0);await PickMeasurement(5,-10,0);}
+                        if(measureKind=="angle"){await PickMeasurement(-5,-10,0);await PickMeasurement(0,-10,0);await PickMeasurement(0,-10,5);}
+                        if(measureKind=="thickness")await PickMeasurement(0,-10,0);
+                        if((await Evaluate("document.querySelector('[data-measure-status]').dataset.measureStatus")).GetString()!="ready")throw new Exception("Measurement did not finish: "+await Evaluate("document.querySelector('.locked-dialog').innerText"));
+                        await MeasureButton("Save measurement");
+                    }
+                    var measured=await Evaluate("window.meshMe360Locked.scene.document.state.measurements");
+                    if(measured.GetArrayLength()!=4||Math.Abs(measured[0].GetProperty("valueMm").GetDouble()-10)>.1||Math.Abs(measured[1].GetProperty("valueDegrees").GetDouble()-90)>1||measured[2].GetProperty("dimensionsMm").EnumerateArray().Any(v=>Math.Abs(v.GetDouble()-20)>.01)||Math.Abs(measured[3].GetProperty("valueMm").GetDouble()-20)>.1)throw new Exception("Known cube measurements incorrect: "+measured);
+                    await Evaluate("(()=>{document.querySelector('[data-command=Measure]').click();return true})()");await MeasureButton("Cancel");
+                    await Evaluate("(()=>{document.querySelector('[data-measurement-id]').click();return true})()");await MeasureButton("Rename");
+                    await Evaluate("(()=>{document.querySelector('.locked-dialog input').value='Known distance';return true})()");await MeasureButton("Rename");await MeasureButton("Close");
+                    await Evaluate("(()=>{document.querySelector('[data-measurement-id]').click();return true})()");await MeasureButton("Delete");await MeasureButton("Close");
+                    if((await Evaluate("window.meshMe360Locked.scene.document.state.measurements.length")).GetInt32()!=3)throw new Exception("Measurement delete failed");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    var measurementSaved=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.measurements)");
+                    if(!measurementSaved.GetString()!.Contains("Known distance"))throw new Exception("Measurement rename/undo failed");
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");
+                    var measurementPath=Path.Combine(testRoot,"native-export.mm360");await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==measurementPath));await bridge.OpenFileAsync(measurementPath);
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.measurements)")).GetString()!=measurementSaved.GetString()||(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.objects)")).GetString()!=measureOriginal.GetString())throw new Exception("Measurement round trip changed saved values or geometry");
+                    Console.WriteLine("PASS: actual surface mouse picks for distance/angle/wall, bounds, cancel, tree rename/delete/undo and native project round trip");
+                    Console.WriteLine("Measure evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--exports"))
                 {
                     await bridge.OpenFileAsync(fixture);

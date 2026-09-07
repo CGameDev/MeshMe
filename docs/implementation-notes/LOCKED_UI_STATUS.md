@@ -179,3 +179,16 @@ modes and three geometry probes). No release/manual gate is implied.
 Three named commands remain entirely unimplemented: Pattern, Measure and Prepare
 for Print. Broader controls, profiles/menus, mask/precision workflows, visual
 fidelity, stress and physical/human acceptance remain open. M3 is NOT COMPLETE.
+
+### Measurement continuation (2026-09-07)
+
+Measure supports actual surface picking for distance/three-point angle, selected
+world bounds and a local inward-normal wall estimate after closed-mesh validation.
+Snapshots are named Project tree entries with rename/delete/undo and native
+project persistence. The local estimate is not minimum-wall certification.
+Actual mouse/persistence evidence: `artifacts/m2-integration-3f61b1395f4d4715ace241232b2257e4`.
+All current regressions pass: 20 Node checks, 6 asset checks, 38 Core checks,
+actual application modes and all three backend fixture probes. Locked screenshot:
+`artifacts/m2-integration-b8232a8ac42a4a558e7830f0c0e784a7` (evidence, not acceptance).
+Pattern and Prepare for Print remain unwired. Broader controls, visual fidelity,
+stress and physical/human acceptance remain open. M3 is NOT COMPLETE.

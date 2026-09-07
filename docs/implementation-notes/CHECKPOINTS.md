@@ -155,3 +155,11 @@ Shared native STL/3MF/OBJ worker workflow passes actual geometry, package,
 live-displacement and cancellation tests. The full current regression suite
 passes. Pattern, Measure and Prepare for Print remain unwired; broad control,
 visual, stress and physical/human acceptance remain open. M3 is NOT COMPLETE.
+
+### Locked UI continuation — Measure (2026-09-07)
+
+Known distance, angle, bounds and valid opposite-surface ray estimates pass actual
+mouse input tests. Tree rename/delete/undo and native project reopen preserve
+saved values without changing geometry. Full current regression suite passes;
+evidence is in LOCKED_UI_STATUS. M3 remains NOT COMPLETE: Pattern, Prepare for
+Print, broader controls, visual, stress and physical/human gates remain open.

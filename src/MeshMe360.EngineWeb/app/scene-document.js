@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import * as THREE from '../vendor/three-0.170.0/build/three.module.js';
 import {zipSync,unzipSync,strToU8,strFromU8} from '../vendor/fflate-0.8.2/esm/browser.js';
+import {validateMeasurements} from './measurement.js';
 export const publisher='Done by Computer Universal Technology Systems';
 const finite=(values,count)=>Array.isArray(values)&&values.length===count&&values.every(Number.isFinite);
 export function validateObject(object){
@@ -40,6 +41,7 @@ export class SceneDocument {
  duplicate(){this.transact('Duplicate',s=>{const copies=this.selected.map(o=>({...structuredClone(o),id:crypto.randomUUID(),name:o.name+' copy',locked:false}));s.objects.push(...copies);s.selection=copies.map(o=>o.id);});}
 }
 export function serializeProject(state){
+ validateMeasurements(state.measurements);
  const manifest=structuredClone(state),files={};
  manifest.objects=state.objects.map((o,i)=>{validateObject(o);const path=`meshes/${i}`;files[path+'.positions.bin']=new Uint8Array(o.positions.buffer,o.positions.byteOffset,o.positions.byteLength);if(o.indices)files[path+'.indices.bin']=new Uint8Array(o.indices.buffer,o.indices.byteOffset,o.indices.byteLength);return{...o,positions:path+'.positions.bin',indices:o.indices?path+'.indices.bin':null};});
  manifest.textures=state.textures.map((t,i)=>{const path=`textures/${i}.bin`;files[path]=t.bytes;return{...t,bytes:path};});
@@ -49,6 +51,7 @@ export function deserializeProject(bytes){
  if(!(bytes instanceof Uint8Array)||bytes.byteLength>500*1024*1024)throw new Error('Project exceeds the 500 MiB compressed input limit');
  let total=0,count=0;const files=unzipSync(bytes,{filter:entry=>{total+=entry.originalSize;if(++count>10000||total>512*1024*1024||entry.originalSize>256*1024*1024)throw new Error('Project exceeds the asset memory budget');return true;}}),raw=files['project.json'];if(!raw)throw new Error('Not a Mesh Me360 project');if(raw.length>8*1024*1024)throw new Error('Project manifest is too large');const state=JSON.parse(strFromU8(raw));
  if(state.format!=='MeshMe360'||state.version!==1||!Array.isArray(state.objects)||!Array.isArray(state.textures)||!Array.isArray(state.measurements)||!Array.isArray(state.selection))throw new Error('Unsupported project schema');
+ validateMeasurements(state.measurements);
  const typed=(path,Type)=>{const bytes=files[path];if(!bytes||bytes.byteLength%4)throw new Error('Missing or truncated geometry asset');return new Type(bytes.slice().buffer);};
  state.objects=state.objects.map(o=>validateObject({...o,positions:typed(o.positions,Float32Array),indices:o.indices?typed(o.indices,Uint32Array):null}));
  if(new Set(state.objects.map(o=>o.id)).size!==state.objects.length||state.selection.some(id=>!state.objects.some(o=>o.id===id)))throw new Error('Invalid project object identity');

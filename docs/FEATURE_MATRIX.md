@@ -134,7 +134,7 @@ rows. No row below is PASS; partial handlers do not satisfy a full contract.
 | Geometry | Split by interactive plane, keep sides, undo | IN PROGRESS |
 | Geometry | Combine, optional weld, group preservation, undo | IN PROGRESS — worker/UI/native round-trip tests pass; grouped relief and full stress/visual qualification pending |
 | Geometry | Make Solid, quality/preview/diagnostics/undo | IN PROGRESS — offline libigl/Manifold reconstruction; fixture and control qualification, stress/manual acceptance pending |
-| Measure | Distance, angle, bounds, ray thickness, persistent tree entries | NOT STARTED |
+| Measure | Distance, angle, bounds, ray thickness, persistent tree entries | IN PROGRESS — actual surface picks, tree edits/undo and native persistence pass; stress/manual qualification pending |
 | Texture | Procedural/Image/Library sources, strength/invert/blend/direction | IN PROGRESS |
 | Texture | Noise/ridges/cells/waves/checker/brick, seed/frequency/contrast/blur | IN PROGRESS |
 | Library | Twelve reference sources, persistent custom/recent/favorites | IN PROGRESS |

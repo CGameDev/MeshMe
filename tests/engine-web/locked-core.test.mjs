@@ -6,6 +6,17 @@ import {SceneDocument,serializeProject,deserializeProject,geometryFromObject} fr
 import {generateHeight} from '../../src/MeshMe360.EngineWeb/app/procedural.js';
 import {CommandRegistry,toolbar} from '../../src/MeshMe360.EngineWeb/app/locked-controls.js';
 import {combineGeometry,remapMaterialGroups} from '../../src/MeshMe360.EngineWeb/app/combine-geometry.js';
+import {pointMeasurement,formatMeasurement,estimateWall} from '../../src/MeshMe360.EngineWeb/app/measurement.js';
+
+test('Measurements use canonical distances, angles and opposite-surface rays',()=>{
+ assert.equal(pointMeasurement('distance',[[0,0,0],[3,4,0]]).valueMm,5);
+ assert.equal(pointMeasurement('angle',[[1,0,0],[0,0,0],[0,1,0]]).valueDegrees,90);
+ assert.throws(()=>pointMeasurement('angle',[[0,0,0],[0,0,0],[0,1,0]]),/distinct/);
+ assert.equal(formatMeasurement({kind:'distance',valueMm:25.4},'in'),'1.000 in');
+ const mesh=new THREE.Mesh(new THREE.BoxGeometry(20,20,20),new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));mesh.updateMatrixWorld(true);
+ const hit=new THREE.Raycaster(new THREE.Vector3(0,0,30),new THREE.Vector3(0,0,-1)).intersectObject(mesh)[0];assert.ok(Math.abs(estimateWall(mesh,hit).valueMm-20)<1e-6);
+ const plane=new THREE.Mesh(new THREE.PlaneGeometry(20,20),new THREE.MeshBasicMaterial({side:THREE.DoubleSide}));plane.updateMatrixWorld(true);const flatHit=new THREE.Raycaster(new THREE.Vector3(0,0,30),new THREE.Vector3(0,0,-1)).intersectObject(plane)[0];assert.throws(()=>estimateWall(plane,flatHit),/opposite surface/);
+});
 
 test('Combine preserves world geometry, material groups and exact optional welding',()=>{
  const doc=new SceneDocument();doc.add(new THREE.BoxGeometry(10,10,10),'First');doc.add(new THREE.BoxGeometry(10,10,10),'Second');doc.transform({position:[20,0,0]});doc.setMaterial({color:'#ff4400',metallic:.5,roughness:.4,opacity:1});
@@ -25,6 +36,11 @@ test('Subdivision parent metadata preserves combined material membership',()=>{
 test('mm360 multi-object/texture/material/measurement round trip and dirty undo',()=>{
  const doc=new SceneDocument();const box=new THREE.BoxGeometry(20,20,20);doc.add(box,'Cube');doc.add(box,'Second');doc.state.textures.push({name:'custom',mime:'image/png',bytes:new Uint8Array([1,2,3])});doc.state.measurements.push({id:'distance',name:'Distance',points:[[0,0,0],[3,4,0]],valueMm:5});doc.transform({position:[30,10,5],scale:[2,1,1]});
  assert.equal(doc.dirty,true);const reopened=deserializeProject(serializeProject(doc.state));assert.equal(reopened.objects.length,2);assert.deepEqual(reopened.objects[1].position,[30,10,5]);assert.deepEqual(reopened.textures[0].bytes,new Uint8Array([1,2,3]));assert.equal(reopened.measurements[0].valueMm,5);assert.deepEqual(reopened.objects[1].material,doc.state.objects[1].material);doc.markSaved();assert.equal(doc.dirty,false);doc.undo();assert.equal(doc.dirty,true);doc.redo();assert.equal(doc.dirty,false);
+});
+test('invalid saved measurements are rejected before project display',()=>{
+ const doc=new SceneDocument();const valid={id:'distance',name:'Distance',...pointMeasurement('distance',[[0,0,0],[3,4,0]])};
+ for(const invalid of [{...valid,valueMm:NaN},{...valid,points:[[0,0,0]]},{...valid,kind:'unknown'},{...valid,name:''}]){doc.state.measurements=[invalid];assert.throws(()=>serializeProject(doc.state),/measurement/);}
+ doc.state.measurements=[valid,valid];assert.throws(()=>serializeProject(doc.state),/measurement/);
 });
 test('transforms and centering preserve geometry and have undo',()=>{const d=new SceneDocument();d.add(new THREE.BoxGeometry(20,10,6),'box');const original=d.selected[0].positions.slice();d.transform({position:[12,30,42],rotation:new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2).toArray(),scale:[2,1,1]});d.center();const g=geometryFromObject(d.selected[0],{world:true});g.computeBoundingBox();const b=g.boundingBox;assert.ok(Math.abs(b.min.z)<1e-6);assert.ok(Math.abs(b.min.x+b.max.x)<1e-6);assert.ok(Math.abs(b.min.y+b.max.y)<1e-6);assert.deepEqual(d.selected[0].positions,original);assert.ok(d.undo());assert.deepEqual(d.selected[0].position,[12,30,42]);});
 test('failed transform rolls back and malformed project is rejected',()=>{const d=new SceneDocument();d.add(new THREE.BoxGeometry(),'box');assert.throws(()=>d.transform({scale:[0,1,1]}),/transform/);assert.deepEqual(d.selected[0].scale,[1,1,1]);assert.throws(()=>deserializeProject(new Uint8Array([1,2,3])));});
