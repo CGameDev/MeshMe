@@ -11,8 +11,9 @@ import {formatMeasurement} from './measurement.js';
 import {attachPrintTools} from './print-tools.js';
 import {startSourceComposition} from './source-client.js';
 import {attachDocumentMenus} from './document-menus.js';
+import {attachDiagnosticsTools} from './diagnostics-tools.js';
 export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName,propertiesPanel,search,openDialog,el,refresh,updateStats,viewport,setPreview}){
- const document=new SceneDocument();let activeId=null,busy=false,gizmo;const otherMeshes=new THREE.Group();viewer.getScene().add(otherMeshes);const pendingSaves=new Map();let ownedMaterials=[];
+ const document=new SceneDocument();let activeId=null,busy=false,gizmo,diagnostics;const otherMeshes=new THREE.Group();viewer.getScene().add(otherMeshes);const pendingSaves=new Map();let ownedMaterials=[];
  function renderMaterials(object){const list=(object.materials??[object.material]).map(m=>new THREE.MeshStandardMaterial({color:m.color,metalness:m.metallic,roughness:m.roughness,opacity:m.opacity,transparent:m.opacity<1}));ownedMaterials.push(...list);return object.groups?list:list[0];}
  const editable=()=>!busy&&document.selected.length>0&&document.selected.every(o=>!o.locked);
  function applySnapshot(object,snapshot){object.engineSettings=snapshot.settings;object.engineMask=snapshot.mask;object.textureId=snapshot.texture?.id??null;if(snapshot.texture&&!document.state.textures.some(t=>t.id===snapshot.texture.id))document.state.textures.push(snapshot.texture);}
@@ -55,6 +56,7 @@ export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName
   const scaleForm=numeric('Scale',o.scale,v=>{if(gizmo.linked){const axis=v.findIndex((n,i)=>n!==o.scale[i]);if(axis>=0){const ratio=v[axis]/o.scale[axis];v=o.scale.map(n=>n*ratio);}}document.transform({scale:v});});
   if(gizmo?.linked){const inputs=[...scaleForm.querySelectorAll('input')];inputs.forEach((input,axis)=>{input.oninput=()=>{const ratio=input.valueAsNumber/o.scale[axis];inputs.forEach((other,i)=>{if(i!==axis)other.value=o.scale[i]*ratio;});};});}
   propertiesPanel.append(numeric(`Position (${unit})`,o.position.map(v=>v/factor),v=>document.transform({position:v.map(n=>n*factor)})),numeric('Rotation (degrees)',new THREE.Euler().setFromQuaternion(new THREE.Quaternion(...o.rotation)).toArray().slice(0,3).map(THREE.MathUtils.radToDeg),v=>document.transform({rotation:new THREE.Quaternion().setFromEuler(new THREE.Euler(...v.map(THREE.MathUtils.degToRad))).toArray()})),scaleForm);
+  const report=diagnostics?.reportFor(o.id);propertiesPanel.append(el('p','',report?'Solid: '+(report.solid?'Closed with positive volume':'Not validated'):'Solid: Not checked for the current project state'),el('p','',report?'Normals: '+report.normals:'Normals: Not checked'));
   const geometry=geometryFromObject(o,{world:true});geometry.computeBoundingBox();const size=geometry.boundingBox.getSize(new THREE.Vector3());geometry.dispose();propertiesPanel.append(el('p','',`Dimensions: ${size.toArray().map(n=>(n/factor).toFixed(3)).join(' × ')} ${unit}`),el('p','',`Vertices: ${o.positions.length/3} · Triangles: ${(o.indices?.length??o.positions.length/3)/3}`),el('p','',`Visibility: ${o.visible?'Visible':'Hidden'}`),el('p','',o.modifiers.map(m=>m.name).join(', ')||'No committed modifiers'));
  }
  function syncToolButton(name){for(const node of window.document.querySelectorAll('.locked-toolbar button'))if(['Select','Move','Rotate','Scale'].includes(node.dataset.command))node.classList.toggle('active',node.dataset.command===name);}
@@ -77,12 +79,13 @@ export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName
  host?.rpc.onMessage(message=>{if(message.type!=='document.stateChanged'||!pendingSaves.has(message.requestId))return;const pending=pendingSaves.get(message.requestId);pendingSaves.delete(message.requestId);if(message.payload.downloadCompleted){document.savedRevision=pending.revision;document.state.name=message.payload.savedFilename??pending.name;refreshScene();}});
  window.document.addEventListener('keydown',e=>{if(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;if(e.key==='F2'&&document.selected[0]){e.preventDefault();rename(document.selected[0]);}if(e.key==='Delete'&&editable()){e.preventDefault();registry.execute('Delete Selected');}if(e.key==='Escape'){document.select([]);renderTree();refresh();}});
  gizmo=createSceneGizmo({document,viewer,meshes:()=>[viewer.getCurrentMesh(),...otherMeshes.children].filter(Boolean),refreshScene,showError,isBusy:()=>busy});
- const setBusy=value=>{busy=value;registry.busy=value;if(value)gizmo.activate(null);for(const panel of window.document.querySelectorAll('.locked-project,.locked-inspector-body,.locked-shelf'))panel.inert=value;refresh();};
+ const setBusy=value=>{busy=value;registry.busy=value;window.dispatchEvent(new CustomEvent('meshme:processing',{detail:{busy:value}}));if(value)gizmo.activate(null);for(const panel of window.document.querySelectorAll('.locked-project,.locked-inspector-body,.locked-shelf'))panel.inert=value;refresh();};
  attachSolidTools({document,viewer,registry,editable,setBusy,refreshScene,openDialog,el});
  attachExportTools({document,engine,host,registry,openDialog,el,capture,refreshScene,setBusy});
  attachMeasureTools({document,viewer,registry,openDialog,el,setBusy,refreshScene});
  attachPrintTools({document,registry,openDialog,el,setBusy,refreshScene,capture});
  attachReliefTools({engine,document,registry,openDialog,el,setBusy,setPreview,refreshScene,commitResult:(name,result,input)=>{try{document.transact(name,()=>{const object=document.selected[0],groups=remapMaterialGroups(object.groups,result.faceParentId);engine.desktopAdoptDisplacement(result,input);const snapshot=engine.desktopSceneCapture();try{object.positions=new Float32Array(snapshot.geometry.attributes.position.array);object.indices=null;if(groups)object.groups=groups;applySnapshot(object,snapshot);object.modifiers.push({name:name+' (baked)',source:object.textureId,settings:structuredClone(input.settings),...(result.pattern?{pattern:result.pattern}:{})});}finally{snapshot.geometry.dispose();}});refreshScene({activate:true});}catch(error){refreshScene({activate:true});throw error;}}});
+ diagnostics=attachDiagnosticsTools({document,registry,openDialog,el,setBusy,refreshScene});
  attachDocumentMenus({document,host,registry,openDialog,el,refreshScene});
- search.oninput=renderTree;refreshScene();syncToolButton('Select');return{document,openProject,renderTree,renderProperties,refreshScene,capture,composeTexture,commitTextureSettings};
+ search.oninput=renderTree;refreshScene();syncToolButton('Select');return{document,openProject,renderTree,renderProperties,refreshScene,capture,composeTexture,commitTextureSettings,diagnostics};
 }

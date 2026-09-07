@@ -26,10 +26,10 @@ export function attachDocumentMenus({document,host,registry,openDialog,el,refres
  function menu(name,entries){registry.register('menu:'+name,()=>{const list=el('div');for(const [label,command]of entries){const state=registry.state(command),b=button(label,()=>registry.execute(command));b.disabled=!state.enabled;b.title=state.enabled?'':state.reason;list.append(b);}openDialog(name,[list]);});}
  menu('File',[['New Project','New Project'],['Open Project…','Open Project'],['Open Model…','Import'],['Open Recent','Open Recent'],['Import Model…','Import'],['Save','Save'],['Save As…','Save As'],['Export…','Export'],['Project Settings','Project Settings']]);
  menu('Edit',[['Undo','Undo'],['Redo','Redo'],['Duplicate Selected','Duplicate Selected'],['Delete Selected','Delete Selected'],['Select All','Select All'],['Preferences','Preferences']]);
- menu('Mesh',['Repair','Make Solid','Hollow','Boolean','Split','Combine'].map(n=>[n,n]));
+ menu('Mesh',['Repair','Make Solid','Hollow','Boolean','Split','Combine','Diagnostics'].map(n=>[n,n]));
  menu('Texture',[['Texture panel','Texture'],['Procedural source','source:Procedural'],['Image source','source:Image'],['Texture Library','Texture Library'],...['Apply Texture','Emboss','Deboss','Pattern','Generate Texture'].map(n=>[n,n]),['Engine controls','legacy']]);
  menu('Modify',['Move','Rotate','Scale','Center Model','Place on Bed','Reset Transform'].map(n=>[n,n]));
- menu('Tools',['Measure','Prepare for Print','Preferences'].map(n=>[n,n]));
+ menu('Tools',['Measure','Prepare for Print','Mesh Diagnostics','Preferences'].map(n=>[n,n]));
  // Capture before the preserved engine's independent Undo handler. Text-entry
  // Undo remains native; document shortcuts must address the scene history.
  window.addEventListener('keydown',event=>{

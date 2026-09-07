@@ -330,3 +330,19 @@ View evidence: artifacts/m2-integration-d09a0c03f8e84eccb8f47a894e9fb52f.
 Screenshot: artifacts/m2-integration-1b2ba3416e5245d29376562d58527c96.
 Structural gate PASS; full functional gate INCOMPLETE; pixel/human review PENDING.
 M3 remains NOT COMPLETE.
+
+### Diagnostics continuation (2026-09-07)
+
+Mesh/Tools diagnostics now run the same checked upstream edge/sliver and Manifold
+validation plus sampled opposite-surface wall tests used by Prepare for Print.
+Reports populate selected-object Properties and a truthful status summary. Any
+new project revision invalidates the displayed assessment. Diagnostics do not
+change geometry or project state, and cancellation terminates the worker.
+The global operation label now reflects active processing/tool ownership.
+
+Build and actual --diagnostics checks pass, including cube edge/solid/wall values,
+Properties/status display, unchanged document bytes, stale-report invalidation
+and cancellation. Evidence:
+artifacts/m2-integration-e0fa310ad3d34bcfa87c507f6da35cae.
+Self-intersections and true minimum wall are explicitly unverified. Reports are
+session assessments, not persisted certifications. M3 remains NOT COMPLETE.

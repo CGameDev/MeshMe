@@ -120,6 +120,7 @@ export function mountLockedUi(host, engine) {
  new MutationObserver(refresh).observe(document.getElementById('undo-btn'),{attributes:true,attributeFilter:['disabled']});
  new MutationObserver(refresh).observe(document.getElementById('redo-btn'),{attributes:true,attributeFilter:['disabled']});
  renderTree();renderShelf();updateStats();registry.execute('mode:Shaded');refresh();
+ window.addEventListener('meshme:processing',({detail})=>{operation.textContent=detail.busy?'Processing…':'Ready';});window.addEventListener('meshme:diagnostics',({detail})=>{issue.textContent=detail.text;issue.title='Committed geometry checks; self-intersections and the true minimum wall remain unverified.';});
  const scene=attachSceneEditor(engine,{host,viewer,registry,tree,documentName,propertiesPanel,search,openDialog,el,refresh,updateStats,viewport,setPreview});
  viewTools=attachViewTools({scene,viewer,registry,openDialog,el,work});
  // Only native user edits enter scene history: upstream snapshot restoration

@@ -401,3 +401,11 @@ objects instead of only the active upstream mesh. Camera parameters scale to the
 combined bounds. Visibility toggles span existing grid cells to reclaim space,
 without changing the default locked layout. Guide visibility reapplies at render
 time because upstream recreates its helpers during object/theme changes.
+
+## 2026-09-07 — Mesh diagnostics surfaces
+
+Reused the existing print inspection worker instead of creating another geometry
+checker. Session reports are keyed to the exact document revision and object ID;
+a subsequent edit makes them unavailable until rerun. Report-only operations
+never enter project history or claim global minimum wall/self-intersection
+certification. Properties and status consume the same report as the dialog.

@@ -76,6 +76,23 @@ internal static class Program
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
                 }
+                if(args.Contains("--diagnostics"))
+                {
+                    var diagnosticsBefore=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Mesh Diagnostics');[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Run diagnostics').click();return true})()");
+                    await Until(async()=> (await Evaluate("document.querySelector('[data-diagnostics-status]').dataset.diagnosticsStatus")).GetString() is "ready" or "error");
+                    if((await Evaluate("document.querySelector('[data-diagnostics-status]').dataset.diagnosticsStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('.locked-dialog').innerText")).GetString());
+                    if(!(await Evaluate("(()=>{const a=window.meshMe360Locked,r=a.scene.diagnostics.reportFor(a.scene.document.selected[0].id);return r.solid&&r.open===0&&r.nonManifold===0&&r.degenerate===0&&Math.abs(r.wall.minimumSampleMm-20)<.001&&document.querySelector('.locked-status .issue').textContent==='No detected mesh issues'})()")).GetBoolean())throw new Exception("Cube diagnostics or status incorrect");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=diagnosticsBefore)throw new Exception("Diagnostics changed document geometry/state");
+                    await Evaluate("(()=>{document.querySelector('.locked-dialog .close').click();window.meshMe360Locked.registry.execute('tab:Properties');return true})()");
+                    if(!(await Evaluate("document.querySelector('.locked-inspector-body').innerText.includes('Closed with positive volume')")).GetBoolean())throw new Exception("Properties did not show current diagnostics");
+                    await Evaluate("(()=>{const a=window.meshMe360Locked;a.scene.document.transform({position:[10,0,0]});a.scene.refreshScene();return true})()");
+                    if(!(await Evaluate("(()=>{const a=window.meshMe360Locked;return !a.scene.diagnostics.reportFor(a.scene.document.selected[0].id)&&document.querySelector('.locked-status .issue').textContent==='Diagnostics not run'})()")).GetBoolean())throw new Exception("Stale diagnostics survived an edit");
+                    await Evaluate("(()=>{const a=window.meshMe360Locked;a.registry.execute('Mesh Diagnostics');[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Run diagnostics').click();document.querySelector('.locked-dialog .close').click();return true})()");
+                    if((await Evaluate("window.meshMe360Locked.registry.busy")).GetBoolean())throw new Exception("Diagnostics cancel left app busy");
+                    Console.WriteLine("PASS: actual read-only mesh diagnostics, measured cube wall, Properties/status report, edit invalidation and safe cancellation");
+                    Console.WriteLine("Diagnostics evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--view"))
                 {
                     if(!(await Evaluate("(async()=>{const a=window.meshMe360Locked,v=await import('./js/viewer.js');a.registry.execute('Grid');a.registry.execute('Axes');if(v.getGrid().visible||v.getDesktopAxes().visible)return false;a.scene.refreshScene({activate:true});return !v.getGrid().visible&&!v.getDesktopAxes().visible})()")).GetBoolean())throw new Exception("Guide toggles did not survive scene refresh");
