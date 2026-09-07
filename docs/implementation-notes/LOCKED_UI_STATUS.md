@@ -289,3 +289,12 @@ Full current regression suite passed after this change: build (zero warnings),
 6 asset checks, 24 Node checks, 38 Core checks, all 14 native app modes and
 three geometry backend probes. Latest screenshot:
 artifacts/m2-integration-50a7fe5321454a3b83ff38e8f85de8b8.
+
+### Texture edit transactions (2026-09-07)
+
+Visible Scale/Depth/UV controls and scale linking now record native user edits
+in scene history. Restoring a project or Undo uses upstream synthetic events
+without creating spurious edits. Single-object applicability is enforced.
+Build and actual --settings, --source and --scene checks pass. Keyboard evidence:
+artifacts/m2-integration-2fa812e4b5dc4f4daf5f7d0564683daa.
+Upstream 117-blob integrity check passes. M3 remains NOT COMPLETE.

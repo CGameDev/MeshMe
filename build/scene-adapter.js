@@ -54,6 +54,7 @@ export async function desktopLoadTexture(file) {
   return true;
 }
 export function desktopConfigureTexture(snapshot){applySettingsSnapshot(snapshot);updatePreview();}
+export function desktopTextureSettings(){return getSettingsSnapshot();}
 export function desktopDisplacementInput(){
   if(!currentGeometry||!activeMapEntry)throw new Error('Select a model and texture source');
   const hasAngleMask=settings.bottomAngleLimit>0||settings.topAngleLimit>0;

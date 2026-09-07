@@ -359,3 +359,20 @@ algorithms and on-disk geometry representation are unchanged.
 The generated Scales raster is retained as a candidate under ignored artifacts,
 with the exact built-in generation prompt. It is not substituted into the
 production procedural source before seamlessness/height/fidelity verification.
+
+## 2026-09-07 — Visible texture settings join scene history
+
+The upstream mapping/scale/depth handlers update preview settings but the scene
+previously captured them silently on Save/selection. Native user change,
+double-click reset, scale-link and numeric wheel events now commit the resulting
+settings in one scene transaction per control edit. The actual mouse/keyboard
+path is distinguished from synthetic events because upstream project snapshot
+restoration dispatches change events to initialize its existing controls.
+No upstream mapping/displacement algorithm is modified; the adapter exposes the
+existing settings snapshot. Locked/multiple/no selection disables these
+single-object inputs. Engine settings restore if history allocation fails.
+
+Actual WebView2 keyboard regression proves Depth/Scale dirty state, Undo/Redo,
+restored numeric controls and a clean native project reopen without synthetic
+Undo entries. Other legacy settings/masks remain part of the broader relocation
+and project-history acceptance work.

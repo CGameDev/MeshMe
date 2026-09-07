@@ -17,6 +17,13 @@ export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName
  const editable=()=>!busy&&document.selected.length>0&&document.selected.every(o=>!o.locked);
  function applySnapshot(object,snapshot){object.engineSettings=snapshot.settings;object.engineMask=snapshot.mask;object.textureId=snapshot.texture?.id??null;if(snapshot.texture&&!document.state.textures.some(t=>t.id===snapshot.texture.id))document.state.textures.push(snapshot.texture);}
  function capture(){const object=document.state.objects.find(o=>o.id===activeId);if(!object)return;const snapshot=engine.desktopSceneCapture();applySnapshot(object,snapshot);snapshot.geometry?.dispose();}
+ function commitTextureSettings(){
+  if(!editable()||document.selected.length!==1)return;
+  const object=document.selected[0],settings=engine.desktopTextureSettings();
+  if(object.id!==activeId||JSON.stringify(settings)===JSON.stringify(object.engineSettings))return;
+  try{document.transact('Texture settings',()=>{object.engineSettings=settings;});refreshScene();}
+  catch(error){engine.desktopConfigureTexture(document.selected[0]?.engineSettings);refreshScene();throw error;}
+ }
  async function composeTexture(options){
   if(!editable()||document.selected.length!==1)throw new Error('Select one unlocked textured object');
   capture();const object=document.selected[0],revision=document.revision,previous=object.sourceEffects??{sourceId:object.textureId,baseId:null,strength:1,blend:'normal',invert:false};
@@ -76,5 +83,5 @@ export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName
  attachPrintTools({document,registry,openDialog,el,setBusy,refreshScene,capture});
  attachReliefTools({engine,document,registry,openDialog,el,setBusy,setPreview,refreshScene,commitResult:(name,result,input)=>{try{document.transact(name,()=>{const object=document.selected[0],groups=remapMaterialGroups(object.groups,result.faceParentId);engine.desktopAdoptDisplacement(result,input);const snapshot=engine.desktopSceneCapture();try{object.positions=new Float32Array(snapshot.geometry.attributes.position.array);object.indices=null;if(groups)object.groups=groups;applySnapshot(object,snapshot);object.modifiers.push({name:name+' (baked)',source:object.textureId,settings:structuredClone(input.settings),...(result.pattern?{pattern:result.pattern}:{})});}finally{snapshot.geometry.dispose();}});refreshScene({activate:true});}catch(error){refreshScene({activate:true});throw error;}}});
  attachDocumentMenus({document,host,registry,openDialog,el,refreshScene});
- search.oninput=renderTree;refreshScene();syncToolButton('Select');return{document,openProject,renderTree,renderProperties,refreshScene,capture,composeTexture};
+ search.oninput=renderTree;refreshScene();syncToolButton('Select');return{document,openProject,renderTree,renderProperties,refreshScene,capture,composeTexture,commitTextureSettings};
 }

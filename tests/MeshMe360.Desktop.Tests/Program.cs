@@ -76,6 +76,33 @@ internal static class Program
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
                 }
+                if(args.Contains("--settings"))
+                {
+                    await Evaluate("(()=>{window.meshMe360Locked.scene.capture();window.meshMe360Locked.scene.document.markSaved();return true})()");
+                    var settingsBefore=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected[0].engineSettings)");
+                    var settingsHistory=(await Evaluate("window.meshMe360Locked.scene.document.undoStack.length")).GetInt32();
+                    await Evaluate("(()=>{const i=document.getElementById('amplitude-val');i.focus();i.select();return true})()");
+                    await core.CallDevToolsProtocolMethodAsync("Input.insertText","{\"text\":\"1.75\"}");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyDown\",\"key\":\"Tab\",\"code\":\"Tab\",\"windowsVirtualKeyCode\":9}");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyUp\",\"key\":\"Tab\",\"code\":\"Tab\",\"windowsVirtualKeyCode\":9}");
+                    if(!(await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.dirty&&d.selected[0].engineSettings.textureHeight===1.75&&d.undoStack.length==={settingsHistory+1}}})()")).GetBoolean())throw new Exception("Actual Depth edit did not create one dirty transaction");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected[0].engineSettings)")).GetString()!=settingsBefore.GetString()||(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean())throw new Exception("Texture settings Undo did not restore clean settings");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Redo');return true})()");
+                    if((await Evaluate("Number(document.getElementById('amplitude-val').value)")).GetDouble()!=1.75)throw new Exception("Depth redo did not update engine controls");
+                    await Evaluate("(()=>{const i=document.getElementById('scale-u-val');i.focus();i.select();return true})()");
+                    await core.CallDevToolsProtocolMethodAsync("Input.insertText","{\"text\":\"7\"}");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyDown\",\"key\":\"Tab\",\"code\":\"Tab\",\"windowsVirtualKeyCode\":9}");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyUp\",\"key\":\"Tab\",\"code\":\"Tab\",\"windowsVirtualKeyCode\":9}");
+                    if((await Evaluate("window.meshMe360Locked.scene.document.selected[0].engineSettings.scaleU")).GetDouble()!=7)throw new Exception("Actual Scale edit was not recorded");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Save');return true})()");
+                    await Until(()=>Task.FromResult(File.Exists(chosen)&&chosen.EndsWith(".mm360")));
+                    await Until(async()=>!(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean());
+                    await ReopenNativeProject(chosen);
+                    if(!(await Evaluate("(()=>{const d=window.meshMe360Locked.scene.document;return !d.dirty&&d.undoStack.length===0&&d.selected[0].engineSettings.scaleU===7&&d.selected[0].engineSettings.textureHeight===1.75})()")).GetBoolean())throw new Exception("Project restore generated synthetic history or lost texture settings");
+                    Console.WriteLine("PASS: actual keyboard Depth/Scale edits create dirty undo transactions, Undo/Redo restores controls, native project restore stays clean");
+                    Console.WriteLine("Settings evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--menus"))
                 {
                     await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Preferences');return true})()");
