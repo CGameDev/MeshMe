@@ -346,3 +346,14 @@ and cancellation. Evidence:
 artifacts/m2-integration-e0fa310ad3d34bcfa87c507f6da35cae.
 Self-intersections and true minimum wall are explicitly unverified. Reports are
 session assessments, not persisted certifications. M3 remains NOT COMPLETE.
+
+### Empty project and Escape state (2026-09-07)
+
+An empty/new scene now hides the engine's retained mesh and uses actual scene
+visibility for comparison/fit availability. Texture controls remain disabled
+until an unlocked scene object is selected. Escape closes a transient dialog
+without also clearing object selection; with no dialog it clears selection and
+resets the active transform tool. Native --empty verifies all these states and
+fresh import after New Project. Build passes. Evidence:
+artifacts/m2-integration-d81bc98e86624a9f96cb61eaeef6a016.
+M3 remains NOT COMPLETE.

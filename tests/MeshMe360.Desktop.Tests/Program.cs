@@ -76,6 +76,21 @@ internal static class Program
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
                 }
+                if(args.Contains("--empty"))
+                {
+                    var emptyObjectId=(await Evaluate("window.meshMe360Locked.scene.document.selected[0].id")).GetString();
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Project Settings');return true})()");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyDown\",\"key\":\"Escape\",\"code\":\"Escape\",\"windowsVirtualKeyCode\":27}");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyUp\",\"key\":\"Escape\",\"code\":\"Escape\",\"windowsVirtualKeyCode\":27}");
+                    if((await Evaluate("window.meshMe360Locked.scene.document.selected[0]?.id??''")).GetString()!=emptyObjectId)throw new Exception("Closing a dialog unexpectedly cleared object selection");
+                    await Evaluate("(()=>{window.meshMe360Locked.scene.document.markSaved();window.meshMe360Locked.registry.execute('New Project');return true})()");
+                    if(!(await Evaluate("(async()=>{const a=window.meshMe360Locked,v=await import('./js/viewer.js');return a.scene.document.state.objects.length===0&&!a.scene.document.dirty&&!v.getCurrentMesh().visible&&!a.registry.state('Comparison').enabled&&!a.registry.state('Fit').enabled&&document.getElementById('amplitude-val').disabled&&document.querySelector('.locked-stats').innerText.includes('0')})()")).GetBoolean())throw new Exception("New Project exposed the engine's retained old mesh or editable controls");
+                    await bridge.OpenFileAsync(fixture);
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==1);
+                    if(!(await Evaluate("(async()=>{const v=await import('./js/viewer.js');return v.getCurrentMesh().visible&&!document.getElementById('amplitude-val').disabled})()")).GetBoolean())throw new Exception("Import after New Project failed to re-enable controls");
+                    Console.WriteLine("PASS: Escape closes a dialog without clearing selection; New Project hides stale engine mesh, disables invalid controls and permits fresh import");
+                    Console.WriteLine("Empty scene evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--diagnostics"))
                 {
                     var diagnosticsBefore=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
