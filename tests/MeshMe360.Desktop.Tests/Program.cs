@@ -22,7 +22,7 @@ internal static class Program
             var paths = new AppDataPaths(Path.Combine(testRoot, "Roaming"), Path.Combine(testRoot, "Local"));
             using var session = new SessionService(paths);
             var window = new Window { Title = "Mesh Me360 integration tests", Width = 1280, Height = 800 };
-            var web = new WebView2(); window.Content = web; window.Show();
+            var web = new WebView2(); if(args.Contains("--startup")||args.Contains("--hidden-startup"))web.Visibility=Visibility.Hidden; window.Content = web; window.Show();
             WebViewHostBridge? bridge = null;
             try
             {
@@ -31,6 +31,7 @@ internal static class Program
                 var packagedRuntime=Path.Combine(AppContext.BaseDirectory,"WebView2FixedRuntime");
                 var environment = await CoreWebView2Environment.CreateAsync(args.Contains("--packaged") ? packagedRuntime : null, Path.Combine(testRoot, "WebView2")).WaitAsync(TimeSpan.FromSeconds(30));
                 await web.EnsureCoreWebView2Async(environment).WaitAsync(TimeSpan.FromSeconds(30));
+                if(args.Contains("--startup"))web.Visibility=Visibility.Visible;
                 var core = web.CoreWebView2;
                 core.GetDevToolsProtocolEventReceiver("Runtime.exceptionThrown").DevToolsProtocolEventReceived += (_,e)=>Console.Error.WriteLine("Web runtime error: "+e.ParameterObjectAsJson);
                 await core.CallDevToolsProtocolMethodAsync("Runtime.enable","{}");
@@ -63,8 +64,15 @@ internal static class Program
                     if(!result.StartsWith("PASS:")) throw new Exception("Backend probe failed: "+result);
                     await session.CompleteAsync();return;
                 }
+                if(args.Contains("--startup"))
+                {
+                    core.AddWebResourceRequestedFilter(HostOrigins.App+"/js/main.js",CoreWebView2WebResourceContext.All);
+                    core.WebResourceRequested += async (_,e)=>{if(e.Request.Uri==HostOrigins.App+"/js/main.js"){using var delay=e.GetDeferral();await Task.Delay(900);}};
+                    await core.AddScriptToExecuteOnDocumentCreatedAsync("window.startupFrames={waiting:0,leaks:0};function observeStartup(){const b=document.body,h=document.querySelector('body>header');if(b&&!document.documentElement.hasAttribute('data-meshme-ready')){startupFrames.waiting++;if(getComputedStyle(b).visibility!=='hidden')startupFrames.leaks++;}if(h&&getComputedStyle(h).display!=='none'&&getComputedStyle(h).visibility!=='hidden')startupFrames.leaks++;requestAnimationFrame(observeStartup);}requestAnimationFrame(observeStartup);");
+                }
                 core.Navigate(HostOrigins.App + "/index.html");
                 await ready.Task.WaitAsync(TimeSpan.FromSeconds(60));
+                if(args.Contains("--hidden-startup"))web.Visibility=Visibility.Visible;
                 Console.WriteLine("PASS: actual WebView2 startup handshake");
                 var fixture = Path.Combine(root, "tests", "fixtures", "cube_binary.stl");
                 await bridge.OpenFileAsync(fixture);
@@ -136,6 +144,13 @@ internal static class Program
                     if(!recoveryCheck.GetProperty("match").GetBoolean()||!recoveryCheck.GetProperty("originalSaveUntouched").GetBoolean())throw new Exception("Recovered scene did not restore the renderer/texture and dirty state");
                     await File.WriteAllTextAsync(Path.Combine(testRoot,"recovery-format-check.json"),recoveryCheck.GetRawText());
                     Console.WriteLine("PASS: current unsaved mm360 snapshot restores real renderer/source state and remains dirty; M6 crash scheduling/retention is not exercised");Console.WriteLine("Recovery compatibility evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if(args.Contains("--startup"))
+                {
+                    var result=await Evaluate("({waiting:startupFrames.waiting,leaks:startupFrames.leaks,ready:document.documentElement.getAttribute('data-meshme-ready'),visible:getComputedStyle(document.body).visibility,title:document.title,model:window.meshMe360Locked.scene.document.selected.length})");
+                    if(result.GetProperty("waiting").GetInt32()<2||result.GetProperty("leaks").GetInt32()!=0||result.GetProperty("ready").GetString()!="true"||result.GetProperty("visible").GetString()!="visible"||result.GetProperty("model").GetInt32()!=1)throw new Exception("Startup flash regression: "+result);
+                    await File.WriteAllTextAsync(Path.Combine(testRoot,"startup-frames.json"),result.GetRawText());
+                    Console.WriteLine("PASS: delayed engine startup never paints legacy UI; completed shell and model are visible. "+result);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--guide"))
                 {

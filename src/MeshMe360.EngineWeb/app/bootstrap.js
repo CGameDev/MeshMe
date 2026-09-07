@@ -25,6 +25,8 @@ try {
   if (!canvas) throw new Error('The engine did not create its viewport.');
   mountLockedUi(host, engine);
   if (host) await host.start(engine);
+  // Reveal only after shell construction and native settings/handshake succeed.
+  document.documentElement.setAttribute('data-meshme-ready', 'true');
 } catch (error) {
   failure(error, true);
 }

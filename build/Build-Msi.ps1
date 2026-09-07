@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Build the owner-requested MSI preview with a pinned offline runtime and local PDF.
 [CmdletBinding()]
-param([string]$OutputDirectory='artifacts/msi-0.1.0', [switch]$SkipPublish)
+param([string]$OutputDirectory='artifacts/msi-0.1.1', [switch]$SkipPublish)
 $ErrorActionPreference='Stop'
 $repo=Split-Path $PSScriptRoot -Parent
 Push-Location $repo
@@ -10,6 +10,7 @@ try {
     $env:NUGET_PACKAGES=Join-Path $repo '.tools/nuget'
     $output=[IO.Path]::GetFullPath((Join-Path $repo $OutputDirectory))
     if(-not $output.StartsWith($repo+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Output must stay inside the repository'}
+    $version=([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
     $payload=Join-Path $output 'payload';$generated=Join-Path $output 'generated'
     New-Item -ItemType Directory -Force $payload,$generated | Out-Null
     $wix=Join-Path $repo '.tools/wix/wix.exe'
@@ -35,7 +36,7 @@ try {
     Get-ChildItem -LiteralPath $fixed | Copy-Item -Destination $runtimeTarget -Recurse -Force
     python build/create-msi-source.py $payload $generated
     if($LASTEXITCODE){throw 'MSI source generation failed'}
-    & $wix build build/installer/Package.wxs (Join-Path $generated 'Payload.wxs') -arch x64 -ext WixToolset.UI.wixext/4.0.6 -d "Repo=$repo" -d "Generated=$generated" -cc (Join-Path $output 'cab-cache') -pdbtype none -o (Join-Path $output 'MeshMe360-0.1.0-x64.msi')
+    & $wix build build/installer/Package.wxs (Join-Path $generated 'Payload.wxs') -arch x64 -ext WixToolset.UI.wixext/4.0.6 -d "ProductVersion=$version" -d "Repo=$repo" -d "Generated=$generated" -cc (Join-Path $output 'cab-cache') -pdbtype none -o (Join-Path $output "MeshMe360-$version-x64.msi")
     if($LASTEXITCODE){throw 'MSI build or validation failed'}
-    Get-FileHash (Join-Path $output 'MeshMe360-0.1.0-x64.msi') -Algorithm SHA256
+    Get-FileHash (Join-Path $output "MeshMe360-$version-x64.msi") -Algorithm SHA256
 } finally {Pop-Location}

@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <!-- Current-user installation. Common mesh defaults and user documents are never overwritten. -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-  <Package Name="Mesh Me360" Manufacturer="Computer Universal Technology Systems" Version="0.1.0" UpgradeCode="509B4F6D-CE66-493B-A973-4504203B8470" Scope="perUser" InstallerVersion="500" Language="1033">
+  <Package Name="Mesh Me360" Manufacturer="Computer Universal Technology Systems" Version="$(var.ProductVersion)" UpgradeCode="509B4F6D-CE66-493B-A973-4504203B8470" Scope="perUser" InstallerVersion="500" Language="1033">
     <MajorUpgrade DowngradeErrorMessage="A newer version of Mesh Me360 is already installed." />
     <MediaTemplate EmbedCab="yes" MaximumUncompressedMediaSize="200" />
     <Property Id="WINDOWSBUILD"><RegistrySearch Id="WindowsBuild" Root="HKLM" Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion" Name="CurrentBuildNumber" Type="raw" Bitness="always64" /></Property>

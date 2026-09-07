@@ -22,6 +22,9 @@ class OfflineAssets(unittest.TestCase):
         for path in WEB.rglob('*'):
             relative = path.relative_to(WEB)
             original = UPSTREAM / relative
+            if relative.as_posix() == 'logo.png':
+                self.assertEqual(path.read_bytes(), (ROOT / 'src/MeshMe360.Desktop/Assets/MeshMe360.png').read_bytes())
+                continue
             if path.is_file() and original.is_file() and relative.as_posix() not in changed:
                 self.assertEqual(path.read_bytes(), original.read_bytes(), relative)
         for name in changed:

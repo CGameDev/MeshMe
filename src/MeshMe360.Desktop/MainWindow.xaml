@@ -4,7 +4,7 @@
  xmlns:wv="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
  Title="Mesh Me360" Icon="Assets/MeshMe360.ico" Width="1600" Height="900" MinWidth="1280" MinHeight="720">
  <Grid>
-   <wv:WebView2 x:Name="Web" />
+   <wv:WebView2 x:Name="Web" Visibility="Hidden" />
    <Border x:Name="StartupPanel" Background="#F3F4F6" Padding="40">
      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="760">
        <TextBlock x:Name="StartupTitle" Text="Starting Mesh Me360…" FontSize="26" Margin="0,0,0,18" />

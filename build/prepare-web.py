@@ -67,6 +67,11 @@ replace_exact('vendor/three-0.170.0/examples/jsm/exporters/OBJExporter.js',
               'Modified for Mesh Me360 by Computer Universal Technology Systems, 2026. Original work: Three.js authors. Dependency resolution only; original MIT license retained.')
 page = (output / 'index.html').read_text(encoding='utf-8')
 page = page.replace('<title>BumpMesh by CNC Kitchen</title>', '<title>Mesh Me360</title>')
+# Product presentation only: preserve the original engine and its legal notices.
+page = page.replace('BumpMesh', 'Mesh Me360')
+shutil.copyfile(root / 'src/MeshMe360.Desktop/Assets/MeshMe360.png', output / 'logo.png')
+# Parser-time protection: never paint the inherited interface while modules load.
+page = page.replace('</head>', '<style id="meshme-startup-guard">html:not([data-meshme-ready]) body{visibility:hidden!important}</style>\n</head>')
 page = re.sub(r'^.*<link rel="(?:canonical|preconnect)"[^\n]*\n', '', page, flags=re.M)
 page = re.sub(r'^.*<meta (?:property="og:|name="twitter:)[^\n]*\n', '', page, flags=re.M)
 theme = re.search(r'<script>(.*?)</script>', page, re.S)

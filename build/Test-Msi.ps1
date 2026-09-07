@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Read-only MSI table assertions. Does not install or register the product.
 [CmdletBinding()]
-param([string]$Msi='artifacts/msi-0.1.0/MeshMe360-0.1.0-x64.msi',[string]$Manifest='artifacts/msi-0.1.0/generated/payload-sha256.json')
+param([string]$Msi='artifacts/msi-0.1.1/MeshMe360-0.1.1-x64.msi',[string]$Manifest='artifacts/msi-0.1.1/generated/payload-sha256.json')
 $ErrorActionPreference='Stop'
 $installer=New-Object -ComObject WindowsInstaller.Installer
 $db=$installer.OpenDatabase([IO.Path]::GetFullPath($Msi),0)
@@ -10,7 +10,7 @@ function Read-Rows([string]$sql){
     try {while($record=$view.Fetch()){$values=@();for($i=1;$i -le $record.GetType().InvokeMember('FieldCount','GetProperty',$null,$record,$null);$i++){$values+=,$record.StringData($i)};,$values}} finally {$null=$view.Close()}
 }
 $properties=@{};Read-Rows 'SELECT `Property`,`Value` FROM `Property`' | ForEach-Object {$properties[$_[0]]=$_[1]}
-if($properties.ProductName -ne 'Mesh Me360' -or $properties.ProductVersion -ne '0.1.0'){throw 'Wrong product identity'}
+if($properties.ProductName -ne 'Mesh Me360' -or $properties.ProductVersion -ne ([xml](Get-Content (Join-Path $PSScriptRoot '../Directory.Build.props') -Raw)).Project.PropertyGroup.Version){throw 'Wrong product identity'}
 if($properties.ALLUSERS -eq '1'){throw 'Installer unexpectedly per-machine'}
 $files=@(Read-Rows 'SELECT `File` FROM `File`')
 $expected=(Get-Content $Manifest -Raw | ConvertFrom-Json -AsHashtable).Count

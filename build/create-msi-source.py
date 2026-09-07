@@ -34,7 +34,7 @@ def generate(payload,out):
         SubElement(group,'ComponentRef',Id=cid)
     (out/'Payload.wxs').write_bytes(tostring(root,encoding='utf-8',xml_declaration=True))
     license=(ROOT/'LICENSE').read_text(encoding='utf-8')
-    intro='Mesh Me360 0.1.0 preview\nDone by Computer Universal Technology Systems\n\nApplication license: GNU AGPL version 3.\nOriginal BumpMesh engine: CNC Kitchen / Stefan Hermann and contributors.\nSource: https://github.com/CGameDev/MeshMe\n\nThird-party components retain their separate licenses in the installed Licenses folder and THIRD_PARTY_NOTICES.md.\n\n'
+    intro='Mesh Me360 preview\nDone by Computer Universal Technology Systems\n\nApplication license: GNU AGPL version 3.\nOriginal BumpMesh engine: CNC Kitchen / Stefan Hermann and contributors.\nSource: https://github.com/CGameDev/MeshMe\n\nThird-party components retain their separate licenses in the installed Licenses folder and THIRD_PARTY_NOTICES.md.\n\n'
     escaped=(intro+license).replace('\\','\\\\').replace('{','\\{').replace('}','\\}').replace('\n','\\par\n')
     (out/'License.rtf').write_text('{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Segoe UI;}}\\f0\\fs18\n'+escaped+'}',encoding='ascii')
     manifest={p.relative_to(payload).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(payload.rglob('*')) if p.is_file()}

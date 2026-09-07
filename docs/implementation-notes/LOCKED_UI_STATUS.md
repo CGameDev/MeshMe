@@ -515,3 +515,6 @@ full application-license acceptance and a bundled fixed WebView2 runtime now
 have automated packaging evidence in [MSI_PREVIEW.md](MSI_PREVIEW.md). This adds
 release-preview tooling; it does not change the incomplete physical Windows
 and full milestone acceptance gates above.
+
+### 0.1.1 startup presentation
+The inherited startup screen is now guarded before first paint and the native WebView stays hidden until initialization. Delayed-start regression reports zero legacy frames; engine baseline and native UI tests pass. See [STARTUP_PRESENTATION.md](STARTUP_PRESENTATION.md).

@@ -74,7 +74,12 @@ public partial class MainWindow : Window
             await _log.WriteAsync("host.webview2", new { environment.BrowserVersionString, fixedRuntime = Directory.Exists(fixedRuntime) });
             core.Navigate(AppOrigin + "index.html");
             await _engineReady.Task.WaitAsync(TimeSpan.FromSeconds(60));
-            if (!_closed && !_fatal) StartupPanel.Visibility = Visibility.Collapsed;
+            if (!_closed && !_fatal)
+            {
+                // WebView2 has its own native surface; a WPF overlay cannot hide its early frames.
+                Web.Visibility = Visibility.Visible;
+                StartupPanel.Visibility = Visibility.Collapsed;
+            }
             if (!_closed && !_fatal)
             {
                 try
