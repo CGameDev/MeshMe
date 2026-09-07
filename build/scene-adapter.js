@@ -17,6 +17,7 @@ function desktopCaptureTexture() {
 }
 function desktopRestoreTexture(asset) {
   desktopTextureLoadSequence++;
+  _effectiveMapCache=null;_effectiveMapCacheKey=null;
   if (desktopOwnedTexture) { desktopOwnedTexture.texture.dispose(); desktopOwnedTexture=null; }
   if (!asset) {activeMapEntry=null;_lastCustomMap=null;return;}
   if (asset.mime!=='application/x-meshme-rgba8'||!Number.isInteger(asset.width)||!Number.isInteger(asset.height)||asset.width<1||asset.height<1||asset.width>4096||asset.height>4096||!(asset.bytes instanceof Uint8Array)||asset.bytes.length!==asset.width*asset.height*4) throw new Error('Invalid embedded texture');

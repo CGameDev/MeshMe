@@ -219,3 +219,17 @@ and three geometry probes. Every named toolbar/Quick Action has a handler;
 this does not establish full behavior coverage. Source strength/blend/direction,
 menus/profiles, complete mask/advanced relocation, visual fidelity, performance,
 recovery and physical/human acceptance still require work. M3 is NOT COMPLETE.
+
+### Source composition continuation (2026-09-07)
+
+Strength, source inversion and five blend modes now change actual source heights
+and persist source/base/results/settings with undo. Actual tests verify exact
+raw and smoothed-pipeline pixels, inspector state and native reopen. All native
+project tests now wait for a new clean revision (not a filename set by Save).
+Evidence: `artifacts/m2-integration-71a96a103870484c997d5770a83d5fc8`.
+Full current suite passes: 23 Node, 6 assets, 38 Core, all actual application modes
+and three backend probes. Screenshot:
+`artifacts/m2-integration-342441d06e0d4f0cb72cd8902bddf66e`.
+Direction still reports the preserved normal-only engine; axis support is not
+invented. Full menus/advanced masks, visual fidelity, stress/recovery and physical
+or human acceptance remain open. M3 is NOT COMPLETE.

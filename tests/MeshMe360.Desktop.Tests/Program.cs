@@ -70,6 +70,12 @@ internal static class Program
                     if (parsed.RootElement.TryGetProperty("exceptionDetails", out var error)) throw new Exception(error.ToString());
                     return parsed.RootElement.GetProperty("result").GetProperty("value").Clone();
                 }
+                async Task ReopenNativeProject(string projectPath)
+                {
+                    var reopenRevision=(await Evaluate("window.meshMe360Locked.scene.document.revision")).GetInt32();
+                    await bridge.OpenFileAsync(projectPath);
+                    await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
+                }
                 if(args.Contains("--relief"))
                 {
                     await Evaluate("(async()=>{const e=await import('./js/main.js'),c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,8,8);const blob=await new Promise(r=>c.toBlob(r));await e.desktopLoadTexture(new File([blob],'white.png',{type:'image/png'}));e.desktopConfigureTexture({textureHeight:1,refineLength:3,maxTriangles:50000,smoothBottom:false,noDownwardZ:false,boundaryFalloff:0,topAngleLimit:0,bottomAngleLimit:0});return true})()");
@@ -108,6 +114,31 @@ internal static class Program
                     Console.WriteLine("PASS: actual procedural generator, blur/seed, PNG save to IndexedDB, store reopen, exact pixel application, rename/favorite and built-in protection");
                     Console.WriteLine("Library evidence: "+testRoot);await session.CompleteAsync();return;
                 }
+                if(args.Contains("--source"))
+                {
+                    await Evaluate("(async()=>{const e=await import('./js/main.js');for(const value of [128,64]){const c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='rgb('+value+','+value+','+value+')';ctx.fillRect(0,0,8,8);const blob=await new Promise(r=>c.toBlob(r));await e.desktopLoadTexture(new File([blob],'height-'+value+'.png',{type:'image/png'}));}e.desktopConfigureTexture({textureSmoothing:1});window.meshMe360Locked.scene.capture();return true})()");
+                    async Task SourcePixels(int expected)
+                    {
+                        await Until(async()=> !(await Evaluate("window.meshMe360Locked.registry.busy")).GetBoolean());
+                        var actual=await Evaluate("(async()=>{const e=await import('./js/main.js'),a=e.desktopSceneCapture();a.geometry.dispose();const input=e.desktopDisplacementInput();return{raw:a.texture.bytes[0],pipeline:input.imageData.data[0]}})()");
+                        if(actual.GetProperty("raw").GetInt32()!=expected||actual.GetProperty("pipeline").GetInt32()!=expected)throw new Exception("Source pixels or smoothed pipeline cache incorrect: "+actual+" expected "+expected);
+                    }
+                    foreach(var sourceMode in new[]{("normal",64),("multiply",32),("add",192),("subtract",64),("min",64)})
+                    {
+                        await Evaluate($"(()=>{{const b=document.querySelector('[aria-label=\"Source blend mode\"]');b.value='{sourceMode.Item1}';b.dispatchEvent(new Event('change'));return true}})()");await SourcePixels(sourceMode.Item2);
+                    }
+                    await Evaluate("(()=>{const b=document.querySelector('[aria-label=\"Source blend mode\"]');b.value='normal';b.dispatchEvent(new Event('change'));return true})()");await SourcePixels(64);
+                    var sourceBefore=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
+                    await Evaluate("(()=>{const s=document.querySelector('[aria-label=Strength]');s.value='.5';s.dispatchEvent(new Event('change'));return true})()");await SourcePixels(96);
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");await SourcePixels(64);
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=sourceBefore.GetString())throw new Exception("Source influence undo failed");
+                    await Evaluate("(()=>{document.querySelector('[aria-label=\"Invert source\"]').click();return true})()");await SourcePixels(191);
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");var sourceProject=Path.Combine(testRoot,"native-export.mm360");await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==sourceProject));await ReopenNativeProject(sourceProject);await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");await SourcePixels(191);
+                    if(!(await Evaluate("document.querySelector('[aria-label=\"Invert source\"]').checked")).GetBoolean())throw new Exception("Source inspector did not restore persisted state");
+                    await Evaluate("(()=>{document.querySelector('[aria-label=\"Invert source\"]').click();return true})()");await SourcePixels(64);
+                    Console.WriteLine("PASS: actual source strength/invert/five blend modes, pipeline pixels with smoothing, undo and native source/base/settings round trip");
+                    Console.WriteLine("Source evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--print"))
                 {
                     await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[30,20,40]});s.refreshScene();s.capture();return true})()");
@@ -135,7 +166,7 @@ internal static class Program
                     var printExportPath=Path.Combine(testRoot,"native-export.3mf");await Until(()=>Task.FromResult(File.Exists(printExportPath)&&new FileInfo(printExportPath).Length>84));
                     using(var printZip=ZipFile.OpenRead(printExportPath)){using var reader=new StreamReader(printZip.GetEntry("3D/3dmodel.model")!.Open());var xml=await reader.ReadToEndAsync();if(!xml.Contains("Bambu Lab (0.20mm)")||!xml.Contains("millimeter"))throw new Exception("Preparation export profile/units metadata missing");}
                     await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");var printProject=Path.Combine(testRoot,"native-export.mm360");await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==printProject));
-                    await bridge.OpenFileAsync(printProject);await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
+                    await ReopenNativeProject(printProject);await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
                     if(!(await Evaluate("window.meshMe360Locked.scene.document.state.activeProfile==='bambu-020'&&window.meshMe360Locked.scene.document.state.units==='in'")).GetBoolean())throw new Exception("Preparation project preferences not persisted");
                     var printFixtures=await Evaluate("(async()=>{const T=await import('three'),{objectFromGeometry}=await import('./app/scene-document.js'),{startPrintAnalysis}=await import('./app/print-client.js');const open=objectFromGeometry(new T.PlaneGeometry(20,20),'Open sheet'),thin=objectFromGeometry(new T.BoxGeometry(20,20,.4),'Thin box'),reversed=objectFromGeometry(new T.BoxGeometry(20,20,20),'Reversed');for(let i=0;i<reversed.indices.length;i+=3){const t=reversed.indices[i+1];reversed.indices[i+1]=reversed.indices[i+2];reversed.indices[i+2]=t;}return await startPrintAnalysis([open,thin,reversed]).promise})()");
                     if(printFixtures[0].GetProperty("open").GetInt32()!=4||printFixtures[0].GetProperty("solid").GetBoolean()||printFixtures[0].GetProperty("wall").GetProperty("minimumSampleMm").ValueKind!=JsonValueKind.Null||!printFixtures[1].GetProperty("solid").GetBoolean()||Math.Abs(printFixtures[1].GetProperty("wall").GetProperty("minimumSampleMm").GetDouble()-.4)>.001||printFixtures[2].GetProperty("solid").GetBoolean())throw new Exception("Print fixture diagnostics incorrect: "+printFixtures);
@@ -206,7 +237,7 @@ internal static class Program
                     var measurementSaved=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.measurements)");
                     if(!measurementSaved.GetString()!.Contains("Known distance"))throw new Exception("Measurement rename/undo failed");
                     await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");
-                    var measurementPath=Path.Combine(testRoot,"native-export.mm360");await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==measurementPath));await bridge.OpenFileAsync(measurementPath);
+                    var measurementPath=Path.Combine(testRoot,"native-export.mm360");await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==measurementPath));await ReopenNativeProject(measurementPath);
                     await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
                     if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.measurements)")).GetString()!=measurementSaved.GetString()||(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.objects)")).GetString()!=measureOriginal.GetString())throw new Exception("Measurement round trip changed saved values or geometry");
                     Console.WriteLine("PASS: actual surface mouse picks for distance/angle/wall, bounds, cancel, tree rename/delete/undo and native project round trip");
@@ -334,7 +365,7 @@ internal static class Program
                     await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");
                     var combinedSaved=Path.Combine(testRoot,"native-export.mm360");
                     await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==combinedSaved));
-                    await bridge.OpenFileAsync(combinedSaved);
+                    await ReopenNativeProject(combinedSaved);
                     await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
                     if(!(await Evaluate("window.meshMe360Locked.scene.document.selected[0].materials[1].color==='#ff4400'&&window.meshMe360Locked.scene.document.selected[0].groups.length===2")).GetBoolean())throw new Exception("Combined material groups lost on native reopen");
                     Console.WriteLine("PASS: actual Combine preview/cancel/commit/undo/redo, exact welding, rendered material groups and native project reopen");
@@ -353,7 +384,7 @@ internal static class Program
                     await Until(async()=> !(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean());
                     using(var sceneZip=ZipFile.OpenRead(scenePath))
                     { if(sceneZip.GetEntry("project.json") is null || sceneZip.GetEntry("meshes/1.positions.bin") is null)throw new Exception("Scene container incomplete"); }
-                    await bridge.OpenFileAsync(scenePath);
+                    await ReopenNativeProject(scenePath);
                     await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
                     var restored=await Evaluate("window.meshMe360Locked.scene.document.state.objects.map(o=>({position:o.position,scale:o.scale}))");
                     if(restored.GetArrayLength()!=2||restored[1].GetProperty("position")[0].GetInt32()!=30||restored[1].GetProperty("scale")[0].GetInt32()!=2)throw new Exception("Scene state was lost");

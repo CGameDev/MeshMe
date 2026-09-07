@@ -178,3 +178,10 @@ units/profiles and final native export pass actual application tests. Full
 current regression suite passes. All named toolbar and Quick Action handlers
 exist, but full control subrequirements, visual fidelity, stress/recovery and
 physical/human acceptance remain open. M3 is NOT COMPLETE.
+
+### Locked UI continuation — source influence (2026-09-07)
+
+Real source Strength/Invert/blend controls, exact pipeline pixels, undo and
+native persistence pass. Stronger native reopen tests pass for all current
+project workflows. The full current suite passes. Direction, full menus/masks,
+visual, stress/recovery and physical/human gates remain. M3 is NOT COMPLETE.

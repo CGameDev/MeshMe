@@ -304,3 +304,26 @@ a cancellable worker with a three-million-triangle input cap.
 Display units and active Generic STL/Bambu Lab (0.20mm) profiles persist as an
 undoable project preference edit. Final STL/3MF/OBJ choice opens the existing
 review/native export workflow. No G-code, slicing or printer guarantee is claimed.
+
+### 2026-09-07 — Source composition before preserved mapping/displacement
+
+Strength now interpolates between the previous applied source (or zero height
+when no base exists) and the composed source. Replace/Normal, Multiply, Add,
+Subtract and Min use red-channel height in an isolated raster worker; Invert
+complements source height rather than merely changing displacement sign.
+The previous applied raster is the named blend base, sampled over the same UV
+tile with deterministic nearest resize when dimensions differ. Original source,
+base, resulting raster and parameters persist in .mm360; edits are undoable.
+The engine consumes the resulting ordinary texture for both preview and its
+unchanged displacement/export pipeline. Restoring textures invalidates the
+existing smoothed-map cache so equal-named changed pixels cannot reuse old data.
+The direction selector truthfully reports the preserved surface-normal-only
+engine. Projection-axis displacement is not silently substituted or implemented
+by rewriting its direction algorithm; that control's broader acceptance remains
+unresolved. Existing signed relief is still available through Emboss/Deboss.
+
+The actual source test exposed a test-harness reopen race: saving already sets
+the target filename, so waiting for that name alone did not prove a reload.
+Native project tests now require a new clean document revision before checking
+restored geometry/assets/preferences or issuing the next edit. All native
+round-trip modes pass this stronger check.

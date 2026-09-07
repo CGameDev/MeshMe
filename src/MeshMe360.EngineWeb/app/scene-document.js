@@ -56,5 +56,7 @@ export function deserializeProject(bytes){
  state.objects=state.objects.map(o=>validateObject({...o,positions:typed(o.positions,Float32Array),indices:o.indices?typed(o.indices,Uint32Array):null}));
  if(new Set(state.objects.map(o=>o.id)).size!==state.objects.length||state.selection.some(id=>!state.objects.some(o=>o.id===id)))throw new Error('Invalid project object identity');
  state.textures=state.textures.map(t=>{if(!files[t.bytes])throw new Error('Missing texture asset');const asset={...t,bytes:files[t.bytes].slice()};if(asset.mime==='application/x-meshme-rgba8'&&(!Number.isInteger(asset.width)||!Number.isInteger(asset.height)||asset.width<1||asset.height<1||asset.width>4096||asset.height>4096||asset.bytes.length!==asset.width*asset.height*4))throw new Error('Invalid embedded texture dimensions');return asset;});
- if(state.objects.some(o=>o.textureId&&!state.textures.some(t=>t.id===o.textureId)))throw new Error('Missing object texture reference');return state;
+ if(state.objects.some(o=>o.textureId&&!state.textures.some(t=>t.id===o.textureId)))throw new Error('Missing object texture reference');
+ for(const o of state.objects)if(o.sourceEffects){const e=o.sourceEffects;if(!state.textures.some(t=>t.id===e.sourceId)||e.baseId&&!state.textures.some(t=>t.id===e.baseId)||!Number.isFinite(e.strength)||e.strength<0||e.strength>1||typeof e.invert!=='boolean'||!['normal','multiply','add','subtract','min'].includes(e.blend))throw new Error('Invalid source composition reference or settings');}
+ return state;
 }

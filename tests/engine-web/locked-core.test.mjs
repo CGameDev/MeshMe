@@ -8,6 +8,14 @@ import {CommandRegistry,toolbar} from '../../src/MeshMe360.EngineWeb/app/locked-
 import {combineGeometry,remapMaterialGroups} from '../../src/MeshMe360.EngineWeb/app/combine-geometry.js';
 import {pointMeasurement,formatMeasurement,estimateWall} from '../../src/MeshMe360.EngineWeb/app/measurement.js';
 import {patternLayout,composePattern} from '../../src/MeshMe360.EngineWeb/app/pattern.js';
+import {composeSource} from '../../src/MeshMe360.EngineWeb/app/source-composition.js';
+
+test('Source influence, inversion and blend modes compose real height bytes without mutating sources',()=>{
+ const asset=v=>({mime:'application/x-meshme-rgba8',width:1,height:1,bytes:new Uint8Array([v,v,v,255])}),source=asset(64),base=asset(128),before=structuredClone([source,base]);
+ for(const [blend,expected]of [['normal',64],['multiply',32],['add',192],['subtract',64],['min',64]])assert.equal(composeSource(source,base,{blend}).bytes[0],expected);
+ assert.equal(composeSource(source,base,{strength:.5}).bytes[0],96);assert.equal(composeSource(source,base,{strength:0}).bytes[0],128);assert.equal(composeSource(source,null,{strength:0}).bytes[0],0);assert.equal(composeSource(source,base,{invert:true}).bytes[0],191);
+ assert.deepEqual([source,base],before);assert.throws(()=>composeSource(source,null,{blend:'multiply'}),/blend base/);assert.throws(()=>composeSource(source,base,{strength:2}),/Invalid/);
+});
 
 test('Pattern count, physical spacing, rotation and repeated source heights are deterministic',()=>{
  const options={kind:'linear',count:3,rows:2,spacing:6,width:4,height:2,orientation:0};
