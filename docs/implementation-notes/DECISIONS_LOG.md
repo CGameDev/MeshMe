@@ -327,3 +327,16 @@ the target filename, so waiting for that name alone did not prove a reload.
 Native project tests now require a new clean document revision before checking
 restored geometry/assets/preferences or issuing the next edit. All native
 round-trip modes pass this stronger check.
+
+### 2026-09-07 — Truthful material-source swatches
+
+Use the existing pinned Three.js renderer to produce shelf spheres from the
+actual procedural height sources, with sample PBR materials chosen to match the
+reference categories. The samples do not change the user's model material.
+Source cards use the same height-derived colored rasters; generated texture
+assets remain canonical height bytes for the preserved mesh engine. GPU targets,
+viewport, scissor and clear state are restored, and temporary resources disposed.
+New deterministic source kinds stone/woodgrain/plates serve the named locked
+presets. Previously supported generator kinds are unchanged, so saved parameters
+for those kinds retain their behavior. No reference screenshot pixels are used
+as UI or texture assets and no upstream mesh algorithm changes are involved.

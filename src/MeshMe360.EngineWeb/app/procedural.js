@@ -15,6 +15,9 @@ export function generateHeight({kind='noise',seed=1,frequency=6,contrast=1,inver
    case 'checker':h=(Math.floor(x)+Math.floor(y))%2?.8:.2;break;
    case 'brick':{const u=(x+(Math.floor(y)%2)*.5)%1,v=y%1;h=u<.055||v<.065?.12:.65+.22*noise(x*8,y*8,seed);break;}
    case 'scales':{const u=(x+(Math.floor(y)%2)*.5)%1-.5,v=y%1;h=clamp(1-Math.hypot(u*1.7,v*.9));break;}
+   case 'stone':{let first=Infinity,second=Infinity;for(let b=-1;b<=1;b++)for(let a=-1;a<=1;a++){const u=Math.floor(x)+a,v=Math.floor(y)+b,d=Math.hypot(x-u-hash(u,v,seed),y-v-hash(u,v,seed+7));if(d<first){second=first;first=d;}else second=Math.min(second,d);}const seam=smooth(clamp((second-first)*12));h=.08+seam*(.55+.22*noise(x*6,y*6,seed+13))+.12*noise(x*35,y*35,seed+17);break;}
+   case 'woodgrain':{const grain=x+1.7*noise(x*.23,y*.035,seed)+.13*noise(x*.8,y*.12,seed+4);h=.48+.24*Math.sin(grain*Math.PI*2)+.14*Math.sin(grain*Math.PI*8)+.12*noise(x*18,y*3,seed+5);break;}
+   case 'plates':{const u=(x+(Math.floor(y)%2)*.5)%1-.5,v=y%1,width=.48*(1-.6*v),edge=smooth(clamp((width-Math.abs(u))*28))*smooth(clamp(v*25));h=.08+edge*(.48+.19*(1-v)+.17*noise(x*18,y*18,seed))+noise(x*55,y*55,seed+4)*.08;break;}
    case 'noise':h=(noise(x,y,seed)*.6+noise(x*4,y*4,seed+1)*.3+noise(x*12,y*12,seed+2)*.1);break;
    default:throw new Error('Unsupported procedural texture');
   }
@@ -28,5 +31,5 @@ export function generateHeight({kind='noise',seed=1,frequency=6,contrast=1,inver
  for(let x=0;x<size;x++){let sum=0;for(let k=-blur;k<=blur;k++)sum+=horizontal[wrap(k)*size+x];for(let y=0;y<size;y++){result[y*size+x]=Math.round(sum/width);sum+=horizontal[wrap(y+blur+1)*size+x]-horizontal[wrap(y-blur)*size+x];}}
  return result;
 }
-export const presetParameters={Stone:{kind:'cells',frequency:5,contrast:1.6},Rock:{kind:'noise',frequency:9,contrast:2},Scales:{kind:'scales',frequency:7,contrast:1.2},Bricks:{kind:'brick',frequency:6},Wood:{kind:'waves',frequency:13},Metal:{kind:'ridges',frequency:20,contrast:.6},Fabric:{kind:'checker',frequency:48,contrast:.5},Carbon:{kind:'checker',frequency:18,contrast:1.4},Leather:{kind:'cells',frequency:28,contrast:.7},Concrete:{kind:'noise',frequency:30,contrast:1.2},Sand:{kind:'noise',frequency:64,contrast:.8}};
+export const presetParameters={Stone:{kind:'stone',frequency:5,contrast:1.3},Rock:{kind:'noise',frequency:9,contrast:2},Scales:{kind:'plates',frequency:7,contrast:1.3},Bricks:{kind:'brick',frequency:6},Wood:{kind:'woodgrain',frequency:13},Metal:{kind:'ridges',frequency:20,contrast:.6},Fabric:{kind:'checker',frequency:48,contrast:.5},Carbon:{kind:'checker',frequency:18,contrast:1.4},Leather:{kind:'cells',frequency:28,contrast:.7},Concrete:{kind:'noise',frequency:30,contrast:1.2},Sand:{kind:'noise',frequency:64,contrast:.8}};
 export function heightCanvas(parameters){const size=parameters.size??256,bytes=generateHeight({...parameters,size}),canvas=document.createElement('canvas');canvas.width=canvas.height=size;const context=canvas.getContext('2d'),data=context.createImageData(size,size);for(let i=0;i<bytes.length;i++){data.data[i*4]=data.data[i*4+1]=data.data[i*4+2]=bytes[i];data.data[i*4+3]=255;}context.putImageData(data,0,0);return canvas;}

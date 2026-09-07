@@ -248,3 +248,19 @@ reference-size inspector overflow. It reports structural PASS, zero missing
 named command handlers, and still returns NOT COMPLETE for full acceptance.
 Material thumbnails, icon details, viewport/grid/cube, full controls, DPI/stress
 and human visual/physical acceptance remain open.
+
+### Material swatch continuation (2026-09-07)
+
+Built-in shelf cards now render actual height sources on Three.js material
+spheres. Flat source cards share the corresponding height-derived color preview.
+Renderer target/viewport/scissor/clear state is restored after offscreen renders;
+model PBR settings remain independent. New deterministic stone, woodgrain and
+plate source kinds improve the Stone/Wood/Scales defaults, while every previously
+available generator kind retains its implementation. The generator also exposes
+these source kinds and Scales. Original source pixels are saved with projects.
+The full current suite passes (23 Node, 6 assets, 38 Core, all app modes and three
+backend probes), including exact source/pipeline/native project tests.
+Screenshot: `artifacts/m2-integration-b809ee184f764f228e6d3e7e59718882`.
+This is progress toward the supplied PNG, not a pixel/human fidelity pass.
+M3 remains NOT COMPLETE; control, visual, stress/recovery and physical gates
+remain open.

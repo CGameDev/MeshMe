@@ -4,6 +4,7 @@ import * as viewer from '../js/viewer.js';
 import {heightCanvas,presetParameters} from './procedural.js';
 import {attachSceneEditor} from './scene-editor.js';
 import {attachTextureLibrary} from './texture-library.js';
+import {createMaterialSwatches} from './material-swatches.js';
 import { toolbar, quickActions, presets, inspectorTabs, shelfTabs, CommandRegistry } from './locked-controls.js';
 
 // Original line icons: no proprietary icon artwork or reference-image pixels.
@@ -65,9 +66,10 @@ export function mountLockedUi(host, engine) {
  const imageInput=el('input');imageInput.type='file';imageInput.accept='image/*';imageInput.hidden=true;document.body.append(imageInput);imageInput.onchange=async()=>{const file=imageInput.files[0];imageInput.value='';if(!file)return;try{const saved=await library.add(file);if(await engine.desktopLoadTexture(file)){registry.execute('mode:Textures');selectedPreset=saved.id;shelfTab='Library';renderShelf();}}catch(error){showError(error);}};
  const sourceCanvases=Object.fromEntries(Object.entries(presetParameters).map(([name,params])=>[name,heightCanvas(params)]));
  const sourceUrls=Object.fromEntries(Object.entries(sourceCanvases).map(([name,canvas])=>[name,canvas.toDataURL('image/png')]));
+ const materialSwatches=createMaterialSwatches(viewer.getRenderer(),sourceCanvases);
  async function applySource(name,params=presetParameters[name]){const canvas=heightCanvas(params);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));const file=new File([blob],name+'.png',{type:'image/png'});if(!await engine.desktopLoadTexture(file))return;registry.execute('mode:Textures');selectedPreset=name;recent.splice(0,recent.length,name,...recent.filter(n=>n!==name).slice(0,19));localStorage.setItem('mm360-preset-recent',JSON.stringify(recent));renderShelf();sources.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.textContent===name));}
  function sourceCard(name,parent,sphere){
-  const custom=library?.items.find(i=>i.id===name),b=makeButton(name,parent,`preset:${name}`);b.classList.toggle('active',name===selectedPreset);const swatch=el('span','swatch');if(name==='Custom')swatch.textContent='＋';else{const url=custom?library.url(name):sourceUrls[name];if(url)swatch.style.backgroundImage=`url("${url}")`;}
+  const custom=library?.items.find(i=>i.id===name),b=makeButton(name,parent,`preset:${name}`);b.classList.toggle('active',name===selectedPreset);const swatch=el('span','swatch');if(name==='Custom'){swatch.textContent='＋';swatch.classList.add('custom-swatch');}else{const url=custom?library.url(name):materialSwatches[name]?.[sphere?'sphere':'flat']??sourceUrls[name];if(url)swatch.style.backgroundImage=`url("${url}")`;if(sphere&&!custom)swatch.classList.add('rendered-swatch');}
   b.replaceChildren(swatch,el('span','',custom?.name??name));b.addEventListener('contextmenu',e=>{e.preventDefault();if(custom){void library.favorite(name).catch(showError);return;}favorites.has(name)?favorites.delete(name):favorites.add(name);localStorage.setItem('mm360-preset-favorites',JSON.stringify([...favorites]));renderShelf();});b.title='Right-click to toggle favorite';
  }
  function renderShelf(){cards.replaceChildren();const customs=library?.items??[],names=shelfTab==='Recent'?recent.filter(n=>presets.includes(n)||customs.some(i=>i.id===n)):shelfTab==='Favorites'?[...favorites,...customs.filter(i=>i.favorite).map(i=>i.id)]:shelfTab==='Library'?[...presets,...customs.map(i=>i.id)]:presets;for(const name of names)sourceCard(name,cards,true);shelfbar.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.textContent===shelfTab)));refresh();}
