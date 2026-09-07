@@ -48,11 +48,11 @@ for path in (output / 'app').glob('.gitkeep'):
     path.unlink()
 
 notice = 'Modified for Mesh Me360 by Computer Universal Technology Systems, 2026. Original work: BumpMesh by CNC Kitchen and contributors. SPDX-License-Identifier: AGPL-3.0-only'
-def replace_exact(filename, old, new):
+def replace_exact(filename, old, new, modification_notice=notice):
     path = output / filename
     text = path.read_text(encoding='utf-8')
     assert text.count(old) == 1, f'Unexpected upstream dependency shape: {filename}'
-    path.write_text('// ' + notice + '\n' + text.replace(old, new), encoding='utf-8', newline='\n')
+    path.write_text('// ' + modification_notice + '\n' + text.replace(old, new), encoding='utf-8', newline='\n')
 
 replace_exact('js/threeCompat.js',
               'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js',
@@ -60,6 +60,11 @@ replace_exact('js/threeCompat.js',
 replace_exact('js/stepWorker.js', 'https://cdn.jsdelivr.net/npm/meshstep@0.1.0/+esm',
               '../vendor/meshstep-0.1.0/dist/index.js')
 runpy.run_path(str(root / 'build/adapt-host.py'))['adapt_host'](output, notice)
+# The OBJ writer is unchanged upstream source; resolve its sole package import
+# locally so it also runs in a worker without the page's import map.
+replace_exact('vendor/three-0.170.0/examples/jsm/exporters/OBJExporter.js',
+              "from 'three'", "from '../../../build/three.module.js'",
+              'Modified for Mesh Me360 by Computer Universal Technology Systems, 2026. Original work: Three.js authors. Dependency resolution only; original MIT license retained.')
 page = (output / 'index.html').read_text(encoding='utf-8')
 page = page.replace('<title>BumpMesh by CNC Kitchen</title>', '<title>Mesh Me360</title>')
 page = re.sub(r'^.*<link rel="(?:canonical|preconnect)"[^\n]*\n', '', page, flags=re.M)

@@ -27,7 +27,7 @@ export function mountLockedUi(host, engine) {
  for(const name of ['File','Edit','Mesh','Texture','Modify','View','Tools','Help'])makeButton(name,menus,`menu:${name}`);
  for(const name of ['Undo','Redo']){const b=makeButton(name,menu);b.innerHTML=icon(name);b.setAttribute('aria-label',name);b.style.width='30px';}
  const documentName=el('span','document-name','Untitled.mm360');menu.append(documentName);
- const exports=el('div','export-group');makeButton('Export',exports,'STL').classList.add('primary');makeButton('⌄',exports,'menu:Export').classList.add('primary');menu.append(exports);shell.append(menu);
+ const exports=el('div','export-group');makeButton('Export',exports,'Export').classList.add('primary');makeButton('⌄',exports,'menu:Export').classList.add('primary');menu.append(exports);shell.append(menu);
  const tools=el('nav','locked-toolbar');tools.setAttribute('aria-label','Primary tools');const centers=[52,134,207,279,381,467,545,621,707,784,866,982,1056,1132,1245,1308,1370,1477];for(const [i,name] of toolbar.entries()){const b=makeButton(name,tools);b.innerHTML=icon(name)+`<span>${name}</span>`;b.style.left=`${centers[i]/1536*100}%`;}for(const x of [329,425,665,924,1191]){const line=el('i','separator');line.style.left=`${x/1536*100}%`;tools.append(line);}shell.append(tools);
  const work=el('div','locked-work');shell.append(work);
  const project=el('section','locked-panel locked-project');project.dataset.region='project';project.innerHTML='<h2>⚒ &nbsp; Project</h2>';const search=el('input','locked-search');search.placeholder='⌕  Search...';search.setAttribute('aria-label','Search project');project.append(search);const tree=el('div','locked-tree');project.append(tree);work.append(project);

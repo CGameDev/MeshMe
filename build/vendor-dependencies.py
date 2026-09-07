@@ -32,7 +32,7 @@ for name, version in [('three', '0.170.0'), ('fflate', '0.8.2'), ('meshstep', '0
         pending = ['build/three.module.js', 'examples/jsm/controls/OrbitControls.js', 'examples/jsm/controls/TransformControls.js',
                    'examples/jsm/lines/LineSegments2.js', 'examples/jsm/lines/LineSegmentsGeometry.js',
                    'examples/jsm/lines/LineMaterial.js', 'examples/jsm/loaders/STLLoader.js',
-                   'examples/jsm/loaders/OBJLoader.js']
+                   'examples/jsm/loaders/OBJLoader.js', 'examples/jsm/exporters/OBJExporter.js']
         seen = set()
         while pending:
             relative = pending.pop()

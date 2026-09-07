@@ -61,9 +61,9 @@ Status values during implementation: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `P
 | Viewer | View cube | Required | Original Mesh Me360 CAD-style orientation control changes view | NOT STARTED |
 | Info | Triangle count | Required | Live current value shown without blocking viewport | NOT STARTED |
 | Info | Bounding dimensions | Required | Live dimensions shown | NOT STARTED |
-| Export | Binary STL | Required | Produces valid upstream-equivalent displaced STL | NOT STARTED |
-| Export | 3MF | Required | Produces valid supported 3MF output | NOT STARTED |
-| Export | Processing progress | Required | Subdivision→displacement→decimation→write stages visible | NOT STARTED |
+| Export | Binary STL | Required | Produces valid upstream-equivalent displaced STL | IN PROGRESS — preserved writer and actual scene/live export checks pass |
+| Export | 3MF | Required | Produces valid supported 3MF output | IN PROGRESS — preserved geometry writer, units/metadata and native checks pass |
+| Export | Processing progress | Required | Subdivision→displacement→decimation→write stages visible | IN PROGRESS — worker stages, review and safe Cancel wired |
 | Desktop | WPF host | Required | .NET 8 WPF executable launches and owns OS integration | IN PROGRESS |
 | Desktop | WebView2 embedded app | Required | Engine runs in application window, not external browser | IN PROGRESS |
 | Desktop | Fully offline runtime | Required | Core app works with NIC/network disabled | IN PROGRESS |

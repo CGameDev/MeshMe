@@ -108,6 +108,45 @@ internal static class Program
                     Console.WriteLine("PASS: actual procedural generator, blur/seed, PNG save to IndexedDB, store reopen, exact pixel application, rename/favorite and built-in protection");
                     Console.WriteLine("Library evidence: "+testRoot);await session.CompleteAsync();return;
                 }
+                if(args.Contains("--exports"))
+                {
+                    await bridge.OpenFileAsync(fixture);
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==2);
+                    await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[30,0,0]});s.document.setMaterial({color:'#ff4400',metallic:.5,roughness:.4,opacity:.7});s.refreshScene({activate:true});return true})()");
+                    var exportOriginal=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.objects.map(o=>({p:Array.from(o.positions),position:o.position,rotation:o.rotation,scale:o.scale})))");
+                    await Evaluate("(async()=>{const e=await import('./js/main.js'),c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,8,8);const blob=await new Promise(r=>c.toBlob(r));await e.desktopLoadTexture(new File([blob],'white.png',{type:'image/png'}));e.desktopConfigureTexture({textureHeight:1,refineLength:3,maxTriangles:50000,smoothBottom:false,noDownwardZ:false,boundaryFalloff:0,topAngleLimit:0,bottomAngleLimit:0});return true})()");
+                    async Task PrepareExport(string command)
+                    {
+                        await Evaluate($"(()=>{{[...document.querySelectorAll('[data-command]')].find(b=>b.dataset.command==='{command}').click();const scope=document.querySelector('[aria-label=\"Export scope\"]');scope.value='project';scope.dispatchEvent(new Event('change'));const live=document.querySelector('[aria-label=\"Include current relief preview\"]');live.checked=false;live.dispatchEvent(new Event('change'));[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Validate and prepare').click();return true}})()");
+                        await Until(async()=> (await Evaluate("document.querySelector('[data-export-status]')?.dataset.exportStatus??''")).GetString() is "ready" or "error");
+                        if((await Evaluate("document.querySelector('[data-export-status]').dataset.exportStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-export-status]').textContent")).GetString());
+                    }
+                    await PrepareExport("STL");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Cancel').click();return true})()");
+                    if(dialogCount!=0)throw new Exception("Export cancellation opened a native save dialog");
+                    foreach(var formatName in new[]{"STL","3MF","OBJ"})
+                    {
+                        await PrepareExport(formatName);
+                        await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Choose destination…').click();return true})()");
+                        var extension=formatName=="OBJ"?"zip":formatName.ToLowerInvariant();var path=Path.Combine(testRoot,"native-export."+extension);
+                        await Until(()=>Task.FromResult(File.Exists(path)&&new FileInfo(path).Length>84));
+                        if(formatName=="STL"){var bytes=await File.ReadAllBytesAsync(path);if(BitConverter.ToUInt32(bytes,80)!=24)throw new Exception("Scene STL triangle count lost");}
+                        else {using var zip=ZipFile.OpenRead(path);var entry=zip.GetEntry(formatName=="OBJ"?"model.obj":"3D/3dmodel.model")??throw new Exception("Export package entry missing");using var reader=new StreamReader(entry.Open());var text=await reader.ReadToEndAsync();var exportFaceCount=formatName=="OBJ"?text.Split('\n').Count(l=>l.StartsWith("f ")):System.Text.RegularExpressions.Regex.Matches(text,"<triangle ").Count;if(exportFaceCount!=24)throw new Exception("Scene export triangles lost");if(formatName=="OBJ"&&zip.GetEntry("materials.mtl") is null)throw new Exception("OBJ materials missing");}
+                    }
+                    await Evaluate("(()=>{document.querySelector('[data-command=Export]').click();return true})()");
+                    if((await Evaluate("document.querySelector('[aria-label=\"Export format\"]').value")).GetString()!="obj")throw new Exception("Primary Export did not retain the last chosen format");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Cancel').click();return true})()");
+                    var previousStl=await File.ReadAllBytesAsync(Path.Combine(testRoot,"native-export.stl"));var priorDialogs=dialogCount;cancelDownload=true;await PrepareExport("STL");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Choose destination…').click();return true})()");
+                    await Until(()=>Task.FromResult(dialogCount>priorDialogs));
+                    if(!previousStl.SequenceEqual(await File.ReadAllBytesAsync(Path.Combine(testRoot,"native-export.stl"))))throw new Exception("Native export Cancel changed existing file");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state.objects.map(o=>({p:Array.from(o.positions),position:o.position,rotation:o.rotation,scale:o.scale})))")).GetString()!=exportOriginal.GetString())throw new Exception("Export changed authored geometry or transforms");
+                    using(var objPackage=ZipFile.OpenRead(Path.Combine(testRoot,"native-export.zip"))){if(!objPackage.Entries.Any(e=>e.FullName.StartsWith("source-textures/")&&e.Length>16))throw new Exception("OBJ source image missing");}
+                    var liveExport=await Evaluate("(async()=>{const s=window.meshMe360Locked.scene,e=await import('./js/main.js'),{startSceneExport}=await import('./app/export-client.js');s.capture();const o=structuredClone(s.document.selected[0]);o.pipelineInput=structuredClone(e.desktopDisplacementInput());const result=await startSceneExport({objects:[o],format:'stl'}).promise;let z=-Infinity;for(let i=2;i<o.positions.length;i+=3)z=Math.max(z,o.positions[i]);return result.reports[0].bounds.max[2]>z+o.position[2]+.05})()");
+                    if(!liveExport.GetBoolean())throw new Exception("Live relief export did not use the real displacement pipeline");
+                    Console.WriteLine("PASS: actual STL/3MF/OBJ workflow, worker review, native destinations, triangle/material/source-image packages, live displacement, last format and both cancellation paths");
+                    Console.WriteLine("Export evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--transform"))
                 {
                     await Evaluate("(()=>{document.querySelector('[data-command=Move]').click();return true})()");

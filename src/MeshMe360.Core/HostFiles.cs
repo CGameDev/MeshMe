@@ -77,6 +77,7 @@ public sealed record SaveOperation(string Extension, string Label, string Filter
     {
         ".mm360" => new(".mm360", "Save Project", "Mesh Me360 project (*.mm360)|*.mm360"),
         ".obj" => new(".obj", "Export OBJ", "Wavefront OBJ (*.obj)|*.obj"),
+        ".zip" when filename.EndsWith(".obj.zip", StringComparison.OrdinalIgnoreCase) => new(".zip", "Export OBJ package", "OBJ package (*.obj.zip)|*.obj.zip"),
         ".bumpmesh" => new(".bumpmesh", "Save Project", "Mesh Me360 project (*.bumpmesh)|*.bumpmesh"),
         ".stl" => new(".stl", "Export STL", "Binary STL (*.stl)|*.stl"),
         ".3mf" => new(".3mf", "Export 3MF", "3MF (*.3mf)|*.3mf"),

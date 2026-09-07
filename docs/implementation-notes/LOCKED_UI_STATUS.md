@@ -165,3 +165,17 @@ checks, all actual application modes and three geometry fixture probes.
 Four named commands remain entirely unimplemented: Pattern, Measure, OBJ and
 Prepare for Print. Broader control, grouped-relief, visual, stress and physical
 acceptance remain open. M3 is NOT COMPLETE.
+
+### Normal export continuation
+
+STL/3MF/OBJ shortcuts and primary Export now use a shared worker review/native
+destination workflow. Actual tests cover two-object geometry, capability reports,
+3MF metadata, OBJ/MTL/source-image packaging, live displacement through the
+unchanged export pipeline, remembered session format and both cancellation paths.
+Evidence: `artifacts/m2-integration-1993a77e548b41edbc69f7838deb4c87`.
+The entire current suite passes (18 Node, 6 assets, 38 Core, actual application
+modes and three geometry probes). No release/manual gate is implied.
+
+Three named commands remain entirely unimplemented: Pattern, Measure and Prepare
+for Print. Broader controls, profiles/menus, mask/precision workflows, visual
+fidelity, stress and physical/human acceptance remain open. M3 is NOT COMPLETE.

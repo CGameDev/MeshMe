@@ -5,6 +5,7 @@ import {attachSolidTools} from './solid-tools.js';
 import {createSceneGizmo} from './scene-gizmo.js';
 import {attachReliefTools} from './relief-tools.js';
 import {remapMaterialGroups} from './combine-geometry.js';
+import {attachExportTools} from './export-tools.js';
 export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName,propertiesPanel,search,openDialog,el,refresh,updateStats,viewport,setPreview}){
  const document=new SceneDocument();let activeId=null,busy=false,gizmo;const otherMeshes=new THREE.Group();viewer.getScene().add(otherMeshes);const pendingSaves=new Map();let ownedMaterials=[];
  function renderMaterials(object){const list=(object.materials??[object.material]).map(m=>new THREE.MeshStandardMaterial({color:m.color,metalness:m.metallic,roughness:m.roughness,opacity:m.opacity,transparent:m.opacity<1}));ownedMaterials.push(...list);return object.groups?list:list[0];}
@@ -55,6 +56,7 @@ export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName
  gizmo=createSceneGizmo({document,viewer,meshes:()=>[viewer.getCurrentMesh(),...otherMeshes.children].filter(Boolean),refreshScene,showError,isBusy:()=>busy});
  const setBusy=value=>{busy=value;registry.busy=value;if(value)gizmo.activate(null);for(const panel of window.document.querySelectorAll('.locked-project,.locked-inspector-body,.locked-shelf'))panel.inert=value;refresh();};
  attachSolidTools({document,viewer,registry,editable,setBusy,refreshScene,openDialog,el});
+ attachExportTools({document,engine,host,registry,openDialog,el,capture,refreshScene,setBusy});
  attachReliefTools({engine,document,registry,openDialog,el,setBusy,setPreview,refreshScene,commitResult:(name,result,input)=>{try{document.transact(name,()=>{const object=document.selected[0],groups=remapMaterialGroups(object.groups,result.faceParentId);engine.desktopAdoptDisplacement(result,input);const snapshot=engine.desktopSceneCapture();try{object.positions=new Float32Array(snapshot.geometry.attributes.position.array);object.indices=null;if(groups)object.groups=groups;applySnapshot(object,snapshot);object.modifiers.push({name:name+' (baked)',source:object.textureId,settings:structuredClone(input.settings)});}finally{snapshot.geometry.dispose();}});refreshScene({activate:true});}catch(error){refreshScene({activate:true});throw error;}}});
  search.oninput=renderTree;refreshScene();return{document,openProject,renderTree,renderProperties,refreshScene,capture};
 }

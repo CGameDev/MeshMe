@@ -9,6 +9,7 @@
       "build/three.module.js": "ce1fa418de16a19495a9f72495580e3015d7745c296d3ce0485897f902ddedfb",
       "examples/jsm/controls/OrbitControls.js": "80efaadea4f8a636a65fb0bd08bfef62f3d93a0bb94e2e7500f23176c5c07f4e",
       "examples/jsm/controls/TransformControls.js": "9848ad589dfcf5f3769d0836472cb37cc46e6e0b36eb42ebcf7c898d0072e8ec",
+      "examples/jsm/exporters/OBJExporter.js": "66390a529d3c24246258cd62e255e4b3910624d9ccdf8a502ef7e49043672eaa",
       "examples/jsm/lines/LineMaterial.js": "4a58808a6e3a48f2a98eb2a410022ae648f801eaae89d457fcd662b077a7cf27",
       "examples/jsm/lines/LineSegments2.js": "9dcce823f86d7f00c4faa8c80ea3833fa86bf4957f394a1f64f3b126f6eea661",
       "examples/jsm/lines/LineSegmentsGeometry.js": "213a12e0e1ea878495d4998817cb83b1945441f19194267dba108c3a9e8f31ac",

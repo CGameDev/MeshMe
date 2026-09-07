@@ -223,3 +223,35 @@ all groups. Relief maps material membership using the unchanged engine's
 `faceParentId` metadata, preserving subdivision provenance without changing its
 geometry algorithms. Full grouped relief/render-mode stress acceptance remains
 pending beyond the metadata and existing relief tests.
+
+## Locked UI: normal scene export
+
+STL/3MF/OBJ shortcuts open one export review workflow, preselecting the format.
+Selected or visible project objects are prepared in an owned worker. Native
+destination selection follows actual diagnostics and capability warnings.
+Cancel terminates that worker or cancels the native dialog without changing the
+authored geometry. Primary Export recalls the last chosen format in the current
+session, otherwise using the project's active profile. Cross-session format
+preference is not currently claimed.
+
+The unchanged BumpMesh STL/3MF geometry writers are reused. Their desktop adapter
+returns bytes without triggering a download when the filename is null; the 3MF
+wrapper adds standard Application/Title/Description metadata without changing
+its geometry writer. OBJ uses the pinned Three.js 0.170.0 exporter, splitting
+material groups into named mesh parts because that exporter handles one material
+per mesh. Package `model.obj`, `materials.mtl`, raw PBR metadata and referenced
+source-height PNGs in `.obj.zip`; only that named ZIP suffix is approved for the
+native package destination. MTL preserves diffuse color and opacity. Source
+images have no fabricated UV mapping; this limitation is stated in the workflow
+and package README. STL is geometry-only; current 3MF is one prepared mesh with
+millimetre units and supported metadata, without material/texture preservation.
+
+Live relief is optional and runs the preserved export pipeline on copies. Its
+safety-cap warnings remain visible. Material-group meshes require relief to be
+committed first, since export-mode decimation does not preserve face-parent
+membership. Scene transforms are authored placement and are applied once to
+local results; the legacy engine's texturing-pose restoration remains in the
+legacy export path. Authored scene placement is therefore not accidentally
+undone by that legacy single-model behavior. The operation has a three-million
+triangle resource cap and reports original edge/sliver diagnostics without
+claiming self-intersection or minimum-wall certification.

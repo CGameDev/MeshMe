@@ -86,5 +86,7 @@ using (var session = new SessionService(paths))
 }
 using (var session = new SessionService(paths)) { await session.StartAsync(); Check(session.Previous!.Clean, "Normal completion marks prior session clean"); await session.CompleteAsync(); }
 Check(SaveOperation.FromFilename("test.bumpmesh").Label == "Save Project" && SaveOperation.FromFilename("test.STL").Extension == ".stl", "Native save operation metadata");
+Check(SaveOperation.FromFilename("model.OBJ.ZIP").Label == "Export OBJ package", "Native OBJ package destination metadata");
+await Reject(() => Task.Run(() => SaveOperation.FromFilename("arbitrary.zip")), "Unspecified ZIP download rejected");
 await Reject(() => Task.Run(() => SaveOperation.FromFilename("evil.exe")), "Unexpected download extension rejected");
 Console.WriteLine($"All {passed} Core checks passed. Test data: {root}");

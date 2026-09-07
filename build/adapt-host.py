@@ -28,6 +28,9 @@ def adapt_host(output: Path, notice: str):
     exporter = exporter.replace("function triggerDownload(buffer, filename, mime = 'application/octet-stream') {", "function triggerDownload(buffer, filename, mime = 'application/octet-stream') {\n  if (filename === null) return buffer;")
     assert exporter.count('  triggerDownload(buffer, filename);') == 1
     exporter = exporter.replace('  triggerDownload(buffer, filename);', '  return triggerDownload(buffer, filename);')
+    assert exporter.count('  triggerDownload(\n    zipped,') == 1
+    exporter = exporter.replace('  triggerDownload(\n    zipped,', '  return triggerDownload(\n    zipped,')
+    exporter = exporter.replace("from 'fflate'", "from '../vendor/fflate-0.8.2/esm/browser.js'")
     anchor = "  const blob = new Blob([buffer], { type: mime });"
     assert exporter.count(anchor) == 1
     exporter = exporter.replace(anchor, anchor + "\n  if (typeof window !== 'undefined' && window.meshMe360) { void window.meshMe360.download(blob, filename); return; }")

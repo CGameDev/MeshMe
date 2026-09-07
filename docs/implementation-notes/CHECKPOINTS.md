@@ -148,3 +148,10 @@ regression suite passes, including cavity/opening retention and both actual
 preview/cancel/commit/undo entry points. Evidence is recorded in LOCKED_UI_STATUS.
 M3 remains NOT COMPLETE; five entirely missing commands and broader functional,
 visual, stress, self-intersection and physical/human gates remain.
+
+### Locked UI continuation — normal exports
+
+Shared native STL/3MF/OBJ worker workflow passes actual geometry, package,
+live-displacement and cancellation tests. The full current regression suite
+passes. Pattern, Measure and Prepare for Print remain unwired; broad control,
+visual, stress and physical/human acceptance remain open. M3 is NOT COMPLETE.
