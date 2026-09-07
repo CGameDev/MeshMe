@@ -23,6 +23,9 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
     private bool _disposed;
     private string? _activeFileRequestId;
     private string? _lastEngineError;
+    private bool _ready, _allowClose;
+    private string? _closeToken;
+    public Func<string, string>? ConfirmReplacementOverride { get; init; } // integration tests only
     public event Action? Ready;
     public event Action<string>? FatalError;
     public Func<SaveOperation, string, string?>? SaveDialogOverride { get; init; } // integration tests only
@@ -37,6 +40,7 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
         _web.AddWebResourceRequestedFilter(HostOrigins.Bridge + "/*", CoreWebView2WebResourceContext.All);
         _web.WebResourceRequested += OnResource;
         _web.DownloadStarting += OnDownload;
+        _owner.Closing += OnClosing;
         _web.PermissionRequested += OnPermission;
         SystemEvents.UserPreferenceChanged += OnOsChanged;
     }
@@ -63,6 +67,7 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
             switch (message.Type)
             {
                 case "web.ready":
+                    _ready = true;
                     var initial = await _settings.GetAsync();
                     ApplyTheme(initial);
                     Send(BridgeMessage.Create("host.ready", message.RequestId, new
@@ -108,7 +113,26 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
                     }
                     break;
                 case "document.titleChanged": _owner.Title = "Mesh Me360 — " + Text(message.Payload, "title"); break;
-                case "document.dirtyChanged": break; // M4 owns safe-close/dirty-document policy.
+                case "document.fileRead":
+                    if (Text(message.Payload, "activationId") == _activeFileRequestId) _files.RevokeAll();
+                    break;
+                case "document.dirtyChanged": break; // Authoritative revision state stays in the web document.
+                case "document.confirmReplacement":
+                    result = ConfirmReplacementOverride?.Invoke(Text(message.Payload, "name")) ?? ConfirmReplacement(Text(message.Payload, "name"));
+                    break;
+                case "window.close":
+                    _ = _owner.Dispatcher.BeginInvoke(new Action(() => _owner.Close())); break;
+                case "window.closeResponse":
+                    if (_closeToken is not null && Text(message.Payload, "token") == _closeToken)
+                    {
+                        _closeToken = null;
+                        if (message.Payload.GetProperty("ready").ValueKind == JsonValueKind.True)
+                        {
+                            _allowClose = true;
+                            _ = _owner.Dispatcher.BeginInvoke(new Action(() => _owner.Close()));
+                        }
+                    }
+                    break;
                 case "update.status": result = UpdateStatus.NotConfigured; break;
                 case "engine.log":
                 case "engine.error":
@@ -194,10 +218,12 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
     {
         using var deferral = args.GetDeferral();
         args.Handled = true;
+        string? approvedRequest = null;
         try
         {
             if (!_downloads.Remove(args.DownloadOperation.Uri, out var grant) || grant.Expiry <= DateTimeOffset.UtcNow)
                 throw new UnauthorizedAccessException("Unapproved download.");
+            approvedRequest = grant.RequestId;
             var operation = SaveOperation.FromFilename(grant.Filename);
             string? selected;
             if (SaveDialogOverride is not null) selected = SaveDialogOverride(operation, grant.Filename);
@@ -207,27 +233,61 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
                     Filter = operation.Filter, AddExtension = true, OverwritePrompt = true, CheckPathExists = true };
                 selected = dialog.ShowDialog(_owner) == true ? dialog.FileName : null;
             }
-            if (selected is null) { args.Cancel = true; await _log.WriteAsync("bridge.downloadCancelled", new { requestId = grant.RequestId }); return; }
-            args.ResultFilePath = selected;
+            if (selected is null) { args.Cancel = true; Send(BridgeMessage.Create("document.stateChanged", grant.RequestId, new {downloadCompleted=false})); await _log.WriteAsync("bridge.downloadCancelled", new { requestId = grant.RequestId }); return; }
+            // WebView2 may refuse an existing destination. Download beside it,
+            // then replace only after all bytes arrive; failure keeps the old file.
+            var temporary = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(selected))!, ".meshme-" + Guid.NewGuid().ToString("N") + ".download");
+            args.ResultFilePath = temporary;
             var download = args.DownloadOperation;
             EventHandler<object>? changed = null;
             changed = async (_, _) =>
             {
                 if (download.State == CoreWebView2DownloadState.InProgress) return;
                 download.StateChanged -= changed;
+                var completed = false;
                 try
                 {
-                    var completed = download.State == CoreWebView2DownloadState.Completed;
+                    if (download.State == CoreWebView2DownloadState.Completed) { File.Move(temporary, selected, true); completed = true; }
                     if (completed && operation.Extension is ".bumpmesh" or ".mm360") await _recent.AddAsync(selected);
-                    Send(BridgeMessage.Create("document.stateChanged", grant.RequestId, new {downloadCompleted=completed,filename=grant.Filename,savedFilename=Path.GetFileName(selected)}));
                     await _log.WriteAsync("bridge.downloadResult", new { requestId = grant.RequestId, completed, reason = download.InterruptReason.ToString() });
                 }
                 catch (Exception error) { await _log.WriteAsync("bridge.downloadResultError", new { requestId = grant.RequestId, error=error.ToString() }); }
+                finally
+                {
+                    Send(BridgeMessage.Create("document.stateChanged", grant.RequestId, new {downloadCompleted=completed,filename=grant.Filename,savedFilename=Path.GetFileName(selected)}));
+                    try { if (File.Exists(temporary)) File.Delete(temporary); } catch (IOException) { /* Retain failed staging data without touching the destination. */ }
+                }
             };
             download.StateChanged += changed;
             await _log.WriteAsync("bridge.downloadStarting", new { requestId = grant.RequestId, operation = operation.Label });
         }
-        catch (Exception error) { args.Cancel = true; await _log.WriteAsync("bridge.downloadRejected", new { error.Message }); }
+        catch (Exception error) { args.Cancel = true; if(approvedRequest is not null) Send(BridgeMessage.Create("document.stateChanged", approvedRequest, new {downloadCompleted=false})); await _log.WriteAsync("bridge.downloadRejected", new { error.Message }); }
+    }
+    public void DisableCloseGuard() => _ready = false; // Failed renderer cannot answer a close request; session remains unclean.
+    private async void OnClosing(object? sender, System.ComponentModel.CancelEventArgs args)
+    {
+        if (_disposed) return;
+        if (!_ready || _allowClose) { Dispose(); return; }
+        args.Cancel = true;
+        if (_closeToken is not null) return;
+        var token = _closeToken = Guid.NewGuid().ToString();
+        Send(BridgeMessage.Create("host.closeRequested", token, new {}));
+        await Task.Delay(TimeSpan.FromMinutes(5));
+        if (_closeToken == token) { _closeToken = null; await _log.WriteAsync("host.closeTimedOut", new {token}); }
+    }
+    private string ConfirmReplacement(string name)
+    {
+        var dialog = new Window {Owner=_owner,Title="Mesh Me360 — Unsaved changes",SizeToContent=SizeToContent.WidthAndHeight,WindowStartupLocation=WindowStartupLocation.CenterOwner,ResizeMode=ResizeMode.NoResize,ShowInTaskbar=false};
+        var panel=new System.Windows.Controls.StackPanel {Margin=new Thickness(20),MaxWidth=480};
+        panel.Children.Add(new System.Windows.Controls.TextBlock {Text="Save changes to "+name+" before continuing?",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,20)});
+        var buttons=new System.Windows.Controls.StackPanel {Orientation=System.Windows.Controls.Orientation.Horizontal,HorizontalAlignment=HorizontalAlignment.Right};
+        string choice="cancel";
+        foreach(var (label,value) in new[]{("Save","save"),("Don’t Save","discard"),("Cancel","cancel")})
+        {
+            var button=new System.Windows.Controls.Button {Content=label,MinWidth=85,Padding=new Thickness(12,6,12,6),Margin=new Thickness(4),IsDefault=value=="save",IsCancel=value=="cancel"};
+            button.Click+=(_,_)=>{choice=value;dialog.Close();};buttons.Children.Add(button);
+        }
+        panel.Children.Add(buttons);dialog.Content=panel;dialog.ShowDialog();return choice;
     }
     private void OnPermission(object? sender, CoreWebView2PermissionRequestedEventArgs args)
     {
@@ -258,7 +318,9 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
     });
     public void Dispose()
     {
+        if (_disposed) return;
         _disposed = true; _files.Dispose(); _downloads.Clear(); _activations.Clear();
+        _owner.Closing -= OnClosing;
         SystemEvents.UserPreferenceChanged -= OnOsChanged;
         _web.WebMessageReceived -= OnMessage; _web.WebResourceRequested -= OnResource; _web.DownloadStarting -= OnDownload;
         _web.PermissionRequested -= OnPermission;

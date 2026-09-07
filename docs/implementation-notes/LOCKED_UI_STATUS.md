@@ -387,3 +387,28 @@ handshake completed at 2026-09-07T13:25:20Z and the process was responding.
 This is a development review build, not a release or completed M3 checkpoint.
 Remaining controls, pixel/human fidelity, recovery/stress/DPI and physical Windows
 acceptance remain required. No milestone was marked complete.
+
+
+### Mesh processing and safe File lifecycle (2026-09-07)
+
+Refine, Simplify and Recalculate Normals now have worker preview/commit/cancel,
+Undo/Redo, diagnostics and native project round-trip tests. Grouped simplification
+protects material seams and painted regions through the unchanged decimator's
+locked-face input. Optional normals persist in the v1 container. Clear Texture
+removes the live source and restores it exactly through Undo.
+
+New/Open and Exit now protect dirty documents with native Save / Don’t Save /
+Cancel. Cancelled and failed downloads reach the document; successful saves are
+acknowledged only after staging and destination replacement. Cancelling Open
+releases the source file handle. Accepted close detaches the bridge before WPF
+releases WebView2. Native dialog choices are substituted in automated tests;
+physical chooser/close interaction remains a manual gate.
+
+Full suite PASS: 27 Node, 38 Core, 6 asset checks, 21 native app modes and all
+three backend probes; build has zero warnings/errors and all 117 upstream blobs
+match. Mesh evidence: artifacts/m2-integration-19e49a29f71443b6a3ed2ad271f842fc.
+Lifecycle: artifacts/m2-integration-9c427a68f7814e9588d2a11c56ae5fff.
+Source/Clear: artifacts/m2-integration-f5eab849e0944488bdf5b967391d0e60.
+Screenshot: artifacts/m2-integration-be1fc2f96bfa4a5ea69baee833b22167.
+M3 remains NOT COMPLETE: complete advanced/legacy integration, visual fidelity,
+recovery compatibility, stress/DPI, and human/physical acceptance remain open.

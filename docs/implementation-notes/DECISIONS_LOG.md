@@ -419,3 +419,37 @@ read/copy/open-folder messages follow the existing origin/correlation checks.
 Only the fixed host log directory can be opened. Diagnostics contain counts and
 bounds, not raw mesh or texture content. Full logging retention and broader
 release diagnostics remain later acceptance work.
+
+
+## 2026-09-07 — Mesh processing and document lifecycle
+
+Refine and Simplify run the unchanged pinned subdivision/QEM modules in workers,
+using world millimetres and restoring the original object transform afterward.
+Subdivision face-parent metadata preserves groups and painted-face membership.
+Simplification processes material groups with the existing locked-face input:
+group boundary vertices and painted faces are protected. A regression initially
+found open seams without boundary locks; the grouped closed fixture now remains
+closed while reducing triangles. The original flat-harvesting defaults are kept.
+Targets can be limited by protected faces; the preview reports achieved counts.
+Refinement requires explicit growth confirmation and rejects results above 3M
+triangles, using the upstream progress callback and safety-cap result.
+
+Recalculate Normals uses Three.js on the original local topology. It does not
+claim to reverse winding or repair openings. Optional Float32 normals are stored
+as meshes/N.normals.bin in the existing v1 project container; older projects
+without normals still load and calculate them. History includes their byte cost.
+
+The locked File Exit/New/Open contract requires safe replacement now, although
+broader native file identity/path retention remains M4. The host owns the native
+Save / Don’t Save / Cancel dialog and window lifecycle; the web document owns
+revision state. Native close uses a correlated request/response and never closes
+on a missing response. Save waits for terminal native acknowledgement, including
+cancellation/failure, before replacement. Native destinations are staged beside
+the chosen file and replaced only after download completion. Read-complete
+acknowledgement releases native import streams even when a later Open is cancelled;
+a real cancelled-open/save regression exposed the retained-handle bug. Host
+subscriptions detach before WPF disposes WebView2 on accepted close.
+
+Clear Texture removes the active source/composition as one reversible transaction.
+It does not alter committed geometry: a baked relief is reversed through its
+existing Undo transaction. Source assets remain embedded for history/reference.

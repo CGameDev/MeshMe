@@ -10,12 +10,12 @@ try {
     if($LASTEXITCODE -ne 0){throw 'Build failed'}
     python tests/engine-web/test_offline_assets.py
     if($LASTEXITCODE -ne 0){throw 'Asset gate failed'}
-    node --test tests/engine-web/smoke.test.mjs tests/engine-web/rpc.test.mjs tests/engine-web/locked-core.test.mjs tests/engine-web/export.test.mjs
+    node --test tests/engine-web/smoke.test.mjs tests/engine-web/rpc.test.mjs tests/engine-web/locked-core.test.mjs tests/engine-web/export.test.mjs tests/engine-web/mesh-processing.test.mjs
     if($LASTEXITCODE -ne 0){throw 'Engine/scene tests failed'}
     & tests/MeshMe360.Core.Tests/bin/Debug/net8.0/win-x64/MeshMe360.Core.Tests.exe
     if($LASTEXITCODE -ne 0){throw 'Core tests failed'}
     $runner=Join-Path $repo 'tests/MeshMe360.Desktop.Tests/bin/Debug/net8.0-windows/win-x64/MeshMe360.Desktop.Tests.exe'
-    foreach($mode in @('', '--scene','--solid','--combine','--exports','--measure','--pattern','--print','--source','--menus','--settings','--view','--diagnostics','--app-diagnostics','--empty','--transform','--library','--relief','--locked')){
+    foreach($mode in @('', '--scene','--solid','--combine','--exports','--measure','--pattern','--print','--source','--menus','--settings','--view','--diagnostics','--app-diagnostics','--mesh-processing','--lifecycle','--empty','--transform','--library','--relief','--locked')){
         & $runner $repo $mode
         if($LASTEXITCODE -ne 0){throw "WebView2 test failed: $mode"}
     }

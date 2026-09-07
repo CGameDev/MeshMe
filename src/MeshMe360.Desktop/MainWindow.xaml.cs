@@ -101,6 +101,7 @@ public partial class MainWindow : Window
     {
         if (_closed || _fatal) return;
         _fatal = true;
+        _bridge?.DisableCloseGuard();
         _engineReady.TrySetException(error);
         _ = _log.WriteAsync("host.fatal", new { error = error.ToString() });
         Web.Visibility = Visibility.Collapsed;

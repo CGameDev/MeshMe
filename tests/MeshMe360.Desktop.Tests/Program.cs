@@ -39,13 +39,16 @@ internal static class Program
                 var chosen = Path.Combine(testRoot, "native-export.stl");
                 var dialogCount = 0;
                 var cancelDownload = false;
+                var replacementChoice="cancel";var replacementPrompts=0;
                 string? copiedDiagnostics=null,openedLogFolder=null;
                 bridge = new WebViewHostBridge(core, window, new StartupLog(Path.Combine(testRoot, "Logs")), paths, session)
                 {
                     SaveDialogOverride = (operation, name) => { dialogCount++; chosen = Path.Combine(testRoot, "native-export" + operation.Extension); return cancelDownload ? null : chosen; },
                     CopyDiagnosticsOverride = value=>copiedDiagnostics=value,
-                    OpenLogFolderOverride = value=>openedLogFolder=value
+                    OpenLogFolderOverride = value=>openedLogFolder=value,
+                    ConfirmReplacementOverride = name=>{replacementPrompts++;return replacementChoice;}
                 };
+                window.Closed += (_,_)=>bridge.Dispose();
                 bridge.Ready += () => ready.TrySetResult();
                 bridge.FatalError += error => ready.TrySetException(new Exception(error));
                 if(args.Contains("--backend-probe"))
@@ -78,6 +81,69 @@ internal static class Program
                     var reopenRevision=(await Evaluate("window.meshMe360Locked.scene.document.revision")).GetInt32();
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
+                }
+                if(args.Contains("--lifecycle"))
+                {
+                    var original=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('New Project');return true})()");
+                    if(replacementPrompts!=1||(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=original)throw new Exception("Cancelled New lost document");
+                    replacementChoice="save";cancelDownload=true;
+                    if((await Evaluate("(async()=>{return await window.meshMe360Locked.registry.execute('Save')})()")).GetBoolean())throw new Exception("Cancelled save reported success");
+                    if(!(await Evaluate("window.meshMe360Locked.scene.document.dirty&&!window.meshMe360Locked.registry.busy")).GetBoolean())throw new Exception("Cancelled save cleared dirty or left busy");
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('New Project');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=original)throw new Exception("Cancelled Save-and-New lost document");
+                    cancelDownload=false;
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('New Project');return true})()");
+                    if(!File.Exists(chosen)||!(await Evaluate("window.meshMe360Locked.scene.document.state.objects.length===0&&!window.meshMe360Locked.scene.document.dirty")).GetBoolean())throw new Exception("Save-and-New failed");
+                    await ReopenNativeProject(chosen);
+                    await Evaluate("(()=>{const a=window.meshMe360Locked;a.scene.document.transform({position:[12,0,0]});a.scene.refreshScene();return true})()");
+                    var edited=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
+                    replacementChoice="cancel";
+                    await bridge.OpenFileAsync(chosen);
+                    await Until(()=>Task.FromResult(replacementPrompts==4));
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=edited)throw new Exception("Cancelled Open changed document");
+                    replacementChoice="discard";
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('New Project');return true})()");
+                    if(!(await Evaluate("window.meshMe360Locked.scene.document.state.objects.length===0&&!window.meshMe360Locked.scene.document.dirty")).GetBoolean())throw new Exception("Don't Save did not create clean empty project");
+                    await ReopenNativeProject(chosen);
+                    await Evaluate("(()=>{const a=window.meshMe360Locked;a.scene.document.transform({position:[12,0,0]});a.scene.refreshScene();return true})()");
+                    replacementChoice="cancel";
+                    var beforeClose=replacementPrompts;
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Exit');return true})()");
+                    await Until(()=>Task.FromResult(replacementPrompts>beforeClose));
+                    await Task.Delay(100);
+                    if(!window.IsVisible)throw new Exception("Cancelled Exit closed window");
+                    replacementChoice="save";cancelDownload=true;beforeClose=replacementPrompts;window.Close();
+                    await Until(()=>Task.FromResult(replacementPrompts>beforeClose));
+                    await Until(async()=>!(await Evaluate("window.meshMe360Locked.registry.busy")).GetBoolean());
+                    if(!window.IsVisible||!(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean())throw new Exception("Cancelled native close save lost document");
+                    cancelDownload=false;window.Close();
+                    await Until(()=>Task.FromResult(!window.IsVisible));
+                    using(var closedProject=ZipFile.OpenRead(chosen))if(closedProject.GetEntry("project.json") is null)throw new Exception("Exit did not write a valid project");
+                    Console.WriteLine("PASS: native Save/Don't Save/Cancel routing, cancelled save acknowledgement, Save-and-New, cancelled Open/Exit and window-close save completion");Console.WriteLine("Lifecycle evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if(args.Contains("--mesh-processing"))
+                {
+                    foreach(var command in new[]{"Subdivide/Refine","Simplify/Decimate","Recalculate Normals"})
+                    {
+                        if(command=="Recalculate Normals")await Evaluate("(()=>{const a=window.meshMe360Locked;a.scene.document.transact('Fixture normals',()=>a.scene.document.selected[0].normals.fill(0));a.scene.refreshScene({activate:true});return true})()");
+                        var meshBefore=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
+                        await Evaluate($"(()=>{{window.meshMe360Locked.registry.execute({JsonSerializer.Serialize(command)});const allow=document.querySelector('[aria-label=\"Allow refinement growth\"]');if(allow)allow.checked=true;[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
+                        await Until(async()=> (await Evaluate("document.querySelector('[data-mesh-status]').dataset.meshStatus")).GetString() is "ready" or "error");
+                        if((await Evaluate("document.querySelector('[data-mesh-status]').dataset.meshStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('.locked-dialog').innerText")).GetString());
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=meshBefore)throw new Exception(command+" preview mutated document");
+                        await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Commit').click();return true})()");
+                        if(!(await Evaluate("(async()=>{const a=window.meshMe360Locked,r=await(await import('./app/print-client.js')).startPrintAnalysis([a.scene.document.selected[0]]).promise;return r[0].solid&&r[0].open===0&&r[0].nonManifold===0&&r[0].degenerate===0&&a.scene.document.selected[0].normals.some(n=>Math.abs(n)>.5)})()")).GetBoolean())throw new Exception(command+" failed closed/normal qualification");
+                        await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=meshBefore)throw new Exception(command+" Undo mismatch");
+                        await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Redo');return true})()");
+                    }
+                    var meshNormals=(await Evaluate("JSON.stringify([...window.meshMe360Locked.scene.document.selected[0].normals])")).GetString();
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Save');return true})()");await Until(()=>Task.FromResult(File.Exists(chosen)&&chosen.EndsWith(".mm360")));await Until(async()=>!(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean());await ReopenNativeProject(chosen);
+                    if((await Evaluate("JSON.stringify([...window.meshMe360Locked.scene.document.selected[0].normals])")).GetString()!=meshNormals)throw new Exception("Mesh normals project round trip failed");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Subdivide/Refine');document.querySelector('[aria-label=\"Allow refinement growth\"]').checked=true;[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();document.querySelector('.locked-dialog .close').click();return true})()");
+                    if((await Evaluate("window.meshMe360Locked.registry.busy")).GetBoolean())throw new Exception("Mesh processing cancel left commands busy");
+                    Console.WriteLine("PASS: actual mesh Refine/Simplify/Normals preview, commit, closed result diagnostics, Undo/Redo, cancellation and native normal-asset round trip");Console.WriteLine("Mesh processing evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--app-diagnostics"))
                 {
@@ -270,6 +336,11 @@ internal static class Program
                     await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");var sourceProject=Path.Combine(testRoot,"native-export.mm360");await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==sourceProject));await ReopenNativeProject(sourceProject);await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");await SourcePixels(191);
                     if(!(await Evaluate("document.querySelector('[aria-label=\"Invert source\"]').checked")).GetBoolean())throw new Exception("Source inspector did not restore persisted state");
                     await Evaluate("(()=>{document.querySelector('[aria-label=\"Invert source\"]').click();return true})()");await SourcePixels(64);
+                    var clearBefore=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Clear Texture');return true})()");
+                    if(!(await Evaluate("(async()=>{const a=window.meshMe360Locked,e=await import('./js/main.js'),c=e.desktopSceneCapture();const ok=!c.texture&&!a.scene.document.selected[0].textureId&&!a.registry.state('Apply Texture').enabled;c.geometry.dispose();return ok})()")).GetBoolean())throw new Exception("Clear Texture retained the engine source or Apply state");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");await SourcePixels(64);
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=clearBefore)throw new Exception("Clear Texture Undo did not restore source and geometry");
                     Console.WriteLine("PASS: actual source strength/invert/five blend modes, pipeline pixels with smoothing, undo and native source/base/settings round trip");
                     Console.WriteLine("Source evidence: "+testRoot);await session.CompleteAsync();return;
                 }

@@ -55,7 +55,7 @@ test('Combine preserves world geometry, material groups and exact optional weldi
  const inputs=doc.state.objects.map(o=>{const g=geometryFromObject(o,{world:true});return{positions:g.attributes.position.array,indices:g.index.array,material:o.material};});
  const combined=combineGeometry(inputs);assert.equal(combined.indices.length,72);assert.equal(combined.groups.length,2);assert.equal(combined.materials[1].color,'#ff4400');assert.equal(Math.max(...combined.positions.filter((_,i)=>i%3===0)),25);
  const welded=combineGeometry(inputs,{weld:true});assert.equal(welded.positions.length,16*3);assert.equal(welded.indices.length,72);assert.deepEqual(welded.groups,combined.groups);
- const object={...structuredClone(doc.state.objects[0]),positions:combined.positions,indices:combined.indices,groups:combined.groups,materials:combined.materials};doc.transact('Combine',s=>{s.objects=[object];s.selection=[object.id];});
+ const object={...structuredClone(doc.state.objects[0]),positions:combined.positions,indices:combined.indices,normals:null,groups:combined.groups,materials:combined.materials};doc.transact('Combine',s=>{s.objects=[object];s.selection=[object.id];});
  const reopened=deserializeProject(serializeProject(doc.state));assert.deepEqual(reopened.objects[0].groups,combined.groups);assert.deepEqual(reopened.objects[0].materials,combined.materials);assert.equal(geometryFromObject(reopened.objects[0]).groups.length,2);doc.undo();assert.equal(doc.state.objects.length,2);
  const invalid=structuredClone(reopened);invalid.objects[0].groups[1].start=1;assert.throws(()=>serializeProject(invalid),/group/);
 });

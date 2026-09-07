@@ -48,6 +48,7 @@ export function attachHost(transport) {
         const response = await fetch(`https://bridge.meshme360.local/file/${token}`, { cache: 'no-store', credentials: 'omit' });
         if (!response.ok) throw new Error('Native file access failed. Please reopen the file.');
         const file = new File([await response.blob()], filename, { type: contentType });
+        await rpc.request('document.fileRead', {activationId:message.requestId});
         activations.set(file, message.requestId);
         if (/\.mm360$/i.test(filename)) {
           await window.meshMe360Locked.openProject(file);
@@ -66,10 +67,11 @@ export function attachHost(transport) {
       applyTheme();
       return settings;
     },
-    async download(blob, filename) {
+    async download(blob, filename, onRegistered) {
       const url = URL.createObjectURL(blob);
       try {
         const registered = await rpc.request('document.stateChanged', { state: 'Exporting', downloadUrl: url, filename });
+        onRegistered?.(registered);
         const anchor = document.createElement('a');
         anchor.href = url; anchor.download = filename; anchor.style.display = 'none';
         document.body.appendChild(anchor); anchor.click(); anchor.remove();
