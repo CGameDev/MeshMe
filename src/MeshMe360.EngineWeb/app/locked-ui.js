@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import * as THREE from 'three';
+import {attachCommandMenu} from './command-menu.js';
 import * as viewer from '../js/viewer.js';
 import {heightCanvas,presetParameters} from './procedural.js';
 import {attachSceneEditor} from './scene-editor.js';
@@ -12,6 +13,8 @@ import { toolbar, quickActions, presets, inspectorTabs, shelfTabs, CommandRegist
 
 // Original line icons: no proprietary icon artwork or reference-image pixels.
 const paths = {
+ New:'M5 2h10l5 5v16H5ZM15 2v6h5M9 15h7M12.5 11.5v7',Open:'M2 7h8l2 3h10l-3 12H3ZM3 7V4h7l3 3h7v3',Save:'M3 3h16l3 3v17H3ZM7 3v7h10V3M7 23v-9h11v9',Delete:'M3 6h18M8 6V3h8v3M6 6l1 17h10l1-17M10 10v9M14 10v9',Duplicate:'M3 3h13v4H7v15H3ZM8 8h13v16H8Z',Preferences:'M12 3v3M12 20v3M2 13h3M19 13h3M5 5l3 3M16 18l3 3M5 21l3-3M16 8l3-3M17 13a5 5 0 1 1-10 0 5 5 0 0 1 10 0',Documentation:'M4 3h15v21H4ZM7 7h9M7 11h9M7 15h9M7 19h6',
+
  Select:'M6 2v20l5-6 5 8 3-2-5-8 8-1Z', Move:'M12 2v20M2 12h20M8 6l4-4 4 4M8 18l4 4 4-4M6 8l-4 4 4 4M18 8l4 4-4 4',
  Rotate:'M5 6a9 9 0 1 1-2 9M2 3v6h6',Scale:'M3 15h7v7H3zM14 10l8-8M16 2h6v6',Texture:'M12 2l10 6v9l-10 6-10-6V8ZM2 8l10 6 10-6M12 14v9',
  Emboss:'M3 6l9-4 9 4v15l-9 3-9-3ZM8 10l4-2 4 2v6l-4 2-4-2Z',Deboss:'M12 1v18M4 12l8 8 8-8M3 22h18',Pattern:'M4 4h2v2H4zM11 4h2v2h-2zM18 4h2v2h-2zM4 11h2v2H4zM11 11h2v2h-2zM18 11h2v2h-2zM4 18h2v2H4zM11 18h2v2h-2zM18 18h2v2h-2z',
@@ -81,9 +84,10 @@ export function mountLockedUi(host, engine) {
  for(const name of ['Stone','Rock','Bricks','Scales','Wood','Metal','Fabric','Custom'])sourceCard(name,sources,false);
  const status=el('footer','locked-status');status.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" aria-label="Mesh Me360 home" role="img"><path fill="currentColor" d="M2 2h8v8H2zM14 2h8v8h-8zM2 14h8v8H2zM14 14h8v8h-8z"/></svg>';const operation=el('span','','Ready');status.append(operation);const issue=el('span','issue','Diagnostics not run');status.append(issue);const units=el('select');units.setAttribute('aria-label','Display units');units.append(new Option('Metric (mm)','mm'),new Option('Imperial (in)','in'));units.onchange=()=>{unit=units.value;scene.document.transact('Display units',s=>{s.units=unit;});scene.refreshScene();updateStats();};status.append(units);shell.append(status);
  let dialogCleanup=null;
- const dialog=el('div','locked-dialog');dialog.hidden=true;dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');const close=el('button','close','Close');function closeDialog(){dialog.hidden=true;const cleanup=dialogCleanup;dialogCleanup=null;cleanup?.();}close.onclick=closeDialog;dialog.append(close);const dialogBody=el('div');dialog.append(dialogBody);document.body.append(shell,dialog);document.body.classList.add('locked-ui');
+ const dialog=el('div','locked-dialog');dialog.hidden=true;dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');const close=el('button','close','Close');function closeDialog(){dialog.hidden=true;document.querySelectorAll('.locked-menu [aria-expanded]').forEach(b=>b.setAttribute('aria-expanded','false'));const cleanup=dialogCleanup;dialogCleanup=null;cleanup?.();}close.onclick=closeDialog;dialog.append(close);const dialogBody=el('div');dialog.append(dialogBody);document.body.append(shell,dialog);document.body.classList.add('locked-ui');
+ const commandMenu=attachCommandMenu({root:dialog,body:dialogBody,close:closeDialog,registry,icon});
  const legacy=document.getElementById('settings-panel');legacy.append(document.getElementById('mesh-diagnostics'));const legacySlot=el('div');legacySlot.hidden=true;document.body.append(legacySlot);legacySlot.append(legacy);
- function openDialog(title,nodes,onClose,presentation='modal'){closeDialog();dialogCleanup=onClose;dialog.classList.toggle('tool-dialog',presentation==='tool');dialogBody.replaceChildren(el('h2','',title),...nodes);dialog.hidden=false;close.focus();return closeDialog;}
+ function openDialog(title,nodes,onClose,presentation='modal'){closeDialog();dialogCleanup=onClose;dialog.classList.toggle('tool-dialog',presentation==='tool');dialogBody.replaceChildren(el('h2','',title),...nodes);dialog.hidden=false;close.focus();commandMenu.present(title);return closeDialog;}
  function showError(error){openDialog('Operation failed',[el('p','',String(error.message??error))]);}
  function legacyTools(){legacy.style.cssText='display:block;width:auto;max-width:none;height:auto;overflow:visible';openDialog('Engine controls',[legacy],undefined,'tool');}
  const hasMesh=()=>!!scene?.document.state.objects.some(o=>o.visible);const click=id=>()=>document.getElementById(id).click();

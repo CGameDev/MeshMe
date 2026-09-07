@@ -490,3 +490,20 @@ artifacts/m2-integration-ef497be56a4a464b859d7625834f103e/locked-visual-review.h
 M3 remains NOT COMPLETE; source/material thumbnail fidelity and required human/
 physical Windows acceptance remain open. The UI must not be represented as having
 passed the locked production appearance gate.
+
+
+### Owner-requested menu/icon update (2026-09-07)
+
+The owner accepted the overall appearance and requested compact vertical menus
+and an application icon. The nine top-level command menus now use anchored rows,
+original icons, group rules and supported shortcut labels, with keyboard/focus
+and outside-click dismissal. Tool dialogs retain their existing workflows.
+The original M icon is embedded at nine Windows sizes in both exe and WPF window.
+
+Validation: zero-warning/error build; all 117 upstream blobs exact; all six
+offline asset checks; native --dropdown (nine menus in both themes, keyboard,
+Escape, command execution and tool handoff), --menus, --empty and --view PASS.
+Menu screenshots: artifacts/m2-integration-8a987f1d9b2449c99019fb81f4819fb3.
+The icon container's nine PNG entries and dimensions are verified. No geometry
+algorithm changed. This requested refinement is implemented; M3's remaining
+physical Windows acceptance is not inferred from the owner's appearance comment.

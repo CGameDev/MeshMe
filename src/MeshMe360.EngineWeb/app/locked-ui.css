@@ -88,3 +88,18 @@ body.locked-ui{margin:0;display:block;overflow:hidden;background:#161c20;color:#
 
 [data-theme=light] .locked-stats{color:#263b49;text-shadow:none}
 @media(max-height:850px){.locked-cards{height:calc(100% - 46px);overflow-y:hidden}.locked-cards button{height:92px}.locked-cards .swatch{height:56px;width:56px}}
+
+/* Owner-approved compact dropdowns, 2026-09-07. */
+.locked-dialog.command-menu{inset:auto;width:292px;height:auto;min-height:0;padding:5px 0;border:1px solid #48545e;border-radius:3px;background:#232c33;box-shadow:0 6px 18px #0008;overflow:auto;font:13px 'Segoe UI',sans-serif}
+.command-menu>button.close,.command-menu>div>h2{display:none!important}
+.command-menu button{display:flex!important;align-items:center;position:relative;width:100%;min-height:29px;margin:0;padding:5px 12px 5px 9px;gap:9px;background:transparent;border:0;border-radius:0;color:#e0e7ec;text-align:left;font:inherit;cursor:pointer;white-space:nowrap}
+.command-menu button:after{content:attr(data-shortcut);margin-left:auto;padding-left:18px;font-size:11px;color:#a3b4c2}
+.command-menu button:hover:not(:disabled),.command-menu button:focus-visible{background:#245a83;outline:0;color:white}
+.command-menu button:disabled{color:#7f8a94;cursor:default}
+.command-menu button.menu-separator{border-top:1px solid #45515a;margin-top:4px;padding-top:8px}
+.command-menu .menu-icon{display:inline-flex;width:17px;height:18px;flex:none;color:#84bcec}.command-menu .menu-icon svg{width:17px;height:18px}.command-menu button:disabled .menu-icon{opacity:.4}
+#locked-shell .locked-menu button[aria-expanded=true]{background:#245a83;border-color:#3978a8}
+html[data-theme=light] .locked-dialog.command-menu{background:#fafbfc;color:#202931;border-color:#b7c1c9;box-shadow:0 5px 16px #0003}
+html[data-theme=light] .command-menu button{color:#253440}html[data-theme=light] .command-menu button:after{color:#637381}html[data-theme=light] .command-menu button:disabled{color:#939da5}html[data-theme=light] .command-menu button.menu-separator{border-color:#d3d9de}html[data-theme=light] .command-menu button:hover:not(:disabled),html[data-theme=light] .command-menu button:focus-visible{background:#cce6f8;color:#163a57}
+
+html[data-theme=light] .command-menu .menu-icon{color:#35799f}

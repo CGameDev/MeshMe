@@ -66,3 +66,20 @@ Done by Computer Universal Technology Systems
 Then show version, source-code link, GNU AGPLv3 notice and upstream/third-party notices separately.
 
 Do not erase upstream authorship from covered upstream files or legal notices.
+
+
+## 7. Owner-requested dropdown menus and app icon (2026-09-07)
+
+The owner reviewed the running UI, described the rest as perfect, and requested
+replacing the large command-menu overlays with compact Fusion-familiar vertical
+menus using the attached example as a style reference. This explicitly updates
+the menu presentation requirement: anchor menus below their menu-bar triggers,
+use aligned original icons, command rows, group separators, supported shortcut
+labels, hover/focus states and dismissal/keyboard navigation. Keep existing
+command behavior and light/dark themes. Do not copy Autodesk artwork or add its
+unrelated modeling commands. Tool parameter dialogs remain distinct from menus.
+
+The owner also requested a Mesh Me360 application icon. Use the original blue M
+branding in a multi-resolution Windows icon for the executable and WPF window.
+This request does not constitute blanket functional, physical Windows or final
+milestone acceptance.

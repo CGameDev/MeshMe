@@ -135,6 +135,28 @@ internal static class Program
                     await File.WriteAllTextAsync(Path.Combine(testRoot,"recovery-format-check.json"),recoveryCheck.GetRawText());
                     Console.WriteLine("PASS: current unsaved mm360 snapshot restores real renderer/source state and remains dirty; M6 crash scheduling/retention is not exercised");Console.WriteLine("Recovery compatibility evidence: "+testRoot);await session.CompleteAsync();return;
                 }
+                if(args.Contains("--dropdown"))
+                {
+                    foreach(var theme in new[]{"Dark","Light"}){
+                        await Evaluate($"(async()=>{{await window.meshMe360.updateSettings({{theme:'{theme}'}});return true}})()");
+                        foreach(var name in new[]{"File","Edit","Mesh","Texture","Modify","View","Tools","Help","Export"}){
+                            await Evaluate($"(()=>{{window.meshMe360Locked.registry.execute('menu:{name}');return true}})()");
+                            var state=await Evaluate("(()=>{const d=document.querySelector('.command-menu'),r=d.getBoundingClientRect(),buttons=[...d.querySelectorAll('[role=menuitem]')];return{ok:!d.hidden&&d.getAttribute('role')==='menu'&&getComputedStyle(d.querySelector('.close')).display==='none'&&r.width<320&&r.height<innerHeight&&r.right<=innerWidth&&r.bottom<=innerHeight&&buttons.length>0&&buttons.every((b,i)=>!i||b.getBoundingClientRect().top>=buttons[i-1].getBoundingClientRect().bottom),width:r.width,height:r.height}})()");
+                            if(!state.GetProperty("ok").GetBoolean())throw new Exception("Dropdown layout failed: "+name+state);
+                            if(name is "File" or "View"){var raw=await core.CallDevToolsProtocolMethodAsync("Page.captureScreenshot","{\"format\":\"png\"}");using var screen=JsonDocument.Parse(raw);await File.WriteAllBytesAsync(Path.Combine(testRoot,$"menu-{theme}-{name}.png"),Convert.FromBase64String(screen.RootElement.GetProperty("data").GetString()!));}
+                        }
+                    }
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('menu:Edit');return true})()");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyDown\",\"key\":\"ArrowDown\",\"code\":\"ArrowDown\",\"windowsVirtualKeyCode\":40}");
+                    if(!(await Evaluate("document.activeElement.getAttribute('role')==='menuitem'&&!document.activeElement.disabled")).GetBoolean())throw new Exception("Menu keyboard focus failed");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyDown\",\"key\":\"Escape\",\"code\":\"Escape\",\"windowsVirtualKeyCode\":27}");
+                    if(!(await Evaluate("document.querySelector('.locked-dialog').hidden&&document.activeElement.dataset.command==='menu:Edit'&&window.meshMe360Locked.scene.document.selected.length===1")).GetBoolean())throw new Exception("Menu Escape did not restore trigger focus and preserve selection");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('menu:Edit');[...document.querySelectorAll('[role=menuitem]')].find(b=>b.textContent==='Duplicate Selected').click();return true})()");
+                    if(!(await Evaluate("document.querySelector('.locked-dialog').hidden&&window.meshMe360Locked.scene.document.state.objects.length===2")).GetBoolean())throw new Exception("Dropdown command did not execute or dismiss");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('menu:File');[...document.querySelectorAll('[role=menuitem]')].find(b=>b.textContent==='Project Settings').click();return true})()");
+                    if(!(await Evaluate("!document.querySelector('.locked-dialog').hidden&&!document.querySelector('.locked-dialog').classList.contains('command-menu')&&!!document.querySelector('[aria-label=\"Project display units\"]')")).GetBoolean())throw new Exception("Menu command did not open its real settings dialog");
+                    Console.WriteLine("PASS: all compact dropdown layouts in both themes, keyboard/Escape focus, real command execution and tool-dialog handoff");Console.WriteLine("Menu evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--display"))
                 {
                     var displayReports=new List<JsonElement>();
