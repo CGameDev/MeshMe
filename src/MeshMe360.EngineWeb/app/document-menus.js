@@ -29,7 +29,7 @@ export function attachDocumentMenus({document,host,registry,openDialog,el,refres
  menu('Mesh',['Repair','Make Solid','Hollow','Boolean','Split','Combine','Diagnostics'].map(n=>[n,n]));
  menu('Texture',[['Texture panel','Texture'],['Procedural source','source:Procedural'],['Image source','source:Image'],['Texture Library','Texture Library'],...['Apply Texture','Emboss','Deboss','Pattern','Generate Texture'].map(n=>[n,n]),['Engine controls','legacy']]);
  menu('Modify',['Move','Rotate','Scale','Center Model','Place on Bed','Reset Transform'].map(n=>[n,n]));
- menu('Tools',['Measure','Prepare for Print','Mesh Diagnostics','Preferences'].map(n=>[n,n]));
+ menu('Tools',['Measure','Prepare for Print','Mesh Diagnostics','Application Diagnostics','Preferences'].map(n=>[n,n]));
  // Capture before the preserved engine's independent Undo handler. Text-entry
  // Undo remains native; document shortcuts must address the scene history.
  window.addEventListener('keydown',event=>{

@@ -357,3 +357,22 @@ resets the active transform tool. Native --empty verifies all these states and
 fresh import after New Project. Build passes. Evidence:
 artifacts/m2-integration-d81bc98e86624a9f96cb61eaeef6a016.
 M3 remains NOT COMPLETE.
+
+### Application Diagnostics continuation (2026-09-07)
+
+Tools and Help now show actual host/runtime/WebGL information, selected-model
+format/triangle count/dimensions, camera and texture projection, displacement
+preview state, last reported engine error and the host log folder. Only summary
+metadata is copied; model/texture payloads are not included. Copy and log-folder
+actions route to the Windows host; the web page cannot choose an arbitrary
+folder to launch. Automated tests substitute clipboard/Explorer actions while
+verifying exact report contents and the host-owned log path. Physical clipboard
+and Explorer checks remain manual gates.
+
+Build and actual --app-diagnostics pass. Initial evidence:
+artifacts/m2-integration-7e08aa392e614751ac073c643b555c30.
+A mixed-encoding ellipsis in the operation label was normalized to UTF-8.
+The full expanded regression run passed: 25 Node, 38 Core, 6 offline assets,
+19 native app modes and all three geometry backend probes. Latest screenshot:
+artifacts/m2-integration-271f496fc4dd4168a8771ac0fd2e9de0.
+M3 remains NOT COMPLETE.

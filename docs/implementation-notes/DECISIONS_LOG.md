@@ -409,3 +409,13 @@ checker. Session reports are keyed to the exact document revision and object ID;
 a subsequent edit makes them unavailable until rerun. Report-only operations
 never enter project history or claim global minimum wall/self-intersection
 certification. Properties and status consume the same report as the dialog.
+
+## 2026-09-07 — Application diagnostic ownership
+
+The web app collects its own GPU and active scene summary. The host supplies
+assembly/build, Windows, .NET and WebView2 versions, the last reported engine
+error (bounded to 2000 characters) and its own log directory. New diagnostics
+read/copy/open-folder messages follow the existing origin/correlation checks.
+Only the fixed host log directory can be opened. Diagnostics contain counts and
+bounds, not raw mesh or texture content. Full logging retention and broader
+release diagnostics remain later acceptance work.

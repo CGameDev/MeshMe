@@ -6,6 +6,7 @@ import {attachSceneEditor} from './scene-editor.js';
 import {attachTextureLibrary} from './texture-library.js';
 import {createMaterialSwatches} from './material-swatches.js';
 import {attachViewTools} from './view-tools.js';
+import {attachAppDiagnostics} from './app-diagnostics.js';
 import { toolbar, quickActions, presets, inspectorTabs, shelfTabs, CommandRegistry } from './locked-controls.js';
 
 // Original line icons: no proprietary icon artwork or reference-image pixels.
@@ -120,9 +121,10 @@ export function mountLockedUi(host, engine) {
  new MutationObserver(refresh).observe(document.getElementById('undo-btn'),{attributes:true,attributeFilter:['disabled']});
  new MutationObserver(refresh).observe(document.getElementById('redo-btn'),{attributes:true,attributeFilter:['disabled']});
  renderTree();renderShelf();updateStats();registry.execute('mode:Shaded');refresh();
- window.addEventListener('meshme:processing',({detail})=>{operation.textContent=detail.busy?'Processing…':'Ready';});window.addEventListener('meshme:diagnostics',({detail})=>{issue.textContent=detail.text;issue.title='Committed geometry checks; self-intersections and the true minimum wall remain unverified.';});
+ window.addEventListener('meshme:processing',({detail})=>{operation.textContent=detail.busy?'Processingâ€¦':'Ready';});window.addEventListener('meshme:diagnostics',({detail})=>{issue.textContent=detail.text;issue.title='Committed geometry checks; self-intersections and the true minimum wall remain unverified.';});
  scene=attachSceneEditor(engine,{host,viewer,registry,tree,documentName,propertiesPanel,search,openDialog,el,refresh,updateStats,viewport,setPreview});
  viewTools=attachViewTools({scene,viewer,registry,openDialog,el,work});
+ attachAppDiagnostics({host,scene,engine,viewer,registry,openDialog,el});
  // Only native user edits enter scene history: upstream snapshot restoration
  // deliberately dispatches synthetic change events to its own controls.
  const settingControls=['scale-u','scale-u-val','scale-v','scale-v-val','amplitude','amplitude-val','mapping-mode','lock-scale'].map(id=>document.getElementById(id)).filter(Boolean);

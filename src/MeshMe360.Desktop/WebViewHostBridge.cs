@@ -22,9 +22,12 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
     private readonly Dictionary<string, string> _activations = [];
     private bool _disposed;
     private string? _activeFileRequestId;
+    private string? _lastEngineError;
     public event Action? Ready;
     public event Action<string>? FatalError;
     public Func<SaveOperation, string, string?>? SaveDialogOverride { get; init; } // integration tests only
+    public Action<string>? CopyDiagnosticsOverride { get; init; } // integration tests only
+    public Action<string>? OpenLogFolderOverride { get; init; } // integration tests only
 
     public WebViewHostBridge(CoreWebView2 web, Window owner, StartupLog log, AppDataPaths paths, SessionService session)
     {
@@ -109,11 +112,30 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
                 case "update.status": result = UpdateStatus.NotConfigured; break;
                 case "engine.log":
                 case "engine.error":
+                    if(message.Type == "engine.error") _lastEngineError = Text(message.Payload, "message")[..Math.Min(Text(message.Payload, "message").Length, 2000)];
                     await _log.WriteAsync(message.Type, new { message.RequestId, message = Text(message.Payload, "message") });
                     if (message.Type == "engine.error" && message.Payload.TryGetProperty("fatal", out var fatal) && fatal.ValueKind == JsonValueKind.True)
                         FatalError?.Invoke(Text(message.Payload, "message"));
                     break;
-                case "diagnostics.webInfo": break; // M10 diagnostics UI remains gated.
+                case "diagnostics.get":
+                    result = new {
+                        version = typeof(WebViewHostBridge).Assembly.GetName().Version?.ToString(),
+                        build = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>(typeof(WebViewHostBridge).Assembly)?.InformationalVersion,
+                        windows = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
+                        dotnet = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+                        webView2 = _web.Environment.BrowserVersionString,
+                        lastEngineError = _lastEngineError, logFolder = _log.DirectoryPath
+                    }; break;
+                case "diagnostics.copy":
+                    var diagnosticText = Text(message.Payload, "text");
+                    if(CopyDiagnosticsOverride is not null) CopyDiagnosticsOverride(diagnosticText); else Clipboard.SetText(diagnosticText);
+                    break;
+                case "diagnostics.openLogFolder":
+                    Directory.CreateDirectory(_log.DirectoryPath);
+                    if(OpenLogFolderOverride is not null) OpenLogFolderOverride(_log.DirectoryPath);
+                    else System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_log.DirectoryPath) { UseShellExecute = true });
+                    break;
+                case "diagnostics.webInfo": break;
                 default: Reply(message, error: new("UnsupportedMessage", "This operation is not available in the current milestone.")); return;
             }
             Reply(message, result);

@@ -39,9 +39,12 @@ internal static class Program
                 var chosen = Path.Combine(testRoot, "native-export.stl");
                 var dialogCount = 0;
                 var cancelDownload = false;
+                string? copiedDiagnostics=null,openedLogFolder=null;
                 bridge = new WebViewHostBridge(core, window, new StartupLog(Path.Combine(testRoot, "Logs")), paths, session)
                 {
-                    SaveDialogOverride = (operation, name) => { dialogCount++; chosen = Path.Combine(testRoot, "native-export" + operation.Extension); return cancelDownload ? null : chosen; }
+                    SaveDialogOverride = (operation, name) => { dialogCount++; chosen = Path.Combine(testRoot, "native-export" + operation.Extension); return cancelDownload ? null : chosen; },
+                    CopyDiagnosticsOverride = value=>copiedDiagnostics=value,
+                    OpenLogFolderOverride = value=>openedLogFolder=value
                 };
                 bridge.Ready += () => ready.TrySetResult();
                 bridge.FatalError += error => ready.TrySetException(new Exception(error));
@@ -75,6 +78,23 @@ internal static class Program
                     var reopenRevision=(await Evaluate("window.meshMe360Locked.scene.document.revision")).GetInt32();
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
+                }
+                if(args.Contains("--app-diagnostics"))
+                {
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Application Diagnostics');return true})()");
+                    var diagnosticJson=(await Evaluate("document.querySelector('[data-app-diagnostics]').textContent")).GetString()!;
+                    using var diagnosticReport=JsonDocument.Parse(diagnosticJson);
+                    foreach(var field in new[]{"version","build","windows","dotnet","webView2","webGLVendor","webGLRenderer","activeModelFormat","cameraProjection","logFolder"})
+                        if(string.IsNullOrEmpty(diagnosticReport.RootElement.GetProperty(field).GetString()))throw new Exception("Missing application diagnostics field: "+field);
+                    if(diagnosticReport.RootElement.GetProperty("triangles").GetInt32()!=12||diagnosticReport.RootElement.GetProperty("dimensionsMm").EnumerateArray().Any(v=>v.GetDouble()!=20)||diagnosticJson.Contains("positions")||diagnosticJson.Contains("bytes"))throw new Exception("Diagnostics contain incorrect statistics or mesh payload");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Copy Diagnostics').click();return true})()");
+                    await Until(()=>Task.FromResult(copiedDiagnostics is not null));
+                    if(copiedDiagnostics!=diagnosticJson)throw new Exception("Copy Diagnostics did not send displayed report");
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Open Log Folder').click();return true})()");
+                    await Until(()=>Task.FromResult(openedLogFolder is not null));
+                    if(openedLogFolder!=Path.Combine(testRoot,"Logs"))throw new Exception("Open Log Folder used an arbitrary/non-host path");
+                    Console.WriteLine("PASS: actual native/runtime/WebGL application diagnostics, exact model summary and copy/log-folder host routes (clipboard/Explorer decisions substituted)");
+                    Console.WriteLine("App diagnostics evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--empty"))
                 {
