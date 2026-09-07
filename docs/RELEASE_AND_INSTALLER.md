@@ -5,6 +5,18 @@
 > (MeshMe360.Project); `.bumpmesh` remains legacy compatibility. The .NET 8 WPF /
 > WebView2 architecture, preserved upstream algorithms and licensing remain fixed.
 
+## Owner-requested MSI preview amendment (September 2026)
+
+The owner explicitly requested an MSI, an installation license agreement, and an
+offline PDF user guide. `build/Build-Msi.ps1` provides this additional 0.1.0 preview
+using pinned WiX 4.0.6. This amendment authorizes MSI packaging alongside the
+planned update work; it does not assert that the Velopack updater or M8 is complete.
+The current publisher is Computer Universal Technology Systems. The MSI uses a
+per-user LocalAppData/Programs/MeshMe360 destination, an AGPL license acceptance
+screen, Start menu app/guide shortcuts, .mm360 ownership and shared Open with
+registrations. It includes .NET 8, the pinned fixed runtime and the local guide.
+See `implementation-notes/MSI_PREVIEW.md` for build and acceptance evidence.
+
 ## 1. Release target
 
 Primary artifact:

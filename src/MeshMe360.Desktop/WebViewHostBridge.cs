@@ -32,6 +32,7 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
     public Func<SaveOperation, string, string?>? SaveDialogOverride { get; init; } // integration tests only
     public Action<string>? CopyDiagnosticsOverride { get; init; } // integration tests only
     public Action<string>? OpenLogFolderOverride { get; init; } // integration tests only
+    public Action<string>? OpenUserGuideOverride { get; init; } // integration tests only
 
     public WebViewHostBridge(CoreWebView2 web, Window owner, StartupLog log, AppDataPaths paths, SessionService session)
     {
@@ -161,6 +162,13 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
                     else System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(_log.DirectoryPath) { UseShellExecute = true });
                     break;
                 case "diagnostics.webInfo": break;
+                case "documentation.openUserGuide":
+                    // Only the shipped guide can be opened; web payloads cannot choose a local executable or path.
+                    var guide = Path.Combine(AppContext.BaseDirectory, "Documentation", "MeshMe360-User-Guide.pdf");
+                    if (!File.Exists(guide)) throw new FileNotFoundException("The user guide is missing. Repair or reinstall Mesh Me360.");
+                    if (OpenUserGuideOverride is not null) OpenUserGuideOverride(guide);
+                    else System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(guide) { UseShellExecute = true });
+                    break;
                 default: Reply(message, error: new("UnsupportedMessage", "This operation is not available in the current milestone.")); return;
             }
             Reply(message, result);

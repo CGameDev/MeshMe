@@ -203,3 +203,17 @@ License/notice file included where required:
 ## Release review requirement
 
 Before v1.0, this file must contain exact versions/licenses for every redistributed dependency. Placeholder wording such as `confirm later`, `latest`, or `unknown` is not acceptable in a release candidate.
+
+## Packaged fixed WebView2 runtime (MSI preview)
+
+Microsoft Edge WebView2 Fixed Version Runtime 152.0.4191.62, Windows x64,
+is redistributed unmodified in `WebView2FixedRuntime/`. Microsoft Corporation
+retains its copyrights. Its separate Microsoft Software License Terms are in
+`Licenses/WebView2-Fixed-Runtime-LICENSE.html`; the runtime also retains its
+bundled third-party notices and license viewer. Official license source:
+https://developer.microsoft.com/microsoft-edge/api/eula/webview2?fixed=true
+Download URL, version and SHA256 are pinned in `build/installer/webview2-runtime.json`.
+The fixed runtime is updated by publishing a new application package; it does
+not receive Evergreen updates. Review its security updates before distribution.
+WiX Toolset 4.0.6 and its UI extension 4.0.6 build the MSI; WiX is a build-time
+.NET Foundation tool, licensed under MS-RL, not an application runtime.

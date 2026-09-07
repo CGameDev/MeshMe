@@ -28,24 +28,26 @@ internal static class Program
             {
                 if (args.Contains("--locked")) await new SettingsService(paths).PatchAsync(JsonSerializer.SerializeToElement(new {theme="Dark"}));
                 await session.StartAsync();
-                var environment = await CoreWebView2Environment.CreateAsync(null, Path.Combine(testRoot, "WebView2")).WaitAsync(TimeSpan.FromSeconds(30));
+                var packagedRuntime=Path.Combine(AppContext.BaseDirectory,"WebView2FixedRuntime");
+                var environment = await CoreWebView2Environment.CreateAsync(args.Contains("--packaged") ? packagedRuntime : null, Path.Combine(testRoot, "WebView2")).WaitAsync(TimeSpan.FromSeconds(30));
                 await web.EnsureCoreWebView2Async(environment).WaitAsync(TimeSpan.FromSeconds(30));
                 var core = web.CoreWebView2;
                 core.GetDevToolsProtocolEventReceiver("Runtime.exceptionThrown").DevToolsProtocolEventReceived += (_,e)=>Console.Error.WriteLine("Web runtime error: "+e.ParameterObjectAsJson);
                 await core.CallDevToolsProtocolMethodAsync("Runtime.enable","{}");
                 core.NavigationStarting += (_, e) => { if (!HostOrigins.IsApp(e.Uri)) e.Cancel = true; };
-                core.SetVirtualHostNameToFolderMapping("app.meshme360.local", Path.Combine(root, "artifacts", "web"), CoreWebView2HostResourceAccessKind.DenyCors);
+                core.SetVirtualHostNameToFolderMapping("app.meshme360.local", args.Contains("--packaged") ? Path.Combine(AppContext.BaseDirectory,"EngineWeb") : Path.Combine(root, "artifacts", "web"), CoreWebView2HostResourceAccessKind.DenyCors);
                 var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
                 var chosen = Path.Combine(testRoot, "native-export.stl");
                 var dialogCount = 0;
                 var cancelDownload = false;
                 var replacementChoice="cancel";var replacementPrompts=0;
-                string? copiedDiagnostics=null,openedLogFolder=null;
+                string? copiedDiagnostics=null,openedLogFolder=null,openedGuide=null;
                 bridge = new WebViewHostBridge(core, window, new StartupLog(Path.Combine(testRoot, "Logs")), paths, session)
                 {
                     SaveDialogOverride = (operation, name) => { dialogCount++; chosen = Path.Combine(testRoot, "native-export" + operation.Extension); return cancelDownload ? null : chosen; },
                     CopyDiagnosticsOverride = value=>copiedDiagnostics=value,
                     OpenLogFolderOverride = value=>openedLogFolder=value,
+                    OpenUserGuideOverride = value=>openedGuide=value,
                     ConfirmReplacementOverride = name=>{replacementPrompts++;return replacementChoice;}
                 };
                 window.Closed += (_,_)=>bridge.Dispose();
@@ -134,6 +136,15 @@ internal static class Program
                     if(!recoveryCheck.GetProperty("match").GetBoolean()||!recoveryCheck.GetProperty("originalSaveUntouched").GetBoolean())throw new Exception("Recovered scene did not restore the renderer/texture and dirty state");
                     await File.WriteAllTextAsync(Path.Combine(testRoot,"recovery-format-check.json"),recoveryCheck.GetRawText());
                     Console.WriteLine("PASS: current unsaved mm360 snapshot restores real renderer/source state and remains dirty; M6 crash scheduling/retention is not exercised");Console.WriteLine("Recovery compatibility evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if(args.Contains("--guide"))
+                {
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('User Guide');return true})()");
+                    var expected=Path.Combine(AppContext.BaseDirectory,"Documentation","MeshMe360-User-Guide.pdf");
+                    if(openedGuide!=expected || !File.ReadAllText(expected).StartsWith("%PDF-"))throw new Exception("User Guide did not route to the packaged PDF");
+                    await bridge.HandleAsync(BridgeMessage.Create("documentation.openUserGuide",Guid.NewGuid().ToString(),new {path="C:/Windows/System32/calc.exe"}));
+                    if(openedGuide!=expected)throw new Exception("Web payload changed guide path");
+                    Console.WriteLine("PASS: Help User Guide opens the shipped PDF; arbitrary payload path ignored");await session.CompleteAsync();return;
                 }
                 if(args.Contains("--about"))
                 {

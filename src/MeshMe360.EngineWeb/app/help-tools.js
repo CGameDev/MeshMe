@@ -4,6 +4,7 @@ import {attachAboutDialog} from './about-dialog.js';
 /** Register local help, license and product-information commands. */
 export function attachHelpTools({host,registry,openDialog,el}){
  const source=()=>{const a=el('a','','Mesh Me360 source code');a.href='https://github.com/CGameDev/MeshMe';a.target='_blank';a.rel='noopener';return a;};
+ registry.register('User Guide',()=>host.rpc.request('documentation.openUserGuide',{}));
  async function legal(title,path){const response=await fetch(path);if(!response.ok)throw new Error('The packaged '+title+' could not be read.');const text=el('pre','',await response.text());text.style.whiteSpace='pre-wrap';text.style.overflowWrap='anywhere';openDialog(title,[text]);}
  registry.register('Documentation',()=>openDialog('Documentation',[
   el('h3','','Create. Texture. Print.'),el('p','','Import supported STL, OBJ, 3MF or STEP models. Select objects in the Project tree or viewport; Ctrl-click toggles multiple selection. Move, Rotate and Scale offer viewport handles and numeric Properties.'),
@@ -17,6 +18,6 @@ export function attachHelpTools({host,registry,openDialog,el}){
  registry.register('Source Code / License',()=>legal('GNU AGPLv3 License','LICENSE'));
  registry.register('Third-Party Notices',()=>legal('Third-Party Notices','THIRD_PARTY_NOTICES.md'));
  attachAboutDialog({host,registry,openDialog,el,source});
- registry.register('menu:Help',()=>{const list=el('div');for(const name of ['Documentation','Keyboard Shortcuts','Source Code / License','Third-Party Notices','Application Diagnostics','About Mesh Me360']){const b=el('button','',name);b.onclick=()=>{Promise.resolve().then(()=>registry.execute(name)).catch(error=>openDialog('Help unavailable',[el('p','',String(error.message??error))]));};list.append(b);}openDialog('Help',[list]);});
+ registry.register('menu:Help',()=>{const list=el('div');for(const name of ['User Guide','Documentation','Keyboard Shortcuts','Source Code / License','Third-Party Notices','Application Diagnostics','About Mesh Me360']){const b=el('button','',name);b.onclick=()=>{Promise.resolve().then(()=>registry.execute(name)).catch(error=>openDialog('Help unavailable',[el('p','',String(error.message??error))]));};list.append(b);}openDialog('Help',[list]);});
  window.addEventListener('keydown',event=>{if(event.key==='F1'&&registry.state('Documentation').enabled){event.preventDefault();registry.execute('Documentation');}},true);
 }

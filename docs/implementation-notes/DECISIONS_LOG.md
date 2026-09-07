@@ -561,3 +561,6 @@ bytes, with normalized entry names explicitly documented.
 Validation: build has zero warnings/errors; 28 Node, 38 Core, six offline asset
 checks and native About/dropdown/menu/empty-scene checks pass. About screenshots:
 artifacts/m2-integration-4340440552794d949b251ea3ce647a00.
+
+## September 2026 - Owner-requested MSI and user guide
+Added a per-user WiX 4.0.6 MSI preview alongside the planned update work, following the owner's explicit MSI request. The existing AGPL is the installation agreement; separate runtime licenses remain intact. Help opens a fixed packaged PDF through the native host. See MSI_PREVIEW.md. This does not complete M3 or the full release milestone.

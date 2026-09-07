@@ -12,6 +12,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Resource Include="Assets/MeshMe360.ico" />
+    <Content Include="../../output/pdf/MeshMe360-User-Guide.pdf" Link="Documentation/MeshMe360-User-Guide.pdf" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <ProjectReference Include="../MeshMe360.Core/MeshMe360.Core.csproj" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
     <Content Include="../../build/licenses/*" Link="Licenses/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />

@@ -507,3 +507,11 @@ Menu screenshots: artifacts/m2-integration-8a987f1d9b2449c99019fb81f4819fb3.
 The icon container's nine PNG entries and dimensions are verified. No geometry
 algorithm changed. This requested refinement is implemented; M3's remaining
 physical Windows acceptance is not inferred from the owner's appearance comment.
+
+### Owner-requested PDF guide and MSI preview
+
+The offline guide is available from Help > User Guide. Per-user MSI packaging,
+full application-license acceptance and a bundled fixed WebView2 runtime now
+have automated packaging evidence in [MSI_PREVIEW.md](MSI_PREVIEW.md). This adds
+release-preview tooling; it does not change the incomplete physical Windows
+and full milestone acceptance gates above.
