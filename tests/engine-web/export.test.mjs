@@ -5,6 +5,12 @@ import * as THREE from '../../artifacts/web/vendor/three-0.170.0/build/three.mod
 import {SceneDocument} from '../../artifacts/web/app/scene-document.js';
 import {buildSceneExport} from '../../artifacts/web/app/export-core.js';
 import {unzipSync,strFromU8} from '../../artifacts/web/vendor/fflate-0.8.2/esm/browser.js';
+import {placementProposal} from '../../artifacts/web/app/print-analysis.js';
+
+test('Print placement proposes world-space translation without changing scale or geometry',()=>{
+ const doc=new SceneDocument();doc.add(new THREE.BoxGeometry(20,10,6),'Print');doc.transform({position:[30,20,40],scale:[2,1,1],rotation:new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2).toArray()});
+ const original=structuredClone(doc.selected[0]),proposal=placementProposal(doc.selected[0]);assert.deepEqual(proposal.dimensionsMm,[10,40,6]);assert.deepEqual(proposal.translation,[-30,-20,-37]);assert.deepEqual(doc.selected[0],original);
+});
 
 test('Scene exports preserve world triangles and expose real format capabilities',async()=>{
  const doc=new SceneDocument();doc.add(new THREE.BoxGeometry(20,20,20),'First');doc.add(new THREE.BoxGeometry(20,20,20),'Second\nusemtl injected');doc.transform({position:[30,0,0]});doc.setMaterial({color:'#ff4400',metallic:.5,roughness:.4,opacity:.7});

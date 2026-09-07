@@ -287,3 +287,20 @@ limits. No new surface sampler or subdivision algorithm is substituted.
 The baked modifier retains parameters/tile dimensions/resolution; this is a
 snapshot, not an editable parametric feature. Exact layout/raster tests plus
 actual distinct displaced geometry, cancel/undo and project metadata checks pass.
+
+### 2026-09-07 — Reviewed print preparation
+
+Prepare for Print inspects selected visible committed geometry without modifying
+it. The form shows canonical dimensions, display-unit conversion and each
+proposed centre/bed translation before the explicit undoable placement action.
+It does not infer printer bed size or arrange multiple objects without consent;
+individual centring may overlap them and the proposal states this.
+Original edge/sliver diagnostics and Manifold closed-positive-volume validation
+check topology and winding. Up to 64 deterministic face-centre normal rays on
+qualified meshes provide a sampled minimum, explicitly not the global minimum
+or self-intersection certification. A user-set mm warning threshold defaults to
+0 (report samples without assuming a printer/material minimum). Checks run in
+a cancellable worker with a three-million-triangle input cap.
+Display units and active Generic STL/Bambu Lab (0.20mm) profiles persist as an
+undoable project preference edit. Final STL/3MF/OBJ choice opens the existing
+review/native export workflow. No G-code, slicing or printer guarantee is claimed.

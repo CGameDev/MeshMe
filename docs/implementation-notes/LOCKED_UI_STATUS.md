@@ -205,3 +205,17 @@ three geometry probes. Locked screenshot evidence:
 `artifacts/m2-integration-d8cd3d3c3b6047ccb6549db6fd3d6a34`.
 Prepare for Print remains entirely unwired. Broader controls, visual fidelity,
 stress and physical/human acceptance remain open. M3 is NOT COMPLETE.
+
+### Print preparation continuation (2026-09-07)
+
+Prepare for Print now reviews dimensions/units, explicit centre/bed placement,
+open/non-manifold edges, degenerates, closed winding/volume and sampled wall
+warnings. Profiles persist and the final format opens native export. Actual
+checks cover unchanged review/cancel, placement undo, threshold warnings,
+profile/unit reopen, native 3MF and open/reversed/thin-wall fixtures.
+Evidence: `artifacts/m2-integration-85487862e6b140d4991b3e76ad1b9088`.
+Full current suite passes: 22 Node, 6 assets, 38 Core checks, all actual modes
+and three geometry probes. Every named toolbar/Quick Action has a handler;
+this does not establish full behavior coverage. Source strength/blend/direction,
+menus/profiles, complete mask/advanced relocation, visual fidelity, performance,
+recovery and physical/human acceptance still require work. M3 is NOT COMPLETE.

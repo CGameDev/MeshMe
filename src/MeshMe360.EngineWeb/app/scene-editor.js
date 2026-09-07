@@ -8,6 +8,7 @@ import {remapMaterialGroups} from './combine-geometry.js';
 import {attachExportTools} from './export-tools.js';
 import {attachMeasureTools} from './measure-tools.js';
 import {formatMeasurement} from './measurement.js';
+import {attachPrintTools} from './print-tools.js';
 export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName,propertiesPanel,search,openDialog,el,refresh,updateStats,viewport,setPreview}){
  const document=new SceneDocument();let activeId=null,busy=false,gizmo;const otherMeshes=new THREE.Group();viewer.getScene().add(otherMeshes);const pendingSaves=new Map();let ownedMaterials=[];
  function renderMaterials(object){const list=(object.materials??[object.material]).map(m=>new THREE.MeshStandardMaterial({color:m.color,metalness:m.metallic,roughness:m.roughness,opacity:m.opacity,transparent:m.opacity<1}));ownedMaterials.push(...list);return object.groups?list:list[0];}
@@ -60,6 +61,7 @@ export function attachSceneEditor(engine,{host,viewer,registry,tree,documentName
  attachSolidTools({document,viewer,registry,editable,setBusy,refreshScene,openDialog,el});
  attachExportTools({document,engine,host,registry,openDialog,el,capture,refreshScene,setBusy});
  attachMeasureTools({document,viewer,registry,openDialog,el,setBusy,refreshScene});
+ attachPrintTools({document,registry,openDialog,el,setBusy,refreshScene,capture});
  attachReliefTools({engine,document,registry,openDialog,el,setBusy,setPreview,refreshScene,commitResult:(name,result,input)=>{try{document.transact(name,()=>{const object=document.selected[0],groups=remapMaterialGroups(object.groups,result.faceParentId);engine.desktopAdoptDisplacement(result,input);const snapshot=engine.desktopSceneCapture();try{object.positions=new Float32Array(snapshot.geometry.attributes.position.array);object.indices=null;if(groups)object.groups=groups;applySnapshot(object,snapshot);object.modifiers.push({name:name+' (baked)',source:object.textureId,settings:structuredClone(input.settings),...(result.pattern?{pattern:result.pattern}:{})});}finally{snapshot.geometry.dispose();}});refreshScene({activate:true});}catch(error){refreshScene({activate:true});throw error;}}});
  search.oninput=renderTree;refreshScene();return{document,openProject,renderTree,renderProperties,refreshScene,capture};
 }

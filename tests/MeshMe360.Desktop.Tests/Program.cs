@@ -108,6 +108,41 @@ internal static class Program
                     Console.WriteLine("PASS: actual procedural generator, blur/seed, PNG save to IndexedDB, store reopen, exact pixel application, rename/favorite and built-in protection");
                     Console.WriteLine("Library evidence: "+testRoot);await session.CompleteAsync();return;
                 }
+                if(args.Contains("--print"))
+                {
+                    await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[30,20,40]});s.refreshScene();s.capture();return true})()");
+                    var printBefore=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
+                    async Task PrintButton(string label)=>await Evaluate($"(()=>{{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='{label}').click();return true}})()");
+                    async Task CheckPrint()
+                    {
+                        await PrintButton("Run checks");await Until(async()=> (await Evaluate("document.querySelector('[data-print-status]').dataset.printStatus")).GetString() is "ready" or "error");
+                        if((await Evaluate("document.querySelector('[data-print-status]').dataset.printStatus")).GetString()!="ready")throw new Exception("Print checks failed: "+await Evaluate("document.querySelector('.locked-dialog').innerText"));
+                    }
+                    await Evaluate("(()=>{document.querySelector('[data-command=\"Prepare for Print\"]').click();return true})()");await CheckPrint();
+                    var printText=(await Evaluate("document.querySelector('[data-print-object]').innerText")).GetString()!;
+                    if(!printText.Contains("0 open edges")||!printText.Contains("0 degenerate")||!printText.Contains("20.000 mm")||!printText.Contains("closed with positive volume"))throw new Exception("Cube print diagnostics incorrect: "+printText);
+                    await Evaluate("(()=>{const t=document.querySelector('[aria-label=\"Wall warning threshold (mm)\"]');t.value='25';t.dispatchEvent(new Event('input'));return true})()");
+                    if(!(await Evaluate("document.querySelector('[data-print-object]').innerText.includes('below your 25 mm threshold')")).GetBoolean())throw new Exception("Wall threshold warning missing");
+                    await PrintButton("Cancel");if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=printBefore.GetString())throw new Exception("Print review changed the source");
+                    await Evaluate("(()=>{document.querySelector('[data-command=\"Prepare for Print\"]').click();return true})()");await PrintButton("Apply proposed placement");
+                    if((await Evaluate("window.meshMe360Locked.scene.document.selected[0].position")).GetRawText()!="[0,0,10]")throw new Exception("Reviewed placement incorrect");
+                    await PrintButton("Cancel");await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=printBefore.GetString())throw new Exception("Preparation placement undo failed");
+                    await Evaluate("(()=>{document.querySelector('[data-command=\"Prepare for Print\"]').click();return true})()");await PrintButton("Apply proposed placement");
+                    await CheckPrint();await Evaluate("(()=>{const p=document.querySelector('[aria-label=\"Preparation profile\"]');p.value='bambu-020';p.dispatchEvent(new Event('change'));const u=document.querySelector('[aria-label=\"Preparation display units\"]');u.value='in';u.dispatchEvent(new Event('change'));return true})()");await PrintButton("Apply units and profile");await PrintButton("Continue to export");
+                    if((await Evaluate("document.querySelector('[aria-label=\"Export format\"]').value")).GetString()!="3mf")throw new Exception("Preparation profile did not select final 3MF export");
+                    await PrintButton("Validate and prepare");await Until(async()=> (await Evaluate("document.querySelector('[data-export-status]').dataset.exportStatus")).GetString() is "ready" or "error");await PrintButton("Choose destination…");
+                    var printExportPath=Path.Combine(testRoot,"native-export.3mf");await Until(()=>Task.FromResult(File.Exists(printExportPath)&&new FileInfo(printExportPath).Length>84));
+                    using(var printZip=ZipFile.OpenRead(printExportPath)){using var reader=new StreamReader(printZip.GetEntry("3D/3dmodel.model")!.Open());var xml=await reader.ReadToEndAsync();if(!xml.Contains("Bambu Lab (0.20mm)")||!xml.Contains("millimeter"))throw new Exception("Preparation export profile/units metadata missing");}
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");var printProject=Path.Combine(testRoot,"native-export.mm360");await Until(async()=> (await recent.ListAsync()).Any(e=>e.Path==printProject));
+                    await bridge.OpenFileAsync(printProject);await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.name")).GetString()=="native-export.mm360");
+                    if(!(await Evaluate("window.meshMe360Locked.scene.document.state.activeProfile==='bambu-020'&&window.meshMe360Locked.scene.document.state.units==='in'")).GetBoolean())throw new Exception("Preparation project preferences not persisted");
+                    var printFixtures=await Evaluate("(async()=>{const T=await import('three'),{objectFromGeometry}=await import('./app/scene-document.js'),{startPrintAnalysis}=await import('./app/print-client.js');const open=objectFromGeometry(new T.PlaneGeometry(20,20),'Open sheet'),thin=objectFromGeometry(new T.BoxGeometry(20,20,.4),'Thin box'),reversed=objectFromGeometry(new T.BoxGeometry(20,20,20),'Reversed');for(let i=0;i<reversed.indices.length;i+=3){const t=reversed.indices[i+1];reversed.indices[i+1]=reversed.indices[i+2];reversed.indices[i+2]=t;}return await startPrintAnalysis([open,thin,reversed]).promise})()");
+                    if(printFixtures[0].GetProperty("open").GetInt32()!=4||printFixtures[0].GetProperty("solid").GetBoolean()||printFixtures[0].GetProperty("wall").GetProperty("minimumSampleMm").ValueKind!=JsonValueKind.Null||!printFixtures[1].GetProperty("solid").GetBoolean()||Math.Abs(printFixtures[1].GetProperty("wall").GetProperty("minimumSampleMm").GetDouble()-.4)>.001||printFixtures[2].GetProperty("solid").GetBoolean())throw new Exception("Print fixture diagnostics incorrect: "+printFixtures);
+                    if(!(await Evaluate("(async()=>{const {startPrintAnalysis}=await import('./app/print-client.js'),job=startPrintAnalysis(window.meshMe360Locked.scene.document.state.objects);job.cancel();try{await job.promise;return false}catch(error){return error.name==='AbortError'}})()")).GetBoolean())throw new Exception("Print worker cancellation failed");
+                    Console.WriteLine("PASS: print dimensions/checks without mutation, explicit placement, threshold warning, units/profile persistence, native 3MF, open/reversed/thin fixtures");
+                    Console.WriteLine("Print evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--pattern"))
                 {
                     await Evaluate("(async()=>{const e=await import('./js/main.js'),c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,8,8);const blob=await new Promise(r=>c.toBlob(r));await e.desktopLoadTexture(new File([blob],'detail.png',{type:'image/png'}));return true})()");

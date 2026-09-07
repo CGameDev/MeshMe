@@ -170,3 +170,11 @@ All three repeat modes pass layout/raster and actual worker/control regression
 checks, preserving original state until commit and restoring it with undo.
 The full current regression suite passes. M3 is NOT COMPLETE: Prepare for Print,
 broader controls, visual fidelity, stress and physical/human gates remain open.
+
+### Locked UI continuation — Prepare for Print (2026-09-07)
+
+Guided checks, reviewed placement/undo, sampled wall warnings, persistent
+units/profiles and final native export pass actual application tests. Full
+current regression suite passes. All named toolbar and Quick Action handlers
+exist, but full control subrequirements, visual fidelity, stress/recovery and
+physical/human acceptance remain open. M3 is NOT COMPLETE.

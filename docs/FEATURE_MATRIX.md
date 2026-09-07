@@ -140,7 +140,7 @@ rows. No row below is PASS; partial handlers do not satisfy a full contract.
 | Library | Twelve reference sources, persistent custom/recent/favorites | IN PROGRESS |
 | Material | PBR controls, reset, undo, export-aware persistence | IN PROGRESS |
 | View | Shaded/Wireframe/Textures/X-Ray, comparison, cube/nav/ruler/stats | IN PROGRESS |
-| Print | Prepare for Print, Bambu Lab 0.20mm and Generic STL profiles | NOT STARTED |
+| Print | Prepare for Print, Bambu Lab 0.20mm and Generic STL profiles | IN PROGRESS — reviewed placement, checks, sampled walls, preferences and native export pass; stress/manual qualification pending |
 | Export | Native STL/3MF/OBJ, selected/all, profile/capability warnings | IN PROGRESS |
 | UX | Every menu, Quick Action, inspector control and keyboard flow | IN PROGRESS |
 | Quality | Responsive/DPI/stress/offline/full functional-control gates | NOT STARTED |
