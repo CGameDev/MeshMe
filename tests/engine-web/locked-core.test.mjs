@@ -17,6 +17,11 @@ test('Ctrl selection toggles membership and preserves first-picked Boolean opera
  const reopened=deserializeProject(serializeProject(d.state));d.state=reopened;assert.deepEqual(d.selected.map(o=>o.id),[a.id,b.id]);
 });
 
+test('Place on Bed keeps XY and authored geometry; Reset Transform and both Undo steps are exact',()=>{
+ const d=new SceneDocument();d.add(new THREE.BoxGeometry(20,10,6),'box');d.transform({position:[12,30,42],rotation:new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,0,1),Math.PI/2).toArray(),scale:[2,1,1]});
+ const before=structuredClone(d.selected[0]);d.placeOnBed();assert.deepEqual(d.selected[0].position,[12,30,3]);assert.deepEqual(d.selected[0].positions,before.positions);const placed=structuredClone(d.selected[0]);d.resetTransform();assert.deepEqual(d.selected[0].position,[0,0,0]);assert.deepEqual(d.selected[0].rotation,[0,0,0,1]);assert.deepEqual(d.selected[0].scale,[1,1,1]);d.undo();assert.deepEqual(d.selected[0],placed);d.undo();assert.deepEqual(d.selected[0],before);
+});
+
 test('Source influence, inversion and blend modes compose real height bytes without mutating sources',()=>{
  const asset=v=>({mime:'application/x-meshme-rgba8',width:1,height:1,bytes:new Uint8Array([v,v,v,255])}),source=asset(64),base=asset(128),before=structuredClone([source,base]);
  for(const [blend,expected]of [['normal',64],['multiply',32],['add',192],['subtract',64],['min',64]])assert.equal(composeSource(source,base,{blend}).bytes[0],expected);

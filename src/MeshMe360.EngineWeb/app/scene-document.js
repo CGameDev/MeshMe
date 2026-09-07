@@ -38,6 +38,8 @@ export class SceneDocument {
  transform({position,rotation,scale}){this.transact('Transform',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');if(position)o.position=[...position];if(rotation)o.rotation=[...rotation];if(scale)o.scale=[...scale];}});}
  setMaterial(material){this.transact('Material',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');o.material={...material};if(o.materials)o.materials=o.materials.map(()=>({...material}));}});}
  center(){this.transact('Center Model',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');const g=geometryFromObject(o,{world:true});g.computeBoundingBox();const b=g.boundingBox,c=b.getCenter(new THREE.Vector3());o.position[0]-=c.x;o.position[1]-=c.y;o.position[2]-=b.min.z;g.dispose();}});}
+ placeOnBed(){this.transact('Place on Bed',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');const g=geometryFromObject(o,{world:true});g.computeBoundingBox();o.position[2]-=g.boundingBox.min.z;g.dispose();}});}
+ resetTransform(){this.transact('Reset Transform',()=>{for(const o of this.selected){if(o.locked)throw new Error('Unlock the selected object');o.position=[0,0,0];o.rotation=[0,0,0,1];o.scale=[1,1,1];}});}
  removeSelected(){this.transact('Delete',s=>{if(this.selected.some(o=>o.locked))throw new Error('Unlock the selected object');s.objects=s.objects.filter(o=>!s.selection.includes(o.id));s.selection=[];});}
  duplicate(){this.transact('Duplicate',s=>{const copies=this.selected.map(o=>({...structuredClone(o),id:crypto.randomUUID(),name:o.name+' copy',locked:false}));s.objects.push(...copies);s.selection=copies.map(o=>o.id);});}
 }

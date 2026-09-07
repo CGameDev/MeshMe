@@ -86,7 +86,8 @@ internal static class Program
                     await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyDown\",\"key\":\"Tab\",\"code\":\"Tab\",\"windowsVirtualKeyCode\":9}");
                     await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyUp\",\"key\":\"Tab\",\"code\":\"Tab\",\"windowsVirtualKeyCode\":9}");
                     if(!(await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.dirty&&d.selected[0].engineSettings.textureHeight===1.75&&d.undoStack.length==={settingsHistory+1}}})()")).GetBoolean())throw new Exception("Actual Depth edit did not create one dirty transaction");
-                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyDown\",\"key\":\"z\",\"code\":\"KeyZ\",\"windowsVirtualKeyCode\":90,\"modifiers\":2}");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyUp\",\"key\":\"z\",\"code\":\"KeyZ\",\"windowsVirtualKeyCode\":90,\"modifiers\":2}");
                     if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected[0].engineSettings)")).GetString()!=settingsBefore.GetString()||(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean())throw new Exception("Texture settings Undo did not restore clean settings");
                     await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Redo');return true})()");
                     if((await Evaluate("Number(document.getElementById('amplitude-val').value)")).GetDouble()!=1.75)throw new Exception("Depth redo did not update engine controls");
@@ -122,6 +123,16 @@ internal static class Program
                     await Until(async()=>!(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean());
                     await ReopenNativeProject(chosen);
                     if((await Evaluate("window.meshMe360Locked.scene.document.state.activeProfile")).GetString()!="bambu-020")throw new Exception("Profile project round trip failed");
+                    await Evaluate("(()=>{const app=window.meshMe360Locked;app.scene.document.transform({position:[12,30,42]});app.scene.refreshScene();app.registry.execute('menu:Modify');[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Place on Bed').click();return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected[0].position)")).GetString()!="[12,30,10]")throw new Exception("Modify Place on Bed failed");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Reset Transform');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected[0].position)")).GetString()!="[0,0,0]")throw new Exception("Modify Reset Transform failed");
+                    await Evaluate("(()=>{const r=window.meshMe360Locked.registry;r.execute('Undo');r.execute('Undo');r.execute('Undo');return true})()");
+                    foreach(var helpCommand in new[]{"Documentation","Keyboard Shortcuts","Source Code / License","Third-Party Notices","About Mesh Me360"})
+                    {
+                        await Evaluate($"(async()=>{{await window.meshMe360Locked.registry.execute({JsonSerializer.Serialize(helpCommand)});return true}})()");
+                        if((await Evaluate("document.querySelector('.locked-dialog').innerText.length")).GetInt32()<120)throw new Exception("Empty Help command: "+helpCommand);
+                    }
                     var menuObjectCount=(await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32();
                     await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Open Recent');return true})()");
                     await Evaluate($"(()=>{{[...document.querySelectorAll('[data-recent-path]')].find(b=>b.dataset.recentPath==={JsonSerializer.Serialize(fixture)}).click();return true}})()");

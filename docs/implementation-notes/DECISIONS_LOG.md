@@ -376,3 +376,18 @@ Actual WebView2 keyboard regression proves Depth/Scale dirty state, Undo/Redo,
 restored numeric controls and a clean native project reopen without synthetic
 Undo entries. Other legacy settings/masks remain part of the broader relocation
 and project-history acceptance work.
+
+## 2026-09-07 — Modify/Help menus and shortcut ownership
+
+Place on Bed translates only Z using the selected object's world bounding box;
+Reset Transform restores identity TRS without rewriting vertex arrays. Both are
+atomic scene-history operations and reject locked selections. Menu entries call
+the same implemented registry commands as the toolbar, with state-based disable.
+The Open Project chooser also accepts supported model formats for Ctrl+O and
+routes by extension to the preserved loader.
+
+Upstream keeps a separate engine Undo handler. A capture-phase handler now
+routes document shortcuts to scene history before that handler runs, preserving
+native field Undo. Help fetches packaged legal text into the app instead of
+relying on local links opening a new external window. No runtime online fetch
+is needed to read Documentation, Shortcuts, License, Notices or About.

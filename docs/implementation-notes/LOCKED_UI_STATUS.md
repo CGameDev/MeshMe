@@ -298,3 +298,20 @@ without creating spurious edits. Single-object applicability is enforced.
 Build and actual --settings, --source and --scene checks pass. Keyboard evidence:
 artifacts/m2-integration-2fa812e4b5dc4f4daf5f7d0564683daa.
 Upstream 117-blob integrity check passes. M3 remains NOT COMPLETE.
+
+### Modify, Help and document shortcuts (2026-09-07)
+
+Menus now directly expose the implemented mesh/texture tools. Modify includes
+all six required commands, including undoable Place on Bed (preserves XY) and
+Reset Transform (preserves authored geometry). Help provides a local usage
+guide, accurate available shortcuts, complete packaged AGPL/third-party texts,
+source link and product credit. Document shortcuts now route to scene commands;
+Ctrl+Z was verified using actual WebView2 keyboard input rather than invoking
+an artificial handler. Text-field Undo remains native.
+
+Build, 16 scene/core Node tests, and actual --settings/--menus tests pass.
+Evidence: artifacts/m2-integration-dd965f4ed07f45bb8172b31fff3056a1 and
+artifacts/m2-integration-2b03e5cb4cf04720a6e87a3cea705ea6.
+Other menu capabilities (including safe Exit, mesh refinement/diagnostics,
+view toggles and full Preferences), pixel fidelity and the remaining milestone
+acceptance gates are still open. M3 is NOT COMPLETE.

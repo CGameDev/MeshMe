@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+import {attachHelpTools} from './help-tools.js';
 export function attachDocumentMenus({document,host,registry,openDialog,el,refreshScene}){
+ attachHelpTools({registry,openDialog,el});
  function button(label,action){const b=el('button','',label);b.type='button';b.onclick=async()=>{try{await action();}catch(error){openDialog('Operation failed',[el('p','',String(error.message??error))]);}};return b;}
  function choice(label,entries,value){const row=el('label','locked-field'),input=el('select');input.setAttribute('aria-label',label);for(const [id,name]of entries){const option=el('option','',name);option.value=id;input.append(option);}input.value=value;row.append(el('span','',label),input);return{row,input};}
  registry.register('Project Settings',()=>{
@@ -24,4 +26,18 @@ export function attachDocumentMenus({document,host,registry,openDialog,el,refres
  function menu(name,entries){registry.register('menu:'+name,()=>{const list=el('div');for(const [label,command]of entries){const state=registry.state(command),b=button(label,()=>registry.execute(command));b.disabled=!state.enabled;b.title=state.enabled?'':state.reason;list.append(b);}openDialog(name,[list]);});}
  menu('File',[['New Project','New Project'],['Open Project…','Open Project'],['Open Model…','Import'],['Open Recent','Open Recent'],['Import Model…','Import'],['Save','Save'],['Save As…','Save As'],['Export…','Export'],['Project Settings','Project Settings']]);
  menu('Edit',[['Undo','Undo'],['Redo','Redo'],['Duplicate Selected','Duplicate Selected'],['Delete Selected','Delete Selected'],['Select All','Select All'],['Preferences','Preferences']]);
+ menu('Mesh',['Repair','Make Solid','Hollow','Boolean','Split','Combine'].map(n=>[n,n]));
+ menu('Texture',[['Texture panel','Texture'],['Procedural source','source:Procedural'],['Image source','source:Image'],['Texture Library','Texture Library'],...['Apply Texture','Emboss','Deboss','Pattern','Generate Texture'].map(n=>[n,n]),['Engine controls','legacy']]);
+ menu('Modify',['Move','Rotate','Scale','Center Model','Place on Bed','Reset Transform'].map(n=>[n,n]));
+ menu('Tools',['Measure','Prepare for Print','Preferences'].map(n=>[n,n]));
+ // Capture before the preserved engine's independent Undo handler. Text-entry
+ // Undo remains native; document shortcuts must address the scene history.
+ window.addEventListener('keydown',event=>{
+  if(!(event.ctrlKey||event.metaKey)||event.altKey)return;const key=event.key.toLowerCase(),target=event.target;
+  const text=target.isContentEditable||target.tagName==='TEXTAREA'||(target.tagName==='INPUT'&&['text','number','search','email','url','tel','password'].includes(target.type));
+  if(text&&['z','y'].includes(key))return;
+  const command=key==='z'?(event.shiftKey?'Redo':'Undo'):key==='y'?'Redo':key==='s'?(event.shiftKey?'Save As':'Save'):key==='n'?'New Project':key==='o'?'Open Project':key===','?'Preferences':null;
+  if(!command)return;event.preventDefault();event.stopImmediatePropagation();if(key==='s')target.blur?.();
+  if(registry.state(command).enabled)Promise.resolve().then(()=>registry.execute(command)).catch(error=>openDialog('Operation failed',[el('p','',String(error.message??error))]));
+ },true);
 }
