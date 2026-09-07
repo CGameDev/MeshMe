@@ -233,3 +233,18 @@ and three backend probes. Screenshot:
 Direction still reports the preserved normal-only engine; axis support is not
 invented. Full menus/advanced masks, visual fidelity, stress/recovery and physical
 or human acceptance remain open. M3 is NOT COMPLETE.
+
+### Reference layout refinement (2026-09-07)
+
+Header Undo/Redo icons now have explicit dimensions and sit beside the document
+name; export buttons match the reference footprint. Inspector rows align at the
+reference y positions, the actual scale-link control is restored, and Apply
+Texture is visible without a scrollbar at 1536×1024. Source sliders and Invert
+use the reference track/toggle treatment. Active Select/transform styling follows
+the current tool. Actual relocated scale-link/source tests pass.
+Detailed layout evidence: `artifacts/m2-integration-1515c6797e094186879bea4a053ba83d`.
+The structural checker now covers header/source-grid/Apply bounds and detects
+reference-size inspector overflow. It reports structural PASS, zero missing
+named command handlers, and still returns NOT COMPLETE for full acceptance.
+Material thumbnails, icon details, viewport/grid/cube, full controls, DPI/stress
+and human visual/physical acceptance remain open.

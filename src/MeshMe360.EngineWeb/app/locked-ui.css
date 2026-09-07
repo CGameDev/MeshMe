@@ -44,3 +44,25 @@ body.locked-ui{margin:0;display:block;overflow:hidden;background:#161c20;color:#
 @media(max-width:1400px){.locked-work{grid-template-columns:240px minmax(0,1fr) 330px}.locked-toolbar{gap:0;padding-left:7px;padding-right:7px}.locked-toolbar .separator{margin:0 3px}.locked-menu{gap:3px}.locked-brand{width:205px;gap:8px}.locked-menu .menus{gap:0}.locked-menu .menus button{padding:5px}.locked-cards{padding-left:8px;padding-right:8px}.locked-field{grid-template-columns:65px minmax(0,1fr) 54px 20px}.locked-field.wide{grid-template-columns:105px 1fr}}
 @media(max-height:850px){.locked-work{grid-template-rows:minmax(0,1fr) 156px}.locked-cards{height:105px}.locked-cards button{height:96px}.locked-cards .swatch{height:60px;width:60px}.locked-right{grid-template-rows:minmax(0,1fr) 126px}}
 [data-theme=light] #locked-shell{--edge:#bec7d0;--panel:#f3f5f7;background:#eef1f4;color:#26333e}[data-theme=light] .locked-panel{background:#f4f6f8}[data-theme=light] .locked-inspector-body input,[data-theme=light] .locked-inspector-body select,[data-theme=light] .locked-search{background:#fff!important;color:#26333e!important}[data-theme=light] .locked-brand strong{color:#26333e}
+/* Measured reference alignment; client panel placement is unchanged. */
+.locked-menu .menus{margin-right:auto}
+.locked-menu .document-name{margin-left:0;flex:0 1 328px}
+.locked-menu>button{padding:4px!important;height:30px;flex-shrink:0}
+.locked-menu>button svg{width:22px;height:24px;display:block}
+.locked-menu .export-group button:first-child{width:81px}
+.locked-menu .export-group button:last-child{width:34px}
+.locked-menu .export-group{margin-left:0}
+.locked-menu .menu-divider{width:1px;height:20px;background:#283139;flex-shrink:0}
+.locked-inspector-body{padding-bottom:7px}
+.locked-source-grid{margin-bottom:9px}
+.locked-field{grid-template-columns:80px minmax(0,1fr) 62px 30px}
+.locked-advanced{margin-top:4px}
+.locked-field input[type=range]{appearance:none;background:#343e46;border:0;border-radius:3px;box-shadow:none;padding:0;margin:0;height:4px}
+.locked-field input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border:1px solid #83b1d7;border-radius:50%;background:#6799c6}
+.locked-field input[aria-label="Invert source"]{grid-column:3;appearance:none;position:relative;width:36px;height:21px;border:0;border-radius:12px;background:#2b343c;padding:0;margin:0}
+.locked-field input[aria-label="Invert source"]:before{content:'';position:absolute;left:3px;top:3px;width:15px;height:15px;border-radius:50%;background:#d2dde6}
+.locked-field input[aria-label="Invert source"]:checked{background:#267ac1}
+.locked-field input[aria-label="Invert source"]:checked:before{left:18px}
+.locked-field .scale-link{padding:2px!important;width:25px;height:28px;justify-self:center}
+.locked-field .scale-link svg{width:20px;height:20px}
+@media(max-width:1400px){.locked-field{grid-template-columns:65px minmax(0,1fr) 54px 20px}.locked-menu .document-name{flex-basis:240px}}

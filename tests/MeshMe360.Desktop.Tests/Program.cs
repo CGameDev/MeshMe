@@ -116,6 +116,7 @@ internal static class Program
                 }
                 if(args.Contains("--source"))
                 {
+                    if(!(await Evaluate("(async()=>{const e=await import('./js/main.js'),b=document.querySelector('.locked-field #lock-scale');e.desktopConfigureTexture({scaleU:5,scaleV:9,lockScale:false});b.click();const a=e.desktopSceneCapture();a.geometry.dispose();return a.settings.lockScale&&a.settings.scaleU===a.settings.scaleV&&b.getAttribute('aria-pressed')==='true'})()")).GetBoolean())throw new Exception("Relocated texture scale link failed");
                     await Evaluate("(async()=>{const e=await import('./js/main.js');for(const value of [128,64]){const c=document.createElement('canvas');c.width=c.height=8;const ctx=c.getContext('2d');ctx.fillStyle='rgb('+value+','+value+','+value+')';ctx.fillRect(0,0,8,8);const blob=await new Promise(r=>c.toBlob(r));await e.desktopLoadTexture(new File([blob],'height-'+value+'.png',{type:'image/png'}));}e.desktopConfigureTexture({textureSmoothing:1});window.meshMe360Locked.scene.capture();return true})()");
                     async Task SourcePixels(int expected)
                     {
@@ -400,6 +401,8 @@ internal static class Program
                     await Evaluate("new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))");
                     var report = await Evaluate("({size:[innerWidth,innerHeight],regions:window.meshMe360Locked.regions(),controls:window.meshMe360Locked.report(),toolbar:[...document.querySelectorAll('.locked-toolbar button')].map(b=>({name:b.textContent,rect:{x:b.getBoundingClientRect().x,y:b.getBoundingClientRect().y,width:b.getBoundingClientRect().width,height:b.getBoundingClientRect().height}}))})");
                     await File.WriteAllTextAsync(Path.Combine(testRoot,"locked-layout.json"),report.GetRawText());
+                    var detailLayout=await Evaluate("Object.fromEntries(['.locked-menu .menus','.locked-menu .document-name','.locked-menu .export-group','.locked-inspector-body','.locked-source-grid','.locked-advanced','.locked-apply'].map(selector=>{const n=document.querySelector(selector),r=n.getBoundingClientRect(),s=getComputedStyle(n);return[selector,{x:r.x,y:r.y,width:r.width,height:r.height,font:s.fontSize,lineHeight:s.lineHeight,clientHeight:n.clientHeight,scrollHeight:n.scrollHeight}]}))");
+                    await File.WriteAllTextAsync(Path.Combine(testRoot,"locked-details.json"),detailLayout.GetRawText());
                     var capture = await core.CallDevToolsProtocolMethodAsync("Page.captureScreenshot", "{\"format\":\"png\",\"captureBeyondViewport\":true}");
                     using var png=JsonDocument.Parse(capture);
                     await File.WriteAllBytesAsync(Path.Combine(testRoot,"locked-1536x1024.png"),Convert.FromBase64String(png.RootElement.GetProperty("data").GetString()!));

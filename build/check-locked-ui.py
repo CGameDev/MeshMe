@@ -22,6 +22,19 @@ for button, center in zip(report['toolbar'], centers):
     if abs(rect['x']+rect['width']/2-center)>4 or abs(rect['y']+rect['height']/2-102)>4:
         failures.append(button['name']+' center outside ±4 px')
 missing = [c['name'] for c in report['controls'] if not c['implemented']]
+detail_path = evidence.with_name('locked-details.json')
+if detail_path.exists():
+    details = json.loads(detail_path.read_text(encoding='utf-8'))
+    for selector, bounds in {'.locked-menu .document-name':(1064,19,328,17),
+                            '.locked-menu .export-group':(1402,8,117,39),
+                            '.locked-source-grid':(1171,295,343,205),
+                            '.locked-apply':(1362,810,152,35)}.items():
+        for key, target in zip(('x','y','width','height'), bounds):
+            if abs(details.get(selector,{}).get(key,-10000)-target)>3:
+                failures.append(selector+'.'+key+' outside ±3 px')
+    inspector = details.get('.locked-inspector-body',{})
+    if inspector.get('scrollHeight',0)>inspector.get('clientHeight',0):
+        failures.append('Reference inspector controls require scrolling')
 result = {'structuralGate': 'FAIL' if failures else 'PASS', 'structuralFailures':failures,
           'unimplementedCommands':missing, 'functionalGate':'INCOMPLETE',
           'pixelAppearanceReview':'PENDING', 'humanVisualReview':'PENDING',
