@@ -48,6 +48,15 @@ test('original 20 mm cube STL export/import and zero-amplitude pipeline match pi
     const expected = await baseline.runExportPipeline(input());
     const actual = await adapted.runExportPipeline(input());
     assert.deepEqual(actual.positions, expected.positions);
+    const {runGuardedPipeline}=await import(new URL('app/guarded-pipeline.js',web));
+    const guarded=await runGuardedPipeline(input());
+    assert.deepEqual(guarded.positions,expected.positions);
+    assert.deepEqual(guarded.normals,expected.normals);
+    const limited=input(),unchanged=limited.positions.slice();limited.settings={...settings,refineLength:3};
+    await assert.rejects(runGuardedPipeline(limited,()=>{},24),/triangle budget/);
+    assert.deepEqual(limited.positions,unchanged);
+    await assert.rejects(runGuardedPipeline(input(),()=>{},6),/triangle budget/);
+
     assert.deepEqual(actual.positions, parsed.attributes.position.array);
     assert.ok(actual.positions.every(Number.isFinite));
     assert.equal(actual.positions.length / 9, 12);

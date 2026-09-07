@@ -5,7 +5,7 @@ export function attachTextureLibrary({registry,openDialog,el,applyFile,onChange,
  const store=new TextureLibraryStore(),urls=new Map();let items=[];
  async function refresh(){items=await store.list();for(const [id,url]of urls)if(!items.some(item=>item.id===id)){URL.revokeObjectURL(url);urls.delete(id);}onChange();}
  async function add(file,parameters){if(file.size>32*1024*1024)throw new Error('Texture exceeds the 32 MiB library limit');const bitmap=await createImageBitmap(file);bitmap.close();const item={id:'custom-'+crypto.randomUUID(),name:file.name.replace(/\.[^.]+$/,''),extension:file.name.split('.').pop(),blob:file,parameters:parameters??null,favorite:false,createdAt:new Date().toISOString()};await store.put(item);await refresh();return item;}
- async function apply(id){const item=items.find(i=>i.id===id);if(!item)throw new Error('Texture is no longer in the library');await applyFile(new File([item.blob],item.name+'.'+(item.extension??'png'),{type:item.blob.type}));return item;}
+ async function apply(id){const item=items.find(i=>i.id===id);if(!item)throw new Error('Texture is no longer in the library');await applyFile(new File([item.blob],item.name+'.'+(item.extension??'png'),{type:item.blob.type}),item.id);return item;}
  const button=(label,run)=>{const b=el('button','',label);b.type='button';b.onclick=()=>{try{Promise.resolve(run()).catch(showError);}catch(error){showError(error);}};return b;};
  function open(){
   const list=el('div');
@@ -17,7 +17,7 @@ export function attachTextureLibrary({registry,openDialog,el,applyFile,onChange,
   let worker=null,blob=null,closed=false;const form=el('div'),status=el('p','','Choose parameters and generate a preview.'),canvas=el('canvas');canvas.width=canvas.height=256;canvas.style.width='100%';canvas.style.maxWidth='256px';
   const inputs={};
   function field(name,type,value){const row=el('label','locked-field'),input=el('input');input.type=type;input.value=value;input.setAttribute('aria-label',name);row.append(el('span','',name),input);form.append(row);inputs[name]=input;input.oninput=invalidate;return input;}
-  const kind=el('select');kind.setAttribute('aria-label','Pattern');for(const value of ['noise','ridges','cells','waves','checker','brick','scales','stone','woodgrain','plates']){const option=el('option','',value);option.value=value;kind.append(option);}kind.onchange=invalidate;form.append(kind);
+  const kind=el('select');kind.setAttribute('aria-label','Pattern');for(const value of ['noise','ridges','cells','waves','checker','brick','scales','stone','woodgrain','plates','weave']){const option=el('option','',value);option.value=value;kind.append(option);}kind.onchange=invalidate;form.append(kind);
   field('Name','text','Generated texture');field('Seed','number',1);field('Frequency','number',6);field('Contrast','number',1).step='.1';field('Blur','number',0);field('Invert','checkbox','');
   const save=button('Save to Library',async()=>{if(!blob)throw new Error('Generate the current settings first');const item=await add(new File([blob],inputs.Name.value.trim()+'.png',{type:'image/png'}),parameters());status.textContent='Saved to Library: '+item.name;});save.disabled=true;
   function parameters(){return{kind:kind.value,seed:inputs.Seed.valueAsNumber,frequency:inputs.Frequency.valueAsNumber,contrast:inputs.Contrast.valueAsNumber,blur:inputs.Blur.valueAsNumber,invert:inputs.Invert.checked,size:256};}

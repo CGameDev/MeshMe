@@ -5,7 +5,7 @@ import {zipSync,unzipSync,strToU8,strFromU8} from '../vendor/fflate-0.8.2/esm/br
 import {geometryFromObject} from './scene-document.js';
 import {exportSTL,export3MF} from '../js/exporter.js';
 import {countEdgeDefects,countAreaSlivers} from '../js/meshRepair.js';
-import {runExportPipeline} from '../js/exportPipeline.js';
+import {runGuardedPipeline} from './guarded-pipeline.js';
 
 const xml=s=>String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&apos;'}[c]));
 const safeName=s=>String(s).replace(/[^a-zA-Z0-9_.-]/g,'_').slice(0,80)||'model';
@@ -25,7 +25,7 @@ export async function buildSceneExport(request,progress=()=>{}){
    let g;const pipelineWarnings=[];
    if(object.pipelineInput){
     if(object.groups)throw new Error('Apply relief before exporting a material-group mesh with live displacement.');
-    const result=await runExportPipeline({...object.pipelineInput,mode:'export'},(stage,p)=>progress({stage,index:i,total:objects.length,fraction:p}));
+    const result=await runGuardedPipeline({...object.pipelineInput,mode:'export'},(stage,p)=>progress({stage,index:i,total:objects.length,fraction:p}));
     if(!result)throw new Error('Export pipeline did not produce a result.');
     if(result.safetyCapHit)pipelineWarnings.push('The upstream subdivision safety cap was reached.');
     if(result.lockedOverBudget)pipelineWarnings.push('Preserved geometry exceeds the requested triangle budget.');

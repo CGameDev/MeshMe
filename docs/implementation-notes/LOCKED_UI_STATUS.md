@@ -9,24 +9,21 @@ the application; icons and procedural textures are generated independently.
 The package's UI/functional scope supersedes older UI documents. It does not
 constitute confirmation of the previous M2 manual checkpoint. That remains pending.
 
-## Implementation state
+## Current implementation state — 2026-09-07
 
-| Phase | State | Actual work / remaining requirements |
+| Phase | State | Evidence and remaining gate |
 |---|---|---|
-| A — shell | IN PROGRESS | Locked region layout, toolbar order/centers, tabs, shelf, existing viewport, camera modes/navigation and comparison presentation hook; typography, icon fidelity, source thumbnails, full inspector layout, responsiveness and human/pixel review remain. |
-| B — project | IN PROGRESS | Versioned ZIP `.mm360` data model, multiple sequential imports, scene selection/visibility, numeric transforms/center, history and actual native save/reopen tested. Multi-file chooser workflow, full gizmo qualification, full legacy/texture stress qualification, safe close, autosave/recovery and broader tests remain. |
-| C — engine relocation | IN PROGRESS | Existing scale/depth/invert/projection controls relocated with handlers intact; original advanced controls remain accessible. Emboss/Deboss/Apply Texture use the preserved worker with preview/commit/undo and signed geometry tests. Complete masking/refinement/decimation relocation, source-strength/blending, Pattern and broader integration remain. |
-| D — new tools | IN PROGRESS | CSP-compatible Manifold build adopted with pinned source/licenses/hashes. Boolean, plane Split and inward Hollow previews/commits/undo pass initial real WebView2 tests. Drain placement, minimum-wall qualification, repair/solidification, remaining tools and broad geometry tests remain. |
-| E — export/profiles | INCOMPLETE | Existing STL/3MF preserved and native `.mm360` save added; full multi-object export, OBJ/material packaging, profile execution and warnings remain. |
-| F — verification | INCOMPLETE | Build, baseline geometry, initial scene tests and real WebView captures exist. Full functional matrix, stress/DPI/offline tests and human visual acceptance have not passed. |
+| A — shell | VISUAL GATE OPEN | Region/toolbar measurements and five sizes in both themes pass. Production PNG appearance, especially material thumbnails, and human acceptance remain open. |
+| B — project | AUTOMATED WORKFLOWS PASS | Multi-object scene, native save/reopen, safe New/Open/Exit, actual Move/Rotate/Scale, history, legacy conversion and recovery-format compatibility pass. Single- and two-object gestures pass; physical Windows interactions remain. |
+| C — engine relocation | AUTOMATED WORKFLOWS PASS | Source composition, original settings/masks, relief/pattern, Refine/Simplify/Normals and revision-safe preview/commit/cancel pass. Upstream blobs remain exact. |
+| D — new tools | AUTOMATED WORKFLOWS PASS | Boolean, Split, Combine, Hollow/drain, Make Solid, Repair, measurement and diagnostics have real workers and regression fixtures. Sampled wall checks are not a proof of the global minimum wall. |
+| E — export/profiles | AUTOMATED WORKFLOWS PASS | STL/3MF/OBJ geometry/material capability workflows, source-image packaging, profiles, validation and native destinations pass. Physical save dialog interaction remains. |
+| F — verification | NOT COMPLETE | 100k/1M/2.4M pipeline parity and navigation, 100–200% emulated density, offline asset closure and automated workflows pass. Full pixel/human fidelity, physical DPI/GPU/offline Windows acceptance and complete subrequirement sign-off remain. |
 
-**Do not mark this milestone or any visible tool complete based on registry
-`implemented` flags.** Those flags indicate a handler exists; they are not proof
-that all subrequirements pass. Move/Rotate/Scale now use pinned Three.js viewport
-gizmos; an actual Move drag/undo passes, while full rotation/scale/multi-object/DPI
-qualification remains. Material transactions, reset and project persistence exist;
-export-capability integration remains.
-The checker always fails the overall gate while these requirements remain open.
+Registry `implemented` flags only indicate handlers exist. They do not certify all
+control subrequirements. The overall checker remains fail-closed. Historical
+entries below record earlier partial states; this table and the latest dated
+checkpoint describe current work. No later milestone has been declared complete.
 
 ## Geometry backend blocker resolved — full milestone still incomplete
 
@@ -440,3 +437,42 @@ artifacts/m2-integration-4fbe11bb059148e98334e085d9190101 and
 artifacts/m2-integration-2fa92171d4e9494197f9e9fd08cf7048.
 M3 remains NOT COMPLETE. Refinement growth safety, performance/recovery
 compatibility, full functional coverage and pixel/human acceptance still need work.
+
+
+### Relief safety, recovery format and stress checkpoint (2026-09-07)
+
+Relief/pattern/live export now wrap the unchanged original pipeline in a
+3,000,000-triangle guard. Relief Preview requires an explicit growth checkbox.
+Progress and Cancel remain real worker operations. The guard checks input,
+post-subdivision progress and final output; it is not a hard peak-allocation cap,
+because the original subdivision callback occurs after each pass. No upstream
+algorithm changed. Exact output parity and safe rejection preserve source state.
+
+M3 recovery compatibility serializes the existing mm360 format and restores a
+dirty document without acknowledging an explicit save. Native renderer/source
+restoration and corrupt-input preservation pass. M6 owns scheduling, retention,
+crash prompts and disk coordination; those are not claimed here.
+
+The native stress test covers 97,200 / 995,328 / 2,408,448 input triangles and
+compares positions/normals exactly with the preserved worker. Navigation continues
+during processing. See M3_PERFORMANCE.md for timings and measurement limitations.
+Both themes pass five client sizes at 100/125/150/175/200% emulated density.
+Native Move/Rotate/Scale drags each create exactly one undoable transaction.
+
+Texture source identity is stored with the asset instead of inferred from its
+filename. Highlights follow Undo/Redo, selection and project reopen. Existing
+projects without that optional identity stay usable and show no guessed preset.
+Fabric/Carbon now use actual generated weave heights; Scales uses overlapping
+plate heights. These are app-owned sources, not changes to upstream algorithms.
+Visual comparison of these materials remains pending; M3 is NOT COMPLETE.
+
+Focused checks pass: 28 Node tests; native source/library/recovery, pattern,
+exports, display, stress and transform modes. Final combined suite PASS: 28 Node, 38 Core, 6 asset checks, 26 native
+app modes and three geometry backend probes. Zero build warnings/errors; all
+117 upstream blobs match. Additional two-object Move/Rotate/Scale gesture and
+Undo checks pass at artifacts/m2-integration-0017a49234fe4f6cb85210ee38babd8a.
+Final suite stress: artifacts/m2-integration-210d5a1ad93d488bb733c81eb35fd515.
+Screenshot/layout: artifacts/m2-integration-ef497be56a4a464b859d7625834f103e.
+The structural gate passes; the overall checker correctly returns NOT COMPLETE.
+A registered, unmasked HTML comparison is generated by create-locked-review.py;
+this review aid does not certify pixel appearance or human acceptance.

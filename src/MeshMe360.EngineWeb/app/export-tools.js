@@ -13,10 +13,10 @@ export function attachExportTools({document,engine,host,registry,openDialog,el,c
   const format=choice('Export format',[['stl','STL'],['3mf','3MF'],['obj','OBJ package']],preselected??lastFormat??profile?.format??'stl');
   const scope=choice('Export scope',[['selected','Selected objects'],['project','Visible project objects']],selectedOnly||document.selected.length?'selected':'project');
   const live=el('input');live.type='checkbox';live.setAttribute('aria-label','Include current relief preview');const liveRow=el('label','','Include current relief preview ');liveRow.append(live);body.append(liveRow);
-  const note=el('p','','Exported scene coordinates remain millimetres. OBJ is packaged with MTL and source images; STL omits materials; 3MF retains supported units and metadata.');body.append(note);
+  const note=el('p','','Preparing with current relief enabled uses a 3,000,000-triangle refinement result budget. Temporary memory can be higher. Increase Resolution (mm) if the budget is exceeded. Exported scene coordinates remain millimetres. OBJ is packaged with MTL and source images; STL omits materials; 3MF retains supported units and metadata.');body.append(note);
   const prepare=el('button','','Validate and prepare'),save=el('button','primary','Choose destination…'),cancel=el('button','','Cancel');save.disabled=true;
   const selected=()=>scope.value==='selected'?document.selected:document.state.objects.filter(o=>o.visible);
-  function options(){const objects=selected();live.disabled=objects.some(o=>o.groups)||!objects.some(o=>o.textureId);if(live.disabled)live.checked=false;live.title=objects.some(o=>o.groups)?'Apply relief before export to preserve material groups.':'Use the preserved displacement/export pipeline on copies.';}
+  function options(){const objects=selected();live.disabled=objects.some(o=>o.groups)||!objects.some(o=>o.textureId);if(live.disabled)live.checked=false;live.title=objects.some(o=>o.groups)?'Apply relief before export to preserve material groups.':'Use the preserved displacement/export pipeline on copies, with a 3,000,000-triangle refinement budget.';}
   options();live.checked=!live.disabled;
   function invalidate(){job?.cancel();job=null;result=null;save.disabled=true;prepare.disabled=false;setBusy(false);status.dataset.exportStatus='idle';status.textContent='Export settings changed. Validate again.';options();}
   for(const input of [format,scope,live])input.onchange=invalidate;

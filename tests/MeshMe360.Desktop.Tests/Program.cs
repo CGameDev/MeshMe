@@ -69,9 +69,9 @@ internal static class Program
                 var recent = new RecentFilesService(paths);
                 await Until(async () => (await recent.ListAsync()).Any(e => e.Path == fixture));
                 Console.WriteLine("PASS: native file activation → internal binary GET → preserved engine loader → recent file acknowledgement");
-                async Task<JsonElement> Evaluate(string expression)
+                async Task<JsonElement> Evaluate(string expression, int timeoutSeconds = 30)
                 {
-                    var raw = await core.CallDevToolsProtocolMethodAsync("Runtime.evaluate", JsonSerializer.Serialize(new { expression, awaitPromise = true, returnByValue = true, userGesture = true })).WaitAsync(TimeSpan.FromSeconds(30));
+                    var raw = await core.CallDevToolsProtocolMethodAsync("Runtime.evaluate", JsonSerializer.Serialize(new { expression, awaitPromise = true, returnByValue = true, userGesture = true })).WaitAsync(TimeSpan.FromSeconds(timeoutSeconds));
                     using var parsed = JsonDocument.Parse(raw);
                     if (parsed.RootElement.TryGetProperty("exceptionDetails", out var error)) throw new Exception(error.ToString());
                     return parsed.RootElement.GetProperty("result").GetProperty("value").Clone();
@@ -82,12 +82,65 @@ internal static class Program
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
                 }
+                if(args.Contains("--stress"))
+                {
+                    var reports=new List<JsonElement>();
+                    foreach(var segments in new[]{90,288,448})
+                    {
+                        var triangles=12*segments*segments;
+                        Console.WriteLine($"Stress: creating and importing {triangles:N0} triangles");
+                        await Evaluate($$"""
+                        (async()=>{const T=await import('./vendor/three-0.170.0/build/three.module.js'),{exportSTL}=await import('./js/exporter.js');const indexed=new T.BoxGeometry(20,20,20,{{segments}},{{segments}},{{segments}}),g=indexed.toNonIndexed();const bytes=exportSTL(g,null);indexed.dispose();g.dispose();await window.meshMe360.download(new Blob([bytes]),'stress.stl');return true})()
+                        """,180);
+                        await Until(()=>Task.FromResult(File.Exists(chosen)&&new FileInfo(chosen).Length==84L+50L*triangles));
+                        await Evaluate("(async()=>{const a=window.meshMe360Locked;a.scene.document.markSaved();await a.registry.execute('New Project');return true})()");
+                        var timer=System.Diagnostics.Stopwatch.StartNew();
+                        await bridge.OpenFileAsync(chosen);
+                        await Until(async()=>(await Evaluate($"window.meshMe360Locked.scene.document.state.objects.some(o=>o.positions.length/9==={triangles})",180)).GetBoolean());
+                        var loadMs=timer.Elapsed.TotalMilliseconds;
+                        Console.WriteLine($"Stress: imported in {loadMs:F0} ms; exercising worker pipeline");
+                        var report=await Evaluate($$"""
+                        (async()=>{
+                          const a=window.meshMe360Locked,e=await import('./js/main.js'),{startDisplacement}=await import('./app/displacement-client.js'),T=await import('./vendor/three-0.170.0/build/three.module.js'),{exportSTL}=await import('./js/exporter.js');
+                          const d=a.scene.document,revision=d.revision,source=d.state.objects.at(-1).positions;
+                          const input=e.desktopDisplacementInput();input.mode='export';input.settings={...input.settings,refineLength:1,amplitude:.1,textureHeight:.1,maxTriangles:Math.floor({{triangles}}*.8),regularizeEnabled:false,smoothBottom:false};
+                          input.imageData={data:new Uint8ClampedArray([255,255,255,255])};input.imgWidth=1;input.imgHeight=1;
+                          const viewer=await import('./js/viewer.js'),camera=viewer.getCamera(),startPosition=camera.position.clone(),frameBefore=viewer.getRenderer().info.render.frame;
+                          let beats=0,last=performance.now(),maxGap=0,peakHeap=0;const heartbeat=setInterval(()=>{const now=performance.now();maxGap=Math.max(maxGap,now-last);last=now;beats++;peakHeap=Math.max(peakHeap,performance.memory?.usedJSHeapSize??0);camera.position.applyAxisAngle(new T.Vector3(0,0,1),.002);viewer.getControls().update();viewer.requestRender()},16);
+                          const events=[],started=performance.now();let output;
+                          try{output=await startDisplacement(input,p=>events.push({stage:p.stage,p:p.p,ms:performance.now()-started})).promise}finally{clearInterval(heartbeat);camera.position.copy(startPosition);viewer.getControls().update();viewer.requestRender()}
+                          const pipelineMs=performance.now()-started;
+                          if(!output.positions.every(Number.isFinite)||!output.positions.length||output.positions.length%9)throw Error('Invalid stress output');
+                          if(source!==d.state.objects.at(-1).positions||revision!==d.revision)throw Error('Worker changed authored geometry');
+                          const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(output.positions,3));g.setAttribute('normal',new T.BufferAttribute(output.normals,3));g.computeBoundingBox();
+                          const exportStart=performance.now(),bytes=exportSTL(g,null),exportMs=performance.now()-exportStart,bounds={min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray()};g.dispose();
+                          if(bytes.byteLength!==84+50*output.positions.length/9||beats===0||!events.some(p=>p.stage==='decimate'))throw Error('Stress export/worker responsiveness/decimation failed');
+                          const renderedFrames=viewer.getRenderer().info.render.frame-frameBefore,baselineStart=performance.now();
+                          const baseline=await new Promise((resolve,reject)=>{const w=new Worker('./js/exportWorker.js',{type:'module'});w.onmessage=({data})=>{if(data.type==='ready')w.postMessage({cmd:'run',input});if(data.type==='done'){w.terminate();resolve(data.result)}if(data.type==='error'){w.terminate();reject(Error(data.message))} };w.onerror=error=>{w.terminate();reject(Error(error.message))} });
+                          const baselineMs=performance.now()-baselineStart;
+                          if(renderedFrames<1||baseline.positions.length!==output.positions.length||!baseline.positions.every((v,i)=>v===output.positions[i])||!baseline.normals.every((v,i)=>v===output.normals[i]))throw Error('Stress rendering or pinned-worker parity failed');
+                          return{triangles:{{triangles}},loadMs:{{loadMs.ToString(System.Globalization.CultureInfo.InvariantCulture)}},pipelineMs,baselineMs,parity:true,exportMs,exportBytes:bytes.byteLength,resultTriangles:output.positions.length/9,bounds,heartbeatCount:beats,maxHeartbeatGapMs:maxGap,renderedFrames,events,peakObservedMainHeapBytes:peakHeap,heapBytes:performance.memory?.usedJSHeapSize??null};
+                        })()
+                        """,600);
+                        reports.Add(report);
+                        await File.WriteAllTextAsync(Path.Combine(testRoot,"stress-results.json"),JsonSerializer.Serialize(reports));
+                        Console.WriteLine($"PASS: {triangles:N0} input triangles; finite worker output, unchanged source, responsive event loop and binary export");
+                    }
+                    Console.WriteLine("Stress evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if(args.Contains("--recovery-compat"))
+                {
+                    var recoveryCheck=await Evaluate("(async()=>{const a=window.meshMe360Locked,r=await import('./app/recovery-snapshot.js');a.scene.capture();const d=a.scene.document,before=JSON.stringify(d.state),saved=d.savedRevision,bytes=r.createRecoverySnapshot(d),originalSaveUntouched=d.savedRevision===saved;d.duplicate();r.restoreRecoverySnapshot(d,bytes);a.scene.refreshScene({activate:true});const e=await import('./js/main.js'),live=e.desktopSceneCapture();const match=JSON.stringify(d.state)===before&&d.dirty&&!!live.texture&&live.geometry.attributes.position.count===36;live.geometry.dispose();return{match,bytes:bytes.length,originalSaveUntouched}})()");
+                    if(!recoveryCheck.GetProperty("match").GetBoolean()||!recoveryCheck.GetProperty("originalSaveUntouched").GetBoolean())throw new Exception("Recovered scene did not restore the renderer/texture and dirty state");
+                    await File.WriteAllTextAsync(Path.Combine(testRoot,"recovery-format-check.json"),recoveryCheck.GetRawText());
+                    Console.WriteLine("PASS: current unsaved mm360 snapshot restores real renderer/source state and remains dirty; M6 crash scheduling/retention is not exercised");Console.WriteLine("Recovery compatibility evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--display"))
                 {
                     var displayReports=new List<JsonElement>();
                     foreach(var theme in new[]{"Dark","Light"}){
                         await Evaluate($"(async()=>{{await window.meshMe360.updateSettings({{theme:'{theme}'}});return true}})()");
-                        foreach(var (width,height) in new[]{(1280,720),(1366,768),(1536,1024),(1600,900),(1920,1080)})foreach(var scale in new[]{1.0,1.25,1.5,2.0}){
+                        foreach(var (width,height) in new[]{(1280,720),(1366,768),(1536,1024),(1600,900),(1920,1080)})foreach(var scale in new[]{1.0,1.25,1.5,1.75,2.0}){
                             await core.CallDevToolsProtocolMethodAsync("Emulation.setDeviceMetricsOverride",JsonSerializer.Serialize(new{width,height,deviceScaleFactor=scale,mobile=false}));
                             var layout=await Evaluate("(async()=>{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const selectors=['.locked-toolbar button','.locked-quick button','.locked-tabs button','.locked-menu .menus button','.export-group button'];const failures=[];for(const selector of selectors)for(const b of document.querySelectorAll(selector)){const r=b.getBoundingClientRect();if(!r.width||r.x<0||r.y<0||r.right>innerWidth+1||r.bottom>innerHeight+1)failures.push(b.textContent+' outside client');const span=b.querySelector('span')??b,range=document.createRange();range.selectNodeContents(span);const text=range.getBoundingClientRect();if(text.width>r.width+1)failures.push(b.textContent+' clipped label');}return{width:innerWidth,height:innerHeight,scale:devicePixelRatio,theme:document.documentElement.dataset.theme,failures,viewport:document.querySelector('.locked-viewport').getBoundingClientRect().toJSON()}})()");
                             displayReports.Add(layout);if(layout.GetProperty("failures").GetArrayLength()>0)throw new Exception("Display gate failed: "+layout);
@@ -95,7 +148,7 @@ internal static class Program
                         }
                     }
                     await File.WriteAllTextAsync(Path.Combine(testRoot,"display-layout.json"),JsonSerializer.Serialize(displayReports));
-                    Console.WriteLine("PASS: five required client sizes, both themes and 100/125/150/200% emulated pixel density without clipped toolbar/menu/quick-action labels");Console.WriteLine("Display evidence: "+testRoot);await session.CompleteAsync();return;
+                    Console.WriteLine("PASS: five required client sizes, both themes and 100/125/150/175/200% emulated pixel density without clipped toolbar/menu/quick-action labels");Console.WriteLine("Display evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--legacy"))
                 {
@@ -207,7 +260,7 @@ internal static class Program
                     {
                         if(command=="Recalculate Normals")await Evaluate("(()=>{const a=window.meshMe360Locked;a.scene.document.transact('Fixture normals',()=>a.scene.document.selected[0].normals.fill(0));a.scene.refreshScene({activate:true});return true})()");
                         var meshBefore=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
-                        await Evaluate($"(()=>{{window.meshMe360Locked.registry.execute({JsonSerializer.Serialize(command)});const allow=document.querySelector('[aria-label=\"Allow refinement growth\"]');if(allow)allow.checked=true;[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
+                        await Evaluate($"(()=>{{window.meshMe360Locked.registry.execute({JsonSerializer.Serialize(command)});const allow=document.querySelector('[aria-label=\"Allow refinement growth\"]');if(allow)allow.checked=true;document.querySelector('[aria-label=\"Allow relief refinement\"]')?.click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
                         await Until(async()=> (await Evaluate("document.querySelector('[data-mesh-status]').dataset.meshStatus")).GetString() is "ready" or "error");
                         if((await Evaluate("document.querySelector('[data-mesh-status]').dataset.meshStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('.locked-dialog').innerText")).GetString());
                         if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=meshBefore)throw new Exception(command+" preview mutated document");
@@ -220,7 +273,7 @@ internal static class Program
                     var meshNormals=(await Evaluate("JSON.stringify([...window.meshMe360Locked.scene.document.selected[0].normals])")).GetString();
                     await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Save');return true})()");await Until(()=>Task.FromResult(File.Exists(chosen)&&chosen.EndsWith(".mm360")));await Until(async()=>!(await Evaluate("window.meshMe360Locked.scene.document.dirty")).GetBoolean());await ReopenNativeProject(chosen);
                     if((await Evaluate("JSON.stringify([...window.meshMe360Locked.scene.document.selected[0].normals])")).GetString()!=meshNormals)throw new Exception("Mesh normals project round trip failed");
-                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Subdivide/Refine');document.querySelector('[aria-label=\"Allow refinement growth\"]').checked=true;[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();document.querySelector('.locked-dialog .close').click();return true})()");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Subdivide/Refine');document.querySelector('[aria-label=\"Allow refinement growth\"]').checked=true;document.querySelector('[aria-label=\"Allow relief refinement\"]')?.click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();document.querySelector('.locked-dialog .close').click();return true})()");
                     if((await Evaluate("window.meshMe360Locked.registry.busy")).GetBoolean())throw new Exception("Mesh processing cancel left commands busy");
                     Console.WriteLine("PASS: actual mesh Refine/Simplify/Normals preview, commit, closed result diagnostics, Undo/Redo, cancellation and native normal-asset round trip");Console.WriteLine("Mesh processing evidence: "+testRoot);await session.CompleteAsync();return;
                 }
@@ -364,9 +417,14 @@ internal static class Program
                     foreach(var command in new[]{"Emboss","Deboss","Apply Texture"})
                     {
                         await Evaluate("(async()=>{(await import('./js/main.js')).desktopConfigureTexture({textureHeight:1,refineLength:3,maxTriangles:50000,smoothBottom:false,noDownwardZ:false,boundaryFalloff:0,topAngleLimit:0,bottomAngleLimit:0});return true})()");
+                        if(command=="Emboss"){
+                            await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Emboss');[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()");
+                            if((await Evaluate("document.querySelector('[data-relief-status]').dataset.reliefStatus")).GetString()!="error")throw new Exception("Relief refinement started without growth consent");
+                            await Evaluate("(()=>{document.querySelector('.locked-dialog .close').click();return true})()");
+                        }
                         var before=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
                         var oldMax=(await Evaluate("(()=>{const p=window.meshMe360Locked.scene.document.selected[0].positions;let z=-Infinity;for(let i=2;i<p.length;i+=3)z=Math.max(z,p[i]);return z})()")).GetDouble();
-                        await Evaluate($"(()=>{{document.querySelector('[data-command=\"{command}\"]').click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
+                        await Evaluate($"(()=>{{document.querySelector('[data-command=\"{command}\"]').click();document.querySelector('[aria-label=\"Allow relief refinement\"]')?.click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
                         try{await Until(async()=> (await Evaluate("document.querySelector('[data-relief-status]')?.dataset.reliefStatus??''")).GetString() is "ready" or "error");}
                         catch{Console.Error.WriteLine(command+" state: "+await Evaluate("({dialog:document.querySelector('.locked-dialog').innerText,status:document.querySelector('[data-relief-status]')?.dataset.reliefStatus})"));throw;}
                         if((await Evaluate("document.querySelector('[data-relief-status]').dataset.reliefStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-relief-status]').textContent")).GetString());
@@ -425,6 +483,13 @@ internal static class Program
                     await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");await SourcePixels(64);
                     if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=clearBefore)throw new Exception("Clear Texture Undo did not restore source and geometry");
                     Console.WriteLine("PASS: actual source strength/invert/five blend modes, pipeline pixels with smoothing, undo and native source/base/settings round trip");
+                    var presetCheck=await Evaluate("""
+                    (async()=>{const a=window.meshMe360Locked,s=a.scene,d=s.document,selected=()=>[...document.querySelectorAll('.locked-source-grid .active')].map(b=>b.dataset.command).join();await a.registry.execute('preset:Scales');if(selected()!=='preset:Scales')throw Error('Scales highlight missing');await a.registry.execute('preset:Rock');a.registry.execute('Undo');if(selected()!=='preset:Scales')throw Error('Preset Undo highlight stale');a.registry.execute('Redo');if(selected()!=='preset:Rock')throw Error('Preset Redo highlight stale');const first=d.selected[0].id;d.duplicate();s.refreshScene({activate:true});await a.registry.execute('preset:Scales');d.select([first]);s.refreshScene({activate:true});if(selected()!=='preset:Rock')throw Error('Object selection retained another preset');d.select(d.state.objects.map(o=>o.id));s.refreshScene();if(selected())throw Error('Multiple selection shows a single active preset');d.select([first]);s.refreshScene({activate:true});return true})()
+                    """);
+                    if(!presetCheck.GetBoolean())throw new Exception("Preset selection failed");
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");await ReopenNativeProject(sourceProject);
+                    if(!(await Evaluate("document.querySelector('.locked-source-grid .active')?.dataset.command==='preset:Rock'")).GetBoolean())throw new Exception("Reopened project lost preset identity");
+                    Console.WriteLine("PASS: preset identity follows Undo, Redo, object/multiple selection and native project reopen");
                     Console.WriteLine("Source evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--print"))
@@ -472,7 +537,7 @@ internal static class Program
                         var patternBefore=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
                         async Task PreviewPattern()
                         {
-                            await Evaluate($"(()=>{{document.querySelector('[data-command=Pattern]').click();const select=document.querySelector('[aria-label=\"Pattern type\"]');select.value='{patternType}';select.dispatchEvent(new Event('change'));[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
+                            await Evaluate($"(()=>{{document.querySelector('[data-command=Pattern]').click();const select=document.querySelector('[aria-label=\"Pattern type\"]');select.value='{patternType}';select.dispatchEvent(new Event('change'));document.querySelector('[aria-label=\"Allow relief refinement\"]')?.click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()");
                             await Until(async()=> (await Evaluate("document.querySelector('[data-relief-status]').dataset.reliefStatus")).GetString() is "ready" or "error");
                             if((await Evaluate("document.querySelector('[data-relief-status]').dataset.reliefStatus")).GetString()!="ready")throw new Exception("Pattern preview failed: "+await Evaluate("document.querySelector('[data-relief-status]').textContent"));
                         }
@@ -584,6 +649,27 @@ internal static class Program
                     await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
                     if((await Evaluate("window.meshMe360Locked.scene.document.selected[0].position")).GetRawText()!=before.GetProperty("position").GetRawText())throw new Exception("Gizmo undo failed");
                     Console.WriteLine("PASS: actual mouse drag on Three.js Move gizmo creates one undoable transform");
+                    foreach(var selectionSize in new[]{1,2})
+                    {
+                    if(selectionSize==2)await Evaluate("(()=>{const s=window.meshMe360Locked.scene,d=s.document;d.duplicate();d.transform({position:[30,0,0]});d.select(d.state.objects.map(o=>o.id));s.refreshScene({activate:true});window.meshMe360Locked.registry.execute('Fit All');return true})()");
+                    foreach(var tool in new[]{"Rotate","Scale","Move"})
+                    {
+                        await Evaluate($"(()=>{{window.meshMe360Locked.registry.execute('{tool}');return true}})()");
+                        await Evaluate("new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(()=>r(true))))");
+                        var handle=await Evaluate("""
+                        (async()=>{const v=await import('./js/viewer.js'),T=await import('three'),root=v.getScene().children.find(x=>x.isTransformControlsRoot),c=root.controls,parts=c._gizmo.picker[c.mode].children,axis=c.mode==='rotate'?'Z':'X',r=v.getRenderer().domElement.getBoundingClientRect(),ray=new T.Raycaster();root.updateMatrixWorld(true);for(const mesh of parts.filter(m=>m.name===axis)){const p=mesh.geometry.attributes.position;for(let i=0;i<p.count;i++){mesh.geometry.computeBoundingBox();const at=k=>mesh.geometry.index?mesh.geometry.index.getX(k):k,n=mesh.geometry.index?.count??p.count;if(i+2>=n)continue;const local=c.mode!=='rotate'?mesh.geometry.boundingBox.getCenter(new T.Vector3()):new T.Vector3().fromBufferAttribute(p,at(i)).add(new T.Vector3().fromBufferAttribute(p,at(i+1))).add(new T.Vector3().fromBufferAttribute(p,at(i+2))).divideScalar(3),q=local.applyMatrix4(mesh.matrixWorld).project(v.getCamera());ray.setFromCamera(new T.Vector2(q.x,q.y),v.getCamera());if(ray.intersectObjects(parts,true)[0]?.object.name===axis)return{x:r.left+(q.x+1)*r.width/2,y:r.top+(1-q.y)*r.height/2};}}throw Error('No reachable transform handle')})()
+                        """);
+                        var initial=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected.map(o=>({position:o.position,rotation:o.rotation,scale:o.scale})))")).GetString();
+                        var history=(await Evaluate("window.meshMe360Locked.scene.document.undoStack.length")).GetInt32();
+                        var hx=handle.GetProperty("x").GetDouble();var hy=handle.GetProperty("y").GetDouble();
+                        foreach(var item in new[]{new{type="mouseMoved",x=hx,y=hy,button="none",buttons=0},new{type="mousePressed",x=hx,y=hy,button="left",buttons=1},new{type="mouseMoved",x=hx+35,y=hy-25,button="left",buttons=1},new{type="mouseReleased",x=hx+35,y=hy-25,button="left",buttons=0}})
+                            await core.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",JsonSerializer.Serialize(new{item.type,item.x,item.y,item.button,item.buttons,clickCount=1}));
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected.map(o=>({position:o.position,rotation:o.rotation,scale:o.scale})))")).GetString()==initial||(await Evaluate("window.meshMe360Locked.scene.document.undoStack.length")).GetInt32()!=history+1)throw new Exception(tool+" drag did not commit exactly one transform for selection size "+selectionSize);
+                        await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                        if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected.map(o=>({position:o.position,rotation:o.rotation,scale:o.scale})))")).GetString()!=initial)throw new Exception(tool+" drag Undo failed");
+                    }
+                    }
+                    Console.WriteLine("PASS: actual Move/Rotate/Scale handle drags for one and two selected objects create one reversible transform each");
                     Console.WriteLine("Transform evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--solid"))
@@ -592,13 +678,13 @@ internal static class Program
                     await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==2);
                     await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[5,0,0]});s.document.select(s.document.state.objects.map(o=>o.id));s.refreshScene({activate:true});return true})()");
                     var before = await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
-                    await Evaluate("(()=>{document.querySelector('[data-command=Boolean]').click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()");
+                    await Evaluate("(()=>{document.querySelector('[data-command=Boolean]').click();document.querySelector('[aria-label=\"Allow relief refinement\"]')?.click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()");
                     await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]')?.dataset.solidStatus??''")).GetString() is "ready" or "error");
                     if((await Evaluate("document.querySelector('[data-solid-status]').dataset.solidStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-solid-status]').textContent")).GetString());
                     if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=before.GetString())throw new Exception("Preview mutated originals");
                     await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Cancel').click();return true})()");
                     if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=before.GetString())throw new Exception("Cancel mutated originals");
-                    await Evaluate("(()=>{document.querySelector('[data-command=Boolean]').click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()");
+                    await Evaluate("(()=>{document.querySelector('[data-command=Boolean]').click();document.querySelector('[aria-label=\"Allow relief refinement\"]')?.click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()");
                     await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]').dataset.solidStatus")).GetString()=="ready");
                     await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Commit').click();return true})()");
                     if((await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()!=1)throw new Exception("Boolean commit failed");
@@ -612,7 +698,7 @@ internal static class Program
                     foreach(var command in new[]{"Split","Hollow","Make Solid","Repair","Repair Mesh"})
                     {
                         var original=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
-                        var launch=$"(()=>{{[...document.querySelectorAll('[data-command]')].find(b=>b.dataset.command==='{command}').click();const cell=document.querySelector('[aria-label=\"Cell size (mm)\"]');if(cell){{cell.value='1';cell.dispatchEvent(new Event('input'));}}[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()";
+                        var launch=$"(()=>{{[...document.querySelectorAll('[data-command]')].find(b=>b.dataset.command==='{command}').click();const cell=document.querySelector('[aria-label=\"Cell size (mm)\"]');if(cell){{cell.value='1';cell.dispatchEvent(new Event('input'));}}document.querySelector('[aria-label=\"Allow relief refinement\"]')?.click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true}})()";
                         await Evaluate(launch);
                         await Until(async()=> (await Evaluate("document.querySelector('[data-solid-status]')?.dataset.solidStatus??''")).GetString() is "ready" or "error");
                         if((await Evaluate("document.querySelector('[data-solid-status]').dataset.solidStatus")).GetString()!="ready")throw new Exception((await Evaluate("document.querySelector('[data-solid-status]').textContent")).GetString());
@@ -636,7 +722,7 @@ internal static class Program
                     await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.state.objects.length")).GetInt32()==2);
                     await Evaluate("(()=>{const s=window.meshMe360Locked.scene;s.document.transform({position:[20,0,0]});s.document.setMaterial({color:'#ff4400',metallic:.5,roughness:.4,opacity:1});s.document.select(s.document.state.objects.map(o=>o.id));s.refreshScene({activate:true});return true})()");
                     var original=await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)");
-                    const string launch="(()=>{document.querySelector('[data-command=Combine]').click();const weld=document.querySelector('[aria-label=\"Weld exactly coincident vertices\"]');weld.checked=true;weld.dispatchEvent(new Event('input'));[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()";
+                    const string launch="(()=>{document.querySelector('[data-command=Combine]').click();const weld=document.querySelector('[aria-label=\"Weld exactly coincident vertices\"]');weld.checked=true;weld.dispatchEvent(new Event('input'));document.querySelector('[aria-label=\"Allow relief refinement\"]')?.click();[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Preview').click();return true})()";
                     foreach(var finish in new[]{"Cancel","Commit"})
                     {
                         await Evaluate(launch);

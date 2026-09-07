@@ -19,6 +19,7 @@ export function attachReliefTools({engine,document,registry,openDialog,el,setBus
    patternFields.rows.closest('label').hidden=true;
    form.append(el('p','','Counts are per repeating UV tile. Spacing is centre-to-centre (arc length for Radial); radial details face outward. Orientation rotates the arrangement. Overlaps keep the highest relief. Each tile uses 1024 × 1024 samples; inspect small details before committing.'));
   }
+  const consent=el('input');consent.type='checkbox';consent.setAttribute('aria-label','Allow relief refinement');const warning=el('label','','Allow refinement with a 3,000,000-triangle result budget. Temporary memory can be higher; Cancel preserves the current geometry. ');warning.append(consent);form.append(warning);
   const preview=el('button','','Preview'),commit=el('button','primary','Commit'),cancel=el('button','','Cancel');commit.disabled=true;
   function clear(){setPreview(null);previewGeometry?.dispose();previewGeometry=null;result=null;commit.disabled=true;}
   function invalidate(){job?.cancel();job=null;clear();status.dataset.reliefStatus='idle';status.textContent='Parameters changed. Preview again.';}
@@ -27,6 +28,7 @@ export function attachReliefTools({engine,document,registry,openDialog,el,setBus
   preview.onclick=async()=>{
    invalidate();setBusy(true);status.dataset.reliefStatus='running';status.textContent='Processing… Cancel preserves the current mesh.';
    try{
+    if(!consent.checked)throw new Error('Confirm the refinement growth warning before Preview.');
     if(document.revision!==revision)throw new Error('Document changed; reopen the texture tool');
     const options=Object.fromEntries(Object.entries(fields).map(([key,field])=>[key,field.valueAsNumber]));if(!Object.values(options).every(n=>Number.isFinite(n)&&n>=0)||options.scaleU<=0||options.scaleV<=0)throw new Error('Enter valid depth and positive scale');
     engine.desktopConfigureTexture({...options,invertDisplacement:name==='Deboss'?true:name==='Emboss'?false:original.settings.invertDisplacement,symmetricDisplacement:name==='Apply Texture'?original.settings.symmetricDisplacement:false});

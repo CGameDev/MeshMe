@@ -15,7 +15,7 @@ function desktopCaptureTexture() {
   let asset = desktopTextureAssets.get(activeMapEntry);
   if (!asset) {
     asset = {id:crypto.randomUUID(), name:activeMapEntry.name,
-      mime:'application/x-meshme-rgba8', width:activeMapEntry.width,
+      mime:'application/x-meshme-rgba8', sourceKey:activeMapEntry.desktopSourceKey??null, width:activeMapEntry.width,
       height:activeMapEntry.height, bytes:new Uint8Array(activeMapEntry.imageData.data)};
     desktopTextureAssets.set(activeMapEntry, asset);
   }
@@ -48,12 +48,12 @@ export function desktopSceneActivate(geometry,snapshot,mask,texture) {
   applySettingsSnapshot(snapshot);bakeMaskChk.checked=snapshot?.desktopBakeMask??true;_restoreMask(mask);_clearUndoStacks();
   }finally{_undoApplyDepth--;desktopApplying--;}
 }
-export async function desktopLoadTexture(file) {
+export async function desktopLoadTexture(file,{sourceKey=null}={}) {
   const sequence=++desktopTextureLoadSequence;
   const entry=await loadCustomTexture(file);
   if(sequence!==desktopTextureLoadSequence){entry.texture.dispose();return false;}
   if(desktopOwnedTexture)desktopOwnedTexture.texture.dispose();
-  entry.isCustom=true;activeMapEntry=entry;desktopOwnedTexture=entry;_lastCustomMap=entry;
+  entry.desktopSourceKey=sourceKey;entry.isCustom=true;activeMapEntry=entry;desktopOwnedTexture=entry;_lastCustomMap=entry;
   activeMapName.textContent=file.name;
   document.querySelectorAll('.preset-swatch').forEach(s=>s.classList.remove('active'));
   _showCustomMapThumb(entry);customMapSwatch.classList.add('active');
