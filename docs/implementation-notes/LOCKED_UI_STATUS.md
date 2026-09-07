@@ -315,3 +315,18 @@ artifacts/m2-integration-2b03e5cb4cf04720a6e87a3cea705ea6.
 Other menu capabilities (including safe Exit, mesh refinement/diagnostics,
 view toggles and full Preferences), pixel fidelity and the remaining milestone
 acceptance gates are still open. M3 is NOT COMPLETE.
+
+### View controls continuation (2026-09-07)
+
+View now provides grid/axes toggles, Home, Fit Selected/All, both supported camera
+projections and panel visibility controls. Hidden panels return space to the
+viewport and restore their original placement. Fits use visible world bounds
+and do not edit document state. The Three.js transform control camera follows
+projection changes. Guide preferences survive engine rebuild/theme rendering.
+The default reference layout is unchanged.
+
+Build, 6 offline asset checks, actual --view/--transform/--locked checks pass.
+View evidence: artifacts/m2-integration-d09a0c03f8e84eccb8f47a894e9fb52f.
+Screenshot: artifacts/m2-integration-1b2ba3416e5245d29376562d58527c96.
+Structural gate PASS; full functional gate INCOMPLETE; pixel/human review PENDING.
+M3 remains NOT COMPLETE.

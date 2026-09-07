@@ -76,6 +76,17 @@ internal static class Program
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
                 }
+                if(args.Contains("--view"))
+                {
+                    if(!(await Evaluate("(async()=>{const a=window.meshMe360Locked,v=await import('./js/viewer.js');a.registry.execute('Grid');a.registry.execute('Axes');if(v.getGrid().visible||v.getDesktopAxes().visible)return false;a.scene.refreshScene({activate:true});return !v.getGrid().visible&&!v.getDesktopAxes().visible})()")).GetBoolean())throw new Exception("Guide toggles did not survive scene refresh");
+                    if(!(await Evaluate("(async()=>{const a=window.meshMe360Locked,v=await import('./js/viewer.js');a.registry.execute('view:Perspective');if(!v.getCamera().isPerspectiveCamera)return false;a.registry.execute('view:Orthographic');return !!v.getCamera().isOrthographicCamera})()")).GetBoolean())throw new Exception("Projection commands did not switch cameras");
+                    if(!(await Evaluate("(()=>{const r=window.meshMe360Locked.registry,v=document.querySelector('.locked-viewport'),width=v.clientWidth,height=v.clientHeight;r.execute('view:Browser panel');if(v.clientWidth<=width)return false;r.execute('view:Browser panel');r.execute('view:Right inspector panel');if(v.clientWidth<=width)return false;r.execute('view:Right inspector panel');r.execute('view:Lower library shelf');if(v.clientHeight<=height)return false;r.execute('view:Lower library shelf');return v.clientWidth===width&&v.clientHeight===height})()")).GetBoolean())throw new Exception("Panel toggles failed to reclaim viewport space or restore layout");
+                    await Evaluate("(()=>{const a=window.meshMe360Locked;a.registry.execute('Duplicate Selected');a.scene.document.transform({position:[100,0,0]});a.scene.refreshScene();return true})()");
+                    if(!(await Evaluate("(async()=>{const a=window.meshMe360Locked,v=await import('./js/viewer.js'),before=JSON.stringify(a.scene.document.state);a.registry.execute('Fit All');if(Math.abs(v.getControls().target.x-50)>.001)return false;a.registry.execute('Fit Selected');if(Math.abs(v.getControls().target.x-100)>.001)return false;a.registry.execute('Home view');return Math.abs(v.getControls().target.x-50)<.001&&JSON.stringify(a.scene.document.state)===before&&v.getCamera().projectionMatrix.elements.every(Number.isFinite)})()")).GetBoolean())throw new Exception("Fit selection/all did not use visible world bounds or changed document");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Grid');window.meshMe360Locked.registry.execute('Axes');return true})()");
+                    Console.WriteLine("PASS: actual guide/projection commands, panel hide/restore and selected/all world-bounds fitting without document changes");
+                    Console.WriteLine("View evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--settings"))
                 {
                     await Evaluate("(()=>{window.meshMe360Locked.scene.capture();window.meshMe360Locked.scene.document.markSaved();return true})()");

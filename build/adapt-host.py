@@ -40,5 +40,5 @@ def adapt_host(output: Path, notice: str):
     anchor = '      renderer.render(scene, camera);'
     assert viewer.count(anchor) == 1
     viewer = viewer.replace(anchor, '      if (_desktopRender) _desktopRender(renderer, scene, camera);\n      else renderer.render(scene, camera);')
-    viewer += '\n// Desktop presentation callback only; geometry algorithms remain preserved.\nlet _desktopRender = null;\nexport function setDesktopRender(callback) { _desktopRender = callback; requestRender(); }\n'
+    viewer += '\n// Desktop presentation callback only; geometry algorithms remain preserved.\nlet _desktopRender = null;\nexport function setDesktopRender(callback) { _desktopRender = callback; requestRender(); }\nexport function getDesktopAxes() { return axesGroup; }\n'
     viewer_path.write_text('// ' + notice + '\n' + viewer, encoding='utf-8', newline='\n')

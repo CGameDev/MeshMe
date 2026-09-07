@@ -5,6 +5,7 @@ import {heightCanvas,presetParameters} from './procedural.js';
 import {attachSceneEditor} from './scene-editor.js';
 import {attachTextureLibrary} from './texture-library.js';
 import {createMaterialSwatches} from './material-swatches.js';
+import {attachViewTools} from './view-tools.js';
 import { toolbar, quickActions, presets, inspectorTabs, shelfTabs, CommandRegistry } from './locked-controls.js';
 
 // Original line icons: no proprietary icon artwork or reference-image pixels.
@@ -41,7 +42,7 @@ export function mountLockedUi(host, engine) {
  const stats=el('div','locked-stats');viewport.append(stats);const ruler=el('div','locked-ruler');ruler.append(el('label'),el('span'));viewport.append(ruler);
  const right=el('div','locked-right');const inspector=el('section','locked-panel');inspector.dataset.region='inspector';right.append(inspector);work.append(right);
  const tabbar=el('div','locked-tabs');tabbar.setAttribute('role','tablist');inspector.append(tabbar);const body=el('div','locked-inspector-body');inspector.append(body);
- let tab='Texture',shelfTab='Presets',sourceTab='Procedural',selectedPreset='',viewMode='Shaded',unit='mm',library=null;
+ let tab='Texture',shelfTab='Presets',sourceTab='Procedural',selectedPreset='',viewMode='Shaded',unit='mm',library=null,viewTools=null;
  const texturePanel=el('div');texturePanel.innerHTML='<h3>Texture Source</h3>';body.append(texturePanel);
  const sourceTabs=el('div','locked-source-tabs');for(const name of ['Procedural','Image','Library']){registry.register(`source:${name}`,()=>{sourceTab=name;sourceTabs.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.textContent===name));if(name==='Image')imageInput.click();if(name==='Library'){shelfTab='Library';renderShelf();}});makeButton(name,sourceTabs,`source:${name}`);}texturePanel.append(sourceTabs);sourceTabs.firstChild.classList.add('active');
  const sources=el('div','locked-source-grid');texturePanel.append(sources);
@@ -99,6 +100,7 @@ export function mountLockedUi(host, engine) {
  registry.register('Comparison',()=>{comparison=!comparison;divider.hidden=!comparison;viewer.requestRender();},hasMesh,'Select a model');
  const setPreview=geometry=>{reliefGeometry=geometry;comparison=!!geometry;divider.hidden=!comparison;viewer.requestRender();};
  viewer.setDesktopRender((renderer,scene,camera)=>{
+  viewTools?.syncGuides(false);
   const mesh=viewer.getCurrentMesh();if(!mesh){renderer.render(scene,camera);return;}
   const savedMaterial=mesh.material,savedGeometry=mesh.geometry,autoClear=renderer.autoClear;
   function render(preview){mesh.geometry=preview&&reliefGeometry?reliefGeometry:savedGeometry;mesh.material=(!preview||reliefGeometry||viewMode!=='Textures'||tab==='Material')?neutral:savedMaterial;const palette=mesh.userData.groupMaterials;if(palette&&!reliefGeometry&&tab!=='Material'&&(viewMode!=='Textures'||!mesh.userData.hasTexture)){for(const material of palette){material.userData.originalOpacity??=material.opacity;material.wireframe=viewMode==='Wireframe';material.opacity=viewMode==='X-Ray'?.28:material.userData.originalOpacity;material.transparent=material.opacity<1;material.depthWrite=viewMode!=='X-Ray';}mesh.material=palette;}renderer.render(scene,camera);}
@@ -119,6 +121,7 @@ export function mountLockedUi(host, engine) {
  new MutationObserver(refresh).observe(document.getElementById('redo-btn'),{attributes:true,attributeFilter:['disabled']});
  renderTree();renderShelf();updateStats();registry.execute('mode:Shaded');refresh();
  const scene=attachSceneEditor(engine,{host,viewer,registry,tree,documentName,propertiesPanel,search,openDialog,el,refresh,updateStats,viewport,setPreview});
+ viewTools=attachViewTools({scene,viewer,registry,openDialog,el,work});
  // Only native user edits enter scene history: upstream snapshot restoration
  // deliberately dispatches synthetic change events to its own controls.
  const settingControls=['scale-u','scale-u-val','scale-v','scale-v-val','amplitude','amplitude-val','mapping-mode','lock-scale'].map(id=>document.getElementById(id)).filter(Boolean);

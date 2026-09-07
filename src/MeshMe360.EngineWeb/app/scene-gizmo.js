@@ -9,6 +9,7 @@ export function createSceneGizmo({document,viewer,meshes,refreshScene,showError,
  const selectedBounds=new THREE.Box3(),selectionHelper=new THREE.Box3Helper(selectedBounds,0x499ac8);viewer.getScene().add(selectionHelper);
  function highlight(){selectedBounds.makeEmpty();for(const mesh of meshes())if(mesh.visible&&document.state.selection.includes(mesh.userData.sceneObjectId)){mesh.updateMatrixWorld();selectedBounds.union(new THREE.Box3().setFromObject(mesh));}selectionHelper.visible=!selectedBounds.isEmpty();}
  function sync(){
+  controls.camera=viewer.getCamera();
   highlight();
   if(transaction)return;
   if(!mode||!document.selected.length||document.selected.some(o=>o.locked)||isBusy()){controls.detach();return;}

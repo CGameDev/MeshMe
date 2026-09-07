@@ -1,4 +1,11 @@
 /* SPDX-License-Identifier: AGPL-3.0-only */
+.locked-work.no-project>.locked-project,.locked-work.no-inspector>.locked-right,.locked-work.no-shelf>.locked-shelf{display:none}
+.locked-work.no-project>.locked-viewport{grid-column:1/3}
+.locked-work.no-inspector>.locked-viewport{grid-column:2/4}
+.locked-work.no-inspector>.locked-shelf{grid-column:1/4}
+.locked-work.no-project.no-inspector>.locked-viewport{grid-column:1/4}
+.locked-work.no-shelf{grid-template-rows:minmax(0,1fr)}
+.locked-work.no-shelf>.locked-right{grid-row:1}
 body.locked-ui{margin:0;display:block;overflow:hidden;background:#161c20;color:#dbe2e9;font:14px 'Segoe UI',Arial,sans-serif}
 .locked-ui>header,.locked-ui>main{display:none!important}
 #locked-shell{--edge:#303940;--panel:#1b2227;position:fixed;inset:0;display:grid;grid-template-rows:56px 96px minmax(0,1fr) 38px;background:linear-gradient(115deg,#191e23,#1c2327);color:#dbe2e9}

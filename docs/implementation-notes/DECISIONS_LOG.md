@@ -391,3 +391,13 @@ routes document shortcuts to scene history before that handler runs, preserving
 native field Undo. Help fetches packaged legal text into the app instead of
 relying on local links opening a new external window. No runtime online fetch
 is needed to read Documentation, Shortcuts, License, Notices or About.
+
+## 2026-09-07 — View command integration
+
+The pinned viewer already supports both projections and exposes its grid; the
+staged presentation adapter now also exposes the existing axes group. No mesh
+algorithm changes. Fit uses scene world bounds, covering all selected/visible
+objects instead of only the active upstream mesh. Camera parameters scale to the
+combined bounds. Visibility toggles span existing grid cells to reclaim space,
+without changing the default locked layout. Guide visibility reapplies at render
+time because upstream recreates its helpers during object/theme changes.
