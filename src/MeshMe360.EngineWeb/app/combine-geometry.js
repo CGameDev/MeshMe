@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Combines authored geometry while retaining world placement and material groups. */
 // Scene assembly, distinct from Boolean union. Inputs are already in world space.
+/** Return owned combined buffers; optional welding preserves material boundaries. */
 export function combineGeometry(objects,{weld=false}={}){
  if(!Array.isArray(objects)||objects.length<2)throw new Error('Select at least two objects to combine.');
  const materials=[],groups=[],vertices=[],indices=[],coincident=new Map();
@@ -23,6 +25,7 @@ export function combineGeometry(objects,{weld=false}={}){
  return{positions:new Float32Array(vertices),indices:new Uint32Array(indices),materials,groups,diagnostics:{vertices:vertices.length/3,triangles:indices.length/3,volume:null,status:'Combined geometry; intersections are not resolved',weldedVertices:inputVertices-vertices.length/3}};
 }
 
+/** Transfer original material membership through the subdivision parent-face map. */
 export function remapMaterialGroups(groups,faceParents){
  if(!groups)return undefined;
  const oldCount=groups.at(-1).start+groups.at(-1).count,faceMaterials=new Uint32Array(oldCount/3);

@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Owns cancellable refinement, simplification and normal-processing jobs. */
+/** Start one worker job and expose cancellation while retaining the input object. */
 export function startMeshProcessing(object,options,onProgress=()=>{}){
  const worker=new Worker(new URL('./mesh-processing-worker.js',import.meta.url),{type:'module'});let settled=false,rejectPending;
  const finish=()=>{settled=true;worker.terminate();};

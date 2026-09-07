@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Presents solid-operation parameters and transactional previews. */
 import * as THREE from 'three';
 import {geometryFromObject,objectFromGeometry} from './scene-document.js';
 import {startSolidOperation} from './solid-client.js';

@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Adapts licensed solid backends to scene operation requests. */
 // Data/ownership adapter only. All solid geometry operations are Manifold's.
+/** Dispatch the requested operation to the supplied licensed backend module. */
 export function runSolidOperation(module, request) {
  const owned=[];
  const own=value=>{owned.push(value);return value;};

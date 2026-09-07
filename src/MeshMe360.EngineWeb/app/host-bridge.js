@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Connects browser file and download workflows to the native host. */
 import { createRpc } from './rpc.js';
 
 export function attachHost(transport) {

@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Reviews physical bounds and print preparation conditions. */
 import * as THREE from '../vendor/three-0.170.0/build/three.module.js';
 import {geometryFromObject} from './scene-document.js';
 import {countEdgeDefects,countAreaSlivers} from '../js/meshRepair.js';
 import {runSolidOperation} from './solid-operations.js';
 import {estimateWall} from './measurement.js';
 
+/** Propose the translation needed for centered bed placement without mutating the object. */
 export function placementProposal(object){
  const g=geometryFromObject(object,{world:true});g.computeBoundingBox();const b=g.boundingBox,c=b.getCenter(new THREE.Vector3()),size=b.getSize(new THREE.Vector3());
  const result={id:object.id,name:object.name,dimensionsMm:size.toArray(),bounds:{min:b.min.toArray(),max:b.max.toArray()},translation:[-c.x,-c.y,-b.min.z]};g.dispose();return result;
 }
+/** Inspect an object for print preparation and return measured bounds and mesh findings. */
 export function analyzePrintObject(object,module){
  const proposal=placementProposal(object);let g=geometryFromObject(object,{world:true});if(g.index){const soup=g.toNonIndexed();g.dispose();g=soup;}
  const report={...proposal,...countEdgeDefects(g),degenerate:countAreaSlivers(g),solid:false,normals:'Unverified',wall:{sampled:0,failed:0,minimumSampleMm:null}};

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Generates app-owned height patterns with bounded parameters. */
 const clamp=x=>Math.max(0,Math.min(1,x));
 function hash(x,y,seed){let n=Math.imul(x,374761393)^Math.imul(y,668265263)^Math.imul(seed,1274126177);n=Math.imul(n^(n>>>13),1274126177);return ((n^(n>>>16))>>>0)/4294967295;}
 const smooth=x=>x*x*(3-2*x);
 function noise(x,y,seed){const a=Math.floor(x),b=Math.floor(y),u=smooth(x-a),v=smooth(y-b);return (1-v)*((1-u)*hash(a,b,seed)+u*hash(a+1,b,seed))+v*((1-u)*hash(a,b+1,seed)+u*hash(a+1,b+1,seed));}
+/** Return deterministic grayscale bytes for validated pattern parameters and optional smoothing. */
 export function generateHeight({kind='noise',seed=1,frequency=6,contrast=1,invert=false,strength=1,size=256,blur=0}={}){
  if(!Number.isInteger(size)||size<8||size>2048||!Number.isFinite(frequency)||frequency<=0||frequency>128||!Number.isFinite(contrast)||contrast<0||contrast>8||!Number.isFinite(strength)||strength<0||strength>1)throw new Error('Invalid texture parameters');
  if(!Number.isInteger(seed)||seed<0||seed>4294967295||!Number.isInteger(blur)||blur<0||blur>32)throw new Error('Invalid seed or blur radius');
@@ -33,4 +35,5 @@ export function generateHeight({kind='noise',seed=1,frequency=6,contrast=1,inver
  return result;
 }
 export const presetParameters={Stone:{kind:'stone',frequency:5,contrast:1.3},Rock:{kind:'noise',frequency:9,contrast:2},Scales:{kind:'plates',frequency:7,contrast:1.3},Bricks:{kind:'brick',frequency:6},Wood:{kind:'woodgrain',frequency:13},Metal:{kind:'ridges',frequency:20,contrast:.6},Fabric:{kind:'weave',frequency:32,contrast:.8},Carbon:{kind:'weave',frequency:14,contrast:1.4},Leather:{kind:'cells',frequency:28,contrast:.7},Concrete:{kind:'noise',frequency:30,contrast:1.2},Sand:{kind:'noise',frequency:64,contrast:.8}};
+/** Expand generated grayscale bytes to an opaque RGBA canvas. */
 export function heightCanvas(parameters){const size=parameters.size??256,bytes=generateHeight({...parameters,size}),canvas=document.createElement('canvas');canvas.width=canvas.height=size;const context=canvas.getContext('2d'),data=context.createImageData(size,size);for(let i=0;i<bytes.length;i++){data.data[i*4]=data.data[i*4+1]=data.data[i*4+2]=bytes[i];data.data[i*4+3]=255;}context.putImageData(data,0,0);return canvas;}

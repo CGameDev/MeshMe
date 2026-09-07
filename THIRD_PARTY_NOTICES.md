@@ -1,6 +1,6 @@
 # Mesh Me360 — Third-Party Notices
 
-This file is a living dependency/provenance manifest. Codex must update it whenever a third-party dependency or vendored asset is added, removed, or version-changed.
+This file is a living dependency/provenance manifest. Contributors must update it whenever a third-party dependency or vendored asset is added, removed, or version-changed.
 
 ## Upstream application
 
@@ -88,7 +88,7 @@ Do not write an assumed version/license into release metadata. Inspect the pinne
 
 ## Desktop dependencies planned for Mesh Me360
 
-The following are architecture selections. Codex must record the exact installed package/runtime versions and licenses after project creation.
+The following are architecture selections. Contributors must record the exact installed package/runtime versions and licenses after project creation.
 
 ### Microsoft Edge WebView2
 

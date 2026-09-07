@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Coordinates native save acknowledgement and safe document replacement. */
 import {serializeProject,deserializeProject,SceneDocument} from './scene-document.js';
 
 export function attachDocumentLifecycle({document,host,registry,capture,refreshScene,setBusy,showError}) {

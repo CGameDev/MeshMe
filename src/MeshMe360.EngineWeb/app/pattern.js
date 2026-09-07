@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Constructs deterministic linear, grid and radial source arrangements. */
 // Compose repeated source-height stamps. Geometry stays in the upstream pipeline.
+/** Validate pattern parameters and produce deterministic stamp positions and orientations. */
 export function patternLayout(options){
  const {kind,count,rows,spacing,width,height,orientation}=options;
  if(!['linear','grid','radial'].includes(kind)||!Number.isInteger(count)||count<1||count>64||!Number.isInteger(rows)||rows<1||rows>64||![spacing,width,height,orientation].every(Number.isFinite)||spacing<=0||width<=0||height<=0||Math.max(spacing,width,height)>100000)throw new Error('Use positive dimensions and counts from 1 to 64.');
@@ -16,6 +18,7 @@ export function patternLayout(options){
  const border=Math.min(width,height)*.05;
  return{stamps,minX:minX-border,minY:minY-border,width:maxX-minX+2*border,height:maxY-minY+2*border,detailWidth:width,detailHeight:height};
 }
+/** Rasterize repeated source heights into a new tile; overlapping stamps retain the highest value. */
 export function composePattern(source,options,size=1024){
  if(!source||!Number.isInteger(source.width)||!Number.isInteger(source.height)||source.width<1||source.height<1||source.width>4096||source.height>4096||!source.data||source.data.length!==source.width*source.height*4||!Number.isInteger(size)||size<32||size>2048)throw new Error('Invalid pattern source or resolution');
  const layout=patternLayout(options),data=new Uint8ClampedArray(size*size*4);for(let i=3;i<data.length;i+=4)data[i]=255;

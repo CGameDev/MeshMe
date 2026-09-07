@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Builds repeated height sources and invokes the preserved relief pipeline. */
 import {composePattern} from './pattern.js';
 import {runGuardedPipeline} from './guarded-pipeline.js';
 self.onmessage=async({data})=>{

@@ -541,3 +541,23 @@ An app-owned M mark is rendered by build/create-app-icon.ps1 to nine ICO sizes
 The icon source generator requires only Windows System.Drawing at development
 time and adds no end-user dependency. User acceptance of the prior overall UI
 is recorded in UI_REFERENCE_OVERRIDE.md, without declaring M3 complete.
+
+
+### About presentation and source documentation (2026-09-07)
+
+About uses a dedicated compact presentation with selectable branding text,
+assembly version from the native diagnostics contract, scrollable attribution,
+and independent Close controls. A diagnostics failure leaves all identity and
+license content available. Opening/closing About does not mutate the document.
+
+Application modules now describe their responsibilities in file headers.
+Core file/storage methods, scene transactions, RPC boundaries and geometry/source
+entry points have contract comments; inline notes explain ownership and timing
+constraints. Preserved upstream/vendor source and legal notices remain intact.
+Contribution instructions use neutral terminology and normalized START_HERE.md
+and IMPLEMENTATION_PLAN.md filenames. Archive hashes still identify imported
+bytes, with normalized entry names explicitly documented.
+
+Validation: build has zero warnings/errors; 28 Node, 38 Core, six offline asset
+checks and native About/dropdown/menu/empty-scene checks pass. About screenshots:
+artifacts/m2-integration-4340440552794d949b251ea3ce647a00.

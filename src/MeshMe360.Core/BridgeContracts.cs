@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+// Defines and validates the native/web message envelope.
 using System.Text.Json;
 
 namespace MeshMe360.Core;

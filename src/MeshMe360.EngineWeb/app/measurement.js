@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Calculates canonical millimetre measurements and validates saved records. */
 import * as THREE from '../vendor/three-0.170.0/build/three.module.js';
+/** Reject unsupported measurement kinds, invalid points and non-finite saved values. */
 export function validateMeasurements(items){
  const vector=p=>Array.isArray(p)&&p.length===3&&p.every(Number.isFinite);
  if(!Array.isArray(items)||new Set(items.map(m=>m?.id)).size!==items.length)throw new Error('Invalid measurement identities');
@@ -16,6 +18,7 @@ export function validateMeasurements(items){
  }
  return items;
 }
+/** Calculate distance or angle from the supplied canonical points. */
 export function pointMeasurement(kind,points){
  if(!Array.isArray(points)||!points.every(p=>Array.isArray(p)&&p.length===3&&p.every(Number.isFinite)))throw new Error('Pick finite points on the model.');
  const v=points.map(p=>new THREE.Vector3(...p));
@@ -23,6 +26,7 @@ export function pointMeasurement(kind,points){
  if(kind==='angle'&&v.length===3){const a=v[0].clone().sub(v[1]),b=v[2].clone().sub(v[1]);if(a.lengthSq()<1e-16||b.lengthSq()<1e-16)throw new Error('The angle needs three distinct points, with the vertex picked second.');return{kind,points:structuredClone(points),valueDegrees:THREE.MathUtils.radToDeg(a.angleTo(b))};}
  throw new Error('Pick '+(kind==='angle'?3:2)+' points.');
 }
+/** Format a saved measurement in display units without rescaling its stored value. */
 export function formatMeasurement(item,units='mm'){
  if(item.kind==='angle')return item.valueDegrees.toFixed(2)+'°';
  const factor=units==='in'?25.4:1,suffix=units==='in'?'in':'mm';
@@ -30,6 +34,7 @@ export function formatMeasurement(item,units='mm'){
  return (item.valueMm/factor).toFixed(3)+' '+suffix;
 }
 // Caller must qualify a closed, consistently oriented mesh before this estimate.
+/** Sample the opposite surface along a ray; this is not a global minimum-wall proof. */
 export function estimateWall(mesh,hit){
  const normal=hit.face.normal.clone().applyMatrix3(new THREE.Matrix3().getNormalMatrix(mesh.matrixWorld)).normalize();
  mesh.geometry.computeBoundingBox();const diagonal=mesh.geometry.boundingBox.getSize(new THREE.Vector3()).length(),epsilon=Math.max(1e-6,diagonal*1e-7);

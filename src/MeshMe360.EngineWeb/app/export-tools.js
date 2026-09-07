@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Provides export validation, scope selection and native destination handoff. */
 import {startSceneExport} from './export-client.js';
 import {geometryFromObject} from './scene-document.js';
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+// Validates native file selections and issues single-use binary stream grants.
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
@@ -8,6 +9,7 @@ public sealed record StartupFile(string? Path, string? Warning);
 public static class HostFiles
 {
     public static readonly string[] Extensions = [".stl", ".obj", ".3mf", ".step", ".stp", ".mm360", ".bumpmesh"];
+    /// <summary>Resolve and validate a supported existing path before granting access.</summary>
     public static string Validate(string path)
     {
         var full = System.IO.Path.GetFullPath(path);
@@ -16,6 +18,7 @@ public static class HostFiles
         if (!File.Exists(full)) throw new FileNotFoundException("The selected file no longer exists.", full);
         return full;
     }
+    /// <summary>Choose the first supported startup document and report extra arguments.</summary>
     public static StartupFile ParseArguments(IReadOnlyList<string> args)
     {
         if (args.Count == 0) return new(null, null);
@@ -34,6 +37,7 @@ public sealed class FileTokenStore : IDisposable
     private readonly object _gate = new();
     private readonly Func<DateTimeOffset> _now;
     public FileTokenStore(Func<DateTimeOffset>? now = null) => _now = now ?? (() => DateTimeOffset.UtcNow);
+    /// <summary>Create a short-lived opaque grant without disclosing the native path to the renderer.</summary>
     public FileGrant Issue(string path, string requestId)
     {
         var full = HostFiles.Validate(path);
@@ -42,6 +46,7 @@ public sealed class FileTokenStore : IDisposable
         lock (_gate) { _tokens.Add(token, grant); }
         return grant;
     }
+    /// <summary>Validate request method and origin, then consume the grant exactly once.</summary>
     public (Stream Stream, FileGrant Grant) Consume(string method, string rawUri, string origin)
     {
         if (method != "GET" || origin != HostOrigins.App)
@@ -59,6 +64,7 @@ public sealed class FileTokenStore : IDisposable
             return (stream, grant);
         }
     }
+    /// <summary>Revoke pending grants and close streams when the document session ends.</summary>
     public void RevokeAll()
     {
         lock (_gate)

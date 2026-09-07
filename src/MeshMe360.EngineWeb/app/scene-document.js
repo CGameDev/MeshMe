@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Owns canonical project state, validation, history and binary serialization. */
 import * as THREE from '../vendor/three-0.170.0/build/three.module.js';
 import {zipSync,unzipSync,strToU8,strFromU8} from '../vendor/fflate-0.8.2/esm/browser.js';
 import {validateMeasurements} from './measurement.js';
 export const publisher='Done by Computer Universal Technology Systems';
 const finite=(values,count)=>Array.isArray(values)&&values.length===count&&values.every(Number.isFinite);
+/** Reject malformed buffers, transforms and material coverage before a transaction is accepted. */
 export function validateObject(object){
  if(typeof object.id!=='string'||typeof object.name!=='string'||!(object.positions instanceof Float32Array)||object.positions.length%3||!object.positions.length||!object.positions.every(Number.isFinite))throw new Error('Invalid scene object positions');
  if(object.indices && (!(object.indices instanceof Uint32Array)||object.indices.length%3||!object.indices.every(i=>i<object.positions.length/3)))throw new Error('Invalid triangle indices');
@@ -15,9 +17,11 @@ export function validateObject(object){
  if(object.groups){let end=0;if(!Array.isArray(object.groups)||!object.groups.length)throw new Error('Invalid material groups');for(const g of object.groups){if(!Number.isInteger(g.start)||g.start!==end||!Number.isInteger(g.count)||g.count<=0||g.count%3||!Number.isInteger(g.materialIndex)||g.materialIndex<0||g.materialIndex>=materials.length)throw new Error('Invalid material group');end+=g.count;}if(end!==(object.indices?.length??object.positions.length/3))throw new Error('Incomplete material groups');}
  return object;
 }
+/** Copy geometry arrays into a newly identified, validated scene object. */
 export function objectFromGeometry(geometry,name,sourceFormat='stl'){
  return validateObject({id:crypto.randomUUID(),name,sourceFormat,visible:true,locked:false,positions:new Float32Array(geometry.getAttribute('position').array),indices:geometry.index?new Uint32Array(geometry.index.array):null,...(geometry.attributes.normal?{normals:new Float32Array(geometry.attributes.normal.array)}:{}),position:[0,0,0],rotation:[0,0,0,1],scale:[1,1,1],material:{color:'#a0a7ae',metallic:.15,roughness:.65,opacity:1},modifiers:[]});
 }
+/** Create an owned geometry copy; optionally apply the authored world transform. */
 export function geometryFromObject(object,{world=false}={}){
  validateObject(object);const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(object.positions.slice(),3));if(object.indices)g.setIndex(new THREE.BufferAttribute(object.indices.slice(),1));if(object.normals)g.setAttribute('normal',new THREE.BufferAttribute(object.normals.slice(),3));else g.computeVertexNormals();
  for(const group of object.groups??[])g.addGroup(group.start,group.count,group.materialIndex);
@@ -29,8 +33,11 @@ export class SceneDocument {
  get selected(){const objects=new Map(this.state.objects.map(o=>[o.id,o]));return this.state.selection.map(id=>objects.get(id)).filter(Boolean);}
  get historySize(){return [...this.undoStack,...this.redoStack].reduce((n,s)=>n+s.bytes,0);}
  snapshot(){const state=structuredClone(this.state);return{state,revision:this.revision,bytes:state.objects.reduce((n,o)=>n+o.positions.byteLength+(o.indices?.byteLength??0)+(o.normals?.byteLength??0),0)+state.textures.reduce((n,t)=>n+t.bytes.byteLength,0)};}
+/** Snapshot before mutation; restore the prior state if validation or the operation fails. */
  transact(label,change){const prior=this.snapshot();if(prior.bytes>this.historyBytes)throw new Error('Operation requires more undo memory than the 256 MiB history budget; reduce model size before editing.');try{change(this.state);this.state.objects.forEach(validateObject);}catch(e){this.state=prior.state;throw e;}this.undoStack.push({...prior,label});this.redoStack=[];while(this.historySize>this.historyBytes&&this.undoStack.length>1)this.undoStack.shift();this.revision=this.nextRevision++;}
+/** Restore the prior document revision and retain the current state for Redo. */
  undo(){const prior=this.undoStack.pop();if(!prior)return false;this.redoStack.push({...this.snapshot(),label:prior.label});this.state=prior.state;this.revision=prior.revision;return true;}
+/** Reapply the next saved revision without inventing a new authored operation. */
  redo(){const next=this.redoStack.pop();if(!next)return false;this.undoStack.push({...this.snapshot(),label:next.label});this.state=next.state;this.revision=next.revision;return true;}
  markSaved(){this.savedRevision=this.revision;}
  add(geometry,name,sourceFormat){const object=objectFromGeometry(geometry,name,sourceFormat);this.transact('Import',s=>{s.objects.push(object);s.selection=[object.id];});return object;}
@@ -44,6 +51,7 @@ export class SceneDocument {
  removeSelected(){this.transact('Delete',s=>{if(this.selected.some(o=>o.locked))throw new Error('Unlock the selected object');s.objects=s.objects.filter(o=>!s.selection.includes(o.id));s.selection=[];});}
  duplicate(){this.transact('Duplicate',s=>{const copies=this.selected.map(o=>({...structuredClone(o),id:crypto.randomUUID(),name:o.name+' copy',locked:false}));s.objects.push(...copies);s.selection=copies.map(o=>o.id);});}
 }
+/** Pack typed geometry and texture assets alongside a versioned JSON manifest. */
 export function serializeProject(state){
  validateMeasurements(state.measurements);
  const manifest=structuredClone(state),files={};
@@ -51,6 +59,7 @@ export function serializeProject(state){
  manifest.textures=state.textures.map((t,i)=>{const path=`textures/${i}.bin`;files[path]=t.bytes;return{...t,bytes:path};});
  files['project.json']=strToU8(JSON.stringify(manifest));return zipSync(files);
 }
+/** Validate archive budgets and references before returning replacement project state. */
 export function deserializeProject(bytes){
  if(!(bytes instanceof Uint8Array)||bytes.byteLength>500*1024*1024)throw new Error('Project exceeds the 500 MiB compressed input limit');
  let total=0,count=0;const files=unzipSync(bytes,{filter:entry=>{total+=entry.originalSize;if(++count>10000||total>512*1024*1024||entry.originalSize>256*1024*1024)throw new Error('Project exceeds the asset memory budget');return true;}}),raw=files['project.json'];if(!raw)throw new Error('Not a Mesh Me360 project');if(raw.length>8*1024*1024)throw new Error('Project manifest is too large');const state=JSON.parse(strFromU8(raw));

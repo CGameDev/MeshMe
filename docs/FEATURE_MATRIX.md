@@ -1,6 +1,6 @@
 # Mesh Me360 — v1.0 Feature Matrix
 
-Every row marked `Required` must be implemented for v1.0. Codex must not reinterpret previously described “optional” desktop ideas as optional; they are included in this matrix and therefore required.
+Every row marked `Required` must be implemented for v1.0. Contributors must not reinterpret previously described “optional” desktop ideas as optional; they are included in this matrix and therefore required.
 
 Status values during implementation: `NOT STARTED`, `IN PROGRESS`, `BLOCKED`, `PASS`, `FAIL`.
 

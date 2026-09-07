@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+// Coordinates application startup and final clean-session acknowledgement.
 using System.Windows;
 
 namespace MeshMe360.Desktop;

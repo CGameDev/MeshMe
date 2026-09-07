@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Provides texture import, generation and library management controls. */
 import {TextureLibraryStore} from './texture-library-store.js';
 
 export function attachTextureLibrary({registry,openDialog,el,applyFile,onChange,showError}){

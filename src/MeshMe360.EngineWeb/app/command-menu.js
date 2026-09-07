@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Presents existing commands as anchored keyboard-accessible dropdown menus. */
 // Compact command presentation; the existing command handlers stay authoritative.
 export function attachCommandMenu({root,body,close,registry,icon}){
  const names=['File','Edit','Mesh','Texture','Modify','View','Tools','Help','Export'];
@@ -7,8 +8,11 @@ export function attachCommandMenu({root,body,close,registry,icon}){
  let anchor=null;
  const triggers=()=>[...document.querySelectorAll('.locked-menu [data-command^="menu:"]')];
  function reset(){for(const b of triggers())b.setAttribute('aria-expanded','false');}
+ /** Close only a live menu; optionally return keyboard focus to its trigger. */
  function dismiss(focus=false){if(!root.classList.contains('command-menu')||root.hidden)return;close();reset();if(focus)anchor?.focus();}
+ /** Clamp the popup to the client area while retaining its trigger anchor. */
  function place(){if(!anchor)return;const r=anchor.getBoundingClientRect();root.style.left=Math.max(6,Math.min(r.left,innerWidth-root.offsetWidth-6))+'px';root.style.top=(r.bottom+4)+'px';root.style.maxHeight=Math.max(120,innerHeight-r.bottom-12)+'px';}
+ /** Decorate the existing command nodes without replacing their action handlers. */
  function present(title){
   reset();const active=names.includes(title);root.classList.toggle('command-menu',active);root.style.left=root.style.top=root.style.maxHeight='';root.setAttribute('role',active?'menu':'dialog');root.setAttribute('aria-modal',String(!active));root.setAttribute('aria-label',title);
   if(!active)return;

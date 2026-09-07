@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Coordinates surface picking and persistent measurement commands. */
 import * as THREE from 'three';
 import {geometryFromObject} from './scene-document.js';
 import {startSolidOperation} from './solid-client.js';

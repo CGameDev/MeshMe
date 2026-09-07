@@ -1,6 +1,6 @@
-# AGENTS.md — Mesh Me360 Codex Rules
+# AGENTS.md — Mesh Me360 Development Rules
 
-This file is the primary instruction contract for Codex. Read it completely before changing code.
+This file is the primary instruction contract for contributors. Read it completely before changing code.
 
 ## 1. Product identity
 
@@ -223,7 +223,7 @@ Do not delete recovery data until the user explicitly discards it or a successfu
 
 Do not call a milestone complete merely because it compiles.
 
-Each milestone must satisfy its checkpoint in `docs/CODEX_MASTER_PLAN.md` and corresponding rows in `docs/TEST_PLAN.md`.
+Each milestone must satisfy its checkpoint in `docs/IMPLEMENTATION_PLAN.md` and corresponding rows in `docs/TEST_PLAN.md`.
 
 For mesh-engine changes, add regression coverage using deterministic fixtures. Compare at minimum:
 

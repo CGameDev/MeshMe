@@ -4,7 +4,7 @@
 - Baseline SHA: a6ac179149b8a17c71a9469dd4cb6f866c0c01d1
 - Baseline version: v1.2.0
 - Imported date: 2026-09-05 (UTC)
-- Imported by: Codex for CGameDev / Brian Hinds
+- Import destination: CGameDev/MeshMe
 - Local product: Mesh Me360
 
 The complete Git tree was extracted with `git archive` at the exact SHA above,

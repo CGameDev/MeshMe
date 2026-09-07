@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Synchronizes document transactions, rendered objects and editor controls. */
 import * as THREE from 'three';
 import {SceneDocument,serializeProject,deserializeProject,geometryFromObject} from './scene-document.js';
 import {attachSolidTools} from './solid-tools.js';

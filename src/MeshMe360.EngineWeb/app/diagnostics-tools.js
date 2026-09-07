@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Coordinates revision-aware diagnostics and read-only viewport feedback. */
 import {startPrintAnalysis} from './print-client.js';
 export function attachDiagnosticsTools({document,registry,openDialog,el,setBusy,refreshScene}){
  let checkedRevision=-1,reports=[];

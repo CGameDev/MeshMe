@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Runs scene export preparation in a cancellable worker. */
+/** Start worker-side export preparation and forward progress to the caller. */
 export function startSceneExport(request,onProgress=()=>{}){
  const worker=new Worker(new URL('./export-worker.js',import.meta.url),{type:'module'});let settled=false,rejectPending,timer;
  const finish=()=>{settled=true;clearTimeout(timer);worker.terminate();};

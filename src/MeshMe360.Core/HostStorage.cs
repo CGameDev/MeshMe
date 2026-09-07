@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+// Persists user settings, recent paths and session lifecycle records.
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -16,6 +17,7 @@ public sealed class JsonFile<T> where T : new()
     private readonly string _path;
     private readonly SemaphoreSlim _gate = new(1, 1);
     public JsonFile(string path) => _path = path;
+    /// <summary>Read a consistent snapshot while excluding concurrent writes.</summary>
     public async Task<T> ReadAsync()
     {
         await _gate.WaitAsync();
@@ -31,6 +33,7 @@ public sealed class JsonFile<T> where T : new()
             FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.Asynchronous);
         return await JsonSerializer.DeserializeAsync<T>(stream, BridgeMessage.Json) ?? throw new InvalidDataException("Empty settings document.");
     }
+    /// <summary>Apply and persist one update under the storage gate.</summary>
     public async Task<T> UpdateAsync(Func<T, T> update)
     {
         await _gate.WaitAsync();
@@ -74,6 +77,7 @@ public sealed record AppSettings
     public int AutosaveIntervalSeconds { get; init; } = 120;
     public bool ConfirmTextureDeletion { get; init; } = true;
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extensions { get; init; }
+    /// <summary>Reject settings values that violate the supported ranges or schema.</summary>
     public void Validate()
     {
         if (SchemaVersion != 1 || !new[] { "System", "Light", "Dark" }.Contains(Theme) || AutosaveIntervalSeconds != 120)
@@ -88,6 +92,7 @@ public sealed class SettingsService
     private readonly JsonFile<AppSettings> _file;
     public SettingsService(AppDataPaths paths) => _file = new(Path.Combine(paths.Roaming, "settings.json"));
     public async Task<AppSettings> GetAsync() { var settings = await _file.ReadAsync(); settings.Validate(); return settings; }
+    /// <summary>Validate a partial settings update before replacing the saved value.</summary>
     public Task<AppSettings> PatchAsync(JsonElement patch) => _file.UpdateAsync(current =>
     {
         if (patch.ValueKind != JsonValueKind.Object) throw new InvalidDataException("Settings patch must be an object.");
@@ -106,6 +111,7 @@ public sealed class RecentFilesService
     public RecentFilesService(AppDataPaths paths) => _file = new(Path.Combine(paths.Roaming, "recent.json"));
     public async Task<List<RecentEntry>> ListAsync() => (await _file.ReadAsync())
         .Select(e => e with { Missing = !File.Exists(e.Path) }).ToList();
+    /// <summary>Add a normalized path while retaining the configured recent-file bound.</summary>
     public Task<List<RecentEntry>> AddAsync(string path)
     {
         var full = HostFiles.Validate(path);
@@ -116,6 +122,7 @@ public sealed class RecentFilesService
     public Task<List<RecentEntry>> RemoveAsync(string path) => _file.UpdateAsync(entries => entries
         .Where(e => !string.Equals(Path.GetFullPath(e.Path), Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase)).ToList());
     public Task<List<RecentEntry>> ClearAsync() => _file.UpdateAsync(_ => []);
+    /// <summary>Resolve an existing recent entry and validate its file before opening.</summary>
     public async Task<string> ResolveAsync(string path)
     {
         var entry = (await ListAsync()).FirstOrDefault(e => string.Equals(e.Path, path, StringComparison.OrdinalIgnoreCase))
@@ -142,6 +149,7 @@ public sealed class SessionService : IDisposable
         _directory = Path.Combine(paths.Local, "Session");
         _file = new(Path.Combine(_directory, "active-session.json"));
     }
+    /// <summary>Acquire the session lease and retain evidence of an unclean previous run.</summary>
     public async Task StartAsync()
     {
         Directory.CreateDirectory(_directory);
@@ -155,6 +163,7 @@ public sealed class SessionService : IDisposable
         }
         await _file.UpdateAsync(_ => new SessionMarker { Id = Id, StartedAtUtc = DateTimeOffset.UtcNow, Clean = false });
     }
+    /// <summary>Mark only this session clean after normal shutdown completes.</summary>
     public Task<SessionMarker> CompleteAsync() => _file.UpdateAsync(current => current.Id == Id ? current with { Clean = true } : current);
     public void Dispose() => _lease?.Dispose();
 }

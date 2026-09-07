@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Owns relief worker startup, completion and cancellation. */
 // The original pipeline runs behind a resource guard in an isolated worker.
+/** Return a job promise and cancellation handle without transferring the authored input buffer. */
 export function startDisplacement(input,onProgress=()=>{}){
  const worker=new Worker(input.pattern?new URL('./pattern-worker.js',import.meta.url):new URL('./relief-worker.js',import.meta.url),{type:'module'});let settled=false,rejectPending,timer;
  const finish=()=>{settled=true;clearTimeout(timer);worker.terminate();};

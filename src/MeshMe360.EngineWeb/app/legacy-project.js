@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Converts legacy projects without partially replacing a valid scene. */
 import {SceneDocument,objectFromGeometry} from './scene-document.js';
 export function attachLegacyProject({document,engine,openDialog,el,capture,applySnapshot,refreshScene,setBusy,prepareReplacement}){
  let mode='settings';

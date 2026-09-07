@@ -26,7 +26,7 @@ Use **Velopack** for v1.0 Windows packaging and application update orchestration
 Reasons this is fixed in the project plan:
 - one tool for Windows install/update lifecycle;
 - supports packaged desktop application updates;
-- avoids Codex independently choosing multiple conflicting installer/update frameworks.
+- avoids contributors independently choosing multiple conflicting installer/update frameworks.
 
 If Velopack cannot satisfy an explicit requirement, document the exact blocker before substituting another system.
 
@@ -163,7 +163,7 @@ During update download:
 
 ## 11. Development/test update channel
 
-Codex must create a way to test updates without offering development packages to stable users.
+Contributors must create a way to test updates without offering development packages to stable users.
 
 Acceptable fixed implementation:
 - release channels `stable` and `test`;
@@ -188,7 +188,7 @@ Upstream BumpMesh version/commit is separate metadata and must not be substitute
 
 ## 13. GitHub Actions release pipeline
 
-Codex should create workflows only after local build scripts work.
+Contributors should create workflows only after local build scripts work.
 
 Required release pipeline steps:
 

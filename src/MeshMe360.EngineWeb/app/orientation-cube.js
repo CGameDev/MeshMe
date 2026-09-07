@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Projects an interactive orientation cube from the actual camera pose. */
 import * as THREE from 'three';
 // Original vector navigation cube, projected from the actual Z-up camera.
 export function attachOrientationCube({container,viewer,registry}){

@@ -1,6 +1,6 @@
-# Mesh Me360 — Codex Master Plan
+# Mesh Me360 — Implementation Plan
 
-This document defines the implementation order. Codex must complete milestones sequentially and satisfy each checkpoint before beginning the next major milestone.
+This document defines the implementation order. Contributors must complete milestones sequentially and satisfy each checkpoint before beginning the next major milestone.
 
 ## Global execution policy
 

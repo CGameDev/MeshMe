@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Presents mesh-processing previews before undoable commits. */
 import * as THREE from 'three';
 import {geometryFromObject} from './scene-document.js';
 import {startMeshProcessing} from './mesh-processing-client.js';

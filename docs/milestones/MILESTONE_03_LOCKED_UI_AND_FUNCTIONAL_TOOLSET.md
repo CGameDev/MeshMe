@@ -18,11 +18,11 @@ The UI shown in the PNG is no longer a loose concept. It is the desired producti
 
 ---
 
-# 2. Non-negotiable directive to Codex
+# 2. Non-negotiable directive to contributors
 
 **The locked PNG is the visual source of truth.**
 
-Codex must not treat it as:
+Contributors must not treat it as:
 - a mockup;
 - an example;
 - inspiration;
@@ -322,7 +322,7 @@ For missing complex geometry operations (especially Boolean, robust solidificati
 7. add deterministic regression fixtures;
 8. wrap it behind a Mesh Me360 interface so it can be replaced/tested independently.
 
-Candidate technology must be verified by Codex before adoption. Do not assume a dependency API from memory.
+Candidate technology must be verified by maintainers before adoption. Do not assume a dependency API from memory.
 
 ---
 

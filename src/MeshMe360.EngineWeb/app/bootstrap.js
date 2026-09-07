@@ -1,4 +1,5 @@
 // Copyright (c) 2026 CGameDev / Brian Hinds
+/** Starts the native bridge and mounts the offline application shell. */
 // SPDX-License-Identifier: AGPL-3.0-only
 import { attachHost } from './host-bridge.js';
 import { mountLockedUi } from './locked-ui.js';

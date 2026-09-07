@@ -83,3 +83,13 @@ The owner also requested a Mesh Me360 application icon. Use the original blue M
 branding in a multi-resolution Windows icon for the executable and WPF window.
 This request does not constitute blanket functional, physical Windows or final
 milestone acceptance.
+
+
+## 8. Compact About window (2026-09-07)
+
+The owner requested a centered About window matching the supplied banner/section
+layout. Use a 684 × 508 client panel where space permits, a white product banner,
+a publisher/version information strip, scrollable legal credits and a bottom-right
+Close button. Retain the current product identity, source link and required
+third-party notices. Use the native assembly version rather than a separate
+hardcoded product version. The window must remain within the available client area.

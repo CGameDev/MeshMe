@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Converts interactive transform drags into single undoable scene transactions. */
 import * as THREE from 'three';
 import {TransformControls} from 'three/addons/controls/TransformControls.js';
 

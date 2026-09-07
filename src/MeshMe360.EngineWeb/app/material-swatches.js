@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Renders material previews from the same height sources used by the tools. */
 import * as THREE from 'three';
 const appearances={Stone:['#99968f',.95,0,.055],Rock:['#797d7b',.95,0,.06],Scales:['#8b8677',.8,.05,.045],Bricks:['#ba8064',.95,0,.025],Wood:['#ac7b46',.7,0,.018],Metal:['#b4b8bc',.25,.8,.004],Fabric:['#a79a83',1,0,.015],Carbon:['#353b3d',.6,.15,.025],Leather:['#965f3e',.85,0,.025],Concrete:['#95928b',1,0,.035],Sand:['#c1ae8e',1,0,.018]};
 // Render real source-height bump/displacement on a sphere. These preview

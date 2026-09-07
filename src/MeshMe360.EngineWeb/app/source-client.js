@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Runs height-source composition through a cancellable worker. */
+/** Compose height assets in a worker without changing either source. */
 export function startSourceComposition(source,base,options){
  const worker=new Worker(new URL('./source-worker.js',import.meta.url),{type:'module'});let settled=false,rejectPending;
  const finish=()=>{settled=true;worker.terminate();};

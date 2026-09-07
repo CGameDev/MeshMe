@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Builds the application shell and binds scene state to visible controls. */
 import * as THREE from 'three';
 import {attachCommandMenu} from './command-menu.js';
 import * as viewer from '../js/viewer.js';
@@ -87,7 +88,7 @@ export function mountLockedUi(host, engine) {
  const dialog=el('div','locked-dialog');dialog.hidden=true;dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');const close=el('button','close','Close');function closeDialog(){dialog.hidden=true;document.querySelectorAll('.locked-menu [aria-expanded]').forEach(b=>b.setAttribute('aria-expanded','false'));const cleanup=dialogCleanup;dialogCleanup=null;cleanup?.();}close.onclick=closeDialog;dialog.append(close);const dialogBody=el('div');dialog.append(dialogBody);document.body.append(shell,dialog);document.body.classList.add('locked-ui');
  const commandMenu=attachCommandMenu({root:dialog,body:dialogBody,close:closeDialog,registry,icon});
  const legacy=document.getElementById('settings-panel');legacy.append(document.getElementById('mesh-diagnostics'));const legacySlot=el('div');legacySlot.hidden=true;document.body.append(legacySlot);legacySlot.append(legacy);
- function openDialog(title,nodes,onClose,presentation='modal'){closeDialog();dialogCleanup=onClose;dialog.classList.toggle('tool-dialog',presentation==='tool');dialogBody.replaceChildren(el('h2','',title),...nodes);dialog.hidden=false;close.focus();commandMenu.present(title);return closeDialog;}
+ function openDialog(title,nodes,onClose,presentation='modal'){closeDialog();dialogCleanup=onClose;dialog.classList.toggle('tool-dialog',presentation==='tool');dialog.classList.toggle('about-dialog',presentation==='about');dialogBody.replaceChildren(el('h2','',title),...nodes);dialog.hidden=false;close.focus();commandMenu.present(title);return closeDialog;}
  function showError(error){openDialog('Operation failed',[el('p','',String(error.message??error))]);}
  function legacyTools(){legacy.style.cssText='display:block;width:auto;max-width:none;height:auto;overflow:visible';openDialog('Engine controls',[legacy],undefined,'tool');}
  const hasMesh=()=>!!scene?.document.state.objects.some(o=>o.visible);const click=id=>()=>document.getElementById(id).click();

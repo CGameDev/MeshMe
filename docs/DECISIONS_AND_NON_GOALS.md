@@ -5,7 +5,7 @@
 > (MeshMe360.Project); `.bumpmesh` remains legacy compatibility. The .NET 8 WPF /
 > WebView2 architecture, preserved upstream algorithms and licensing remain fixed.
 
-This file exists to prevent Codex from “helpfully” changing product intent while implementing it.
+This file exists to prevent contributors from “helpfully” changing product intent while implementing it.
 
 ## Locked v1.0 decisions
 
@@ -101,7 +101,7 @@ The following are intentionally outside scope. Do not add them unless the reposi
 
 The labels `DESIGN`, `TEXTURE`, `MESH`, and `INSPECT` are workspace/navigation concepts.
 
-`DESIGN` does **not** imply that Codex should create:
+`DESIGN` does **not** imply that Contributors should create:
 - sketches,
 - extrude,
 - revolve,
@@ -124,7 +124,7 @@ Priority order:
 3. `docs/PRODUCT_REQUIREMENTS.md`
 4. `docs/ARCHITECTURE.md`
 5. `docs/UI_SPEC.md`
-6. `docs/CODEX_MASTER_PLAN.md`
+6. `docs/IMPLEMENTATION_PLAN.md`
 7. mockup SVGs
 8. other notes/comments
 

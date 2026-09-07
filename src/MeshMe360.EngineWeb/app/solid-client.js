@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Owns isolated solid-operation workers and cancellation. */
 // One isolated worker per operation: cancel/error releases the WASM heap and
 // cannot mutate document arrays. The caller commits only the returned preview.
+/** Start an isolated solid-backend job that can be terminated safely. */
 export function startSolidOperation(request){
  const worker=new Worker(new URL('./solid-worker.js',import.meta.url),{type:'module'});
  const id=crypto.randomUUID();let rejectPending,settled=false;

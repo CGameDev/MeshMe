@@ -14,7 +14,7 @@ The application is intentionally based on the proven **BumpMesh / stlTexturizer*
 - Baseline release represented by that commit: `v1.2.0`
 - Upstream license: GNU AGPL v3.0
 
-Codex must preserve upstream copyright/license notices in any imported or modified upstream source files and must follow `docs/UPSTREAM_AND_LICENSING.md` before importing code.
+Contributors must preserve upstream copyright/license notices in any imported or modified upstream source files and must follow `docs/UPSTREAM_AND_LICENSING.md` before importing code.
 
 ## Target platform
 
@@ -88,8 +88,8 @@ The desktop application must preserve the upstream JavaScript/Three.js mesh engi
 
 See:
 
-- `AGENTS.md` — mandatory Codex execution rules
-- `docs/CODEX_MASTER_PLAN.md` — implementation order and checkpoints
+- `AGENTS.md` — mandatory contributors execution rules
+- `docs/IMPLEMENTATION_PLAN.md` — implementation order and checkpoints
 - `docs/PRODUCT_REQUIREMENTS.md` — exact product requirements
 - `docs/ARCHITECTURE.md` — fixed architecture and directory layout
 - `docs/UI_SPEC.md` — exact desktop UI layout and behavior
@@ -97,7 +97,7 @@ See:
 - `docs/TEST_PLAN.md` — validation requirements
 - `docs/RELEASE_AND_INSTALLER.md` — packaging, updates, associations, offline runtime
 - `docs/UPSTREAM_AND_LICENSING.md` — upstream import and AGPL requirements
-- `docs/DECISIONS_AND_NON_GOALS.md` — decisions Codex must not reinterpret
+- `docs/DECISIONS_AND_NON_GOALS.md` — decisions Contributors must not reinterpret
 
 ## Definition of done for v1.0
 

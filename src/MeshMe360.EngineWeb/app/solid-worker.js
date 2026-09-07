@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Executes solid operations in an isolated worker and transfers results. */
 import createManifold from '../vendor/manifold-3.5.1-csp/manifold.js';
 import {runSolidOperation} from './solid-operations.js';
 import {combineGeometry} from './combine-geometry.js';

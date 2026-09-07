@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Coordinates relief preview, cancellation and explicit geometry commits. */
 import * as THREE from 'three';
 import {startDisplacement} from './displacement-client.js';
 import {patternLayout} from './pattern.js';

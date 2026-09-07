@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Enforces resource budgets around the preserved relief pipeline. */
 import {runExportPipeline} from '../js/exportPipeline.js';
 export const reliefTriangleLimit=3_000_000;
 // A resource guard around the original pipeline, not a replacement algorithm.
+/** Run the original pipeline unchanged and reject input or observed output above the resource budget. */
 export async function runGuardedPipeline(input,onProgress=()=>{},limit=reliefTriangleLimit){
  if(!Number.isInteger(limit)||limit<1||limit>reliefTriangleLimit)throw new Error('Invalid relief triangle budget');
  if(!(input.positions instanceof Float32Array)||input.positions.length%9||input.positions.length/9>limit)throw new Error('Relief input exceeds the triangle budget or contains incomplete triangles.');

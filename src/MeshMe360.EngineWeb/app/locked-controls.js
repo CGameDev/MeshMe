@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Defines command order and state-dependent command availability. */
 export const toolbar = ['Select','Move','Rotate','Scale','Texture','Emboss','Deboss','Pattern','Repair','Hollow','Measure','Boolean','Split','Combine','STL','3MF','OBJ','Import'];
 export const quickActions = ['Center Model','Repair Mesh','Make Solid','Hollow Model','Generate Texture','Prepare for Print'];
 export const presets = ['Stone','Rock','Scales','Bricks','Wood','Metal','Fabric','Carbon','Leather','Concrete','Sand','Custom'];

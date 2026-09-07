@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+// Owns native startup, WebView lifetime and visible startup failures.
 using System.Windows;
 using System.Diagnostics;
 using System.IO;
@@ -19,6 +20,7 @@ public partial class MainWindow : Window
     internal SessionService? Session { get; private set; }
     internal bool ClosedNormally { get; private set; }
 
+    /// <summary>Initialize native controls and register cleanup before starting the renderer.</summary>
     public MainWindow()
     {
         InitializeComponent();
@@ -26,6 +28,7 @@ public partial class MainWindow : Window
         Closed += (_, _) => { _closed = true; _engineReady.TrySetCanceled(); _bridge?.Dispose(); Web.Dispose(); ClosedNormally = !_fatal; };
     }
 
+    /// <summary>Load local runtime assets and wait for the engine handshake before accepting startup files.</summary>
     private async void InitializeAsync(object sender, RoutedEventArgs e)
     {
         try
@@ -93,10 +96,12 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>Restrict in-app navigation to the configured application origin.</summary>
     private static bool IsAppUri(string value) =>
         Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
         uri.Scheme == Uri.UriSchemeHttps && uri.Host == "app.meshme360.local" && uri.IsDefaultPort;
 
+    /// <summary>Expose a recoverable error surface and prevent a failed session from appearing clean.</summary>
     private void FailStartup(Exception error)
     {
         if (_closed || _fatal) return;
@@ -112,12 +117,14 @@ public partial class MainWindow : Window
         ErrorDetails.Visibility = ErrorActions.Visibility = Visibility.Visible;
     }
 
+    /// <summary>Copy the displayed startup failure for troubleshooting.</summary>
     private void CopyDetails_Click(object sender, RoutedEventArgs e)
     {
         try { Clipboard.SetText(ErrorDetails.Text); }
         catch (Exception error) { StartupMessage.Text = "Could not copy details: " + error.Message; }
     }
 
+    /// <summary>Open the current application log folder through the Windows shell.</summary>
     private void OpenLogs_Click(object sender, RoutedEventArgs e)
     {
         try { Directory.CreateDirectory(_log.DirectoryPath); Process.Start(new ProcessStartInfo(_log.DirectoryPath) { UseShellExecute = true }); }

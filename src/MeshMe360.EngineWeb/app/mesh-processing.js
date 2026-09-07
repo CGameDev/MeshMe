@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Adapts preserved processing algorithms to scene transforms and material groups. */
 // Orchestration only. Subdivision and QEM are the pinned, unchanged engine.
 import * as THREE from '../vendor/three-0.170.0/build/three.module.js';
 import {subdivide} from '../js/subdivision.js';
@@ -15,6 +16,7 @@ function boundaryLocks(p){
  return Uint8Array.from({length:p.length/9},(_,i)=>[0,1,2].some(v=>boundary.has(points[i*3+v]))?1:0);
 }
 function stats(g){let soup=g.index?g.toNonIndexed():g;const value={...countEdgeDefects(soup),degenerate:countAreaSlivers(soup)};if(soup!==g)soup.dispose();g.computeBoundingBox();return{...value,bounds:{min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray()}};}
+/** Process a geometry copy and preserve material and mask correspondence where supported. */
 export async function processMesh(object,options,onProgress=()=>{}){
  let g=geometryFromObject(object,{world:options.kind!=='normals'}),output=null;const count=(g.index?.count??g.attributes.position.count)/3;
  try{

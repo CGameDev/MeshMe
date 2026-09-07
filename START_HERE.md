@@ -1,4 +1,4 @@
-# CODEX START HERE — Mesh Me360 Locked UI Milestone
+# START HERE — Mesh Me360 Locked UI Milestone
 
 Repository: `CGameDev/MeshMe`
 Product: **Mesh Me360**
@@ -31,7 +31,7 @@ Do not substitute the old SVG mockups for the locked PNG.
 
 Where this package conflicts with the old UI prose/SVGs, **this package wins for UI and functional scope**.
 
-The 3D dragon shown in the PNG is illustrative viewport content only. Codex is not required to recreate or ship that dragon model. Visual comparison should mask dynamic model pixels while still comparing viewport chrome, grid, controls, divider, statistics, view cube, panel geometry and layout.
+The 3D dragon shown in the PNG is illustrative viewport content only. The application is not required to recreate or ship that dragon model. Visual comparison should mask dynamic model pixels while still comparing viewport chrome, grid, controls, divider, statistics, view cube, panel geometry and layout.
 
 ## Product identity
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+// Serializes diagnostic records to the current Windows user log folder.
 using System.IO;
 using System.Text.Json;
 

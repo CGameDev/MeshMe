@@ -1,4 +1,4 @@
-# Repository Integration Checklist for Codex
+# Repository Integration Checklist for contributors
 
 When this package is supplied to the `CGameDev/MeshMe` working tree:
 
@@ -17,7 +17,7 @@ When this package is supplied to the `CGameDev/MeshMe` working tree:
    - Change native project association from `.bumpmesh` to `.mm360`.
    - Keep `.bumpmesh` as legacy compatibility.
 
-3. Update `docs/CODEX_MASTER_PLAN.md`:
+3. Update `docs/IMPLEMENTATION_PLAN.md`:
    - Replace/supersede the old “Fusion 360-inspired UI shell” Milestone 3 with the locked milestone.
    - Link directly to the PNG and the milestone/control contract.
    - Do not retain a checkpoint that only says “mockup layout is recognizable”.
@@ -39,4 +39,4 @@ When this package is supplied to the `CGameDev/MeshMe` working tree:
    - native file type `.mm360`
    - upstream attribution remains in legal/credits sections.
 
-7. Do not delete old SVG files solely to hide history. They may remain as archived historical artifacts, but mark them superseded so Codex cannot accidentally use them as the primary target.
+7. Do not delete old SVG files solely to hide history. They may remain as archived historical artifacts, but mark them superseded so contributors cannot accidentally use them as the primary target.

@@ -135,6 +135,18 @@ internal static class Program
                     await File.WriteAllTextAsync(Path.Combine(testRoot,"recovery-format-check.json"),recoveryCheck.GetRawText());
                     Console.WriteLine("PASS: current unsaved mm360 snapshot restores real renderer/source state and remains dirty; M6 crash scheduling/retention is not exercised");Console.WriteLine("Recovery compatibility evidence: "+testRoot);await session.CompleteAsync();return;
                 }
+                if(args.Contains("--about"))
+                {
+                    foreach(var theme in new[]{"Dark","Light"}){
+                        await Evaluate($"(async()=>{{await window.meshMe360.updateSettings({{theme:'{theme}'}});await window.meshMe360Locked.registry.execute('About Mesh Me360');return true}})()");
+                        var about=await Evaluate("(()=>{const d=document.querySelector('.about-dialog'),r=d.getBoundingClientRect(),b=d.querySelector('.about-banner').getBoundingClientRect(),f=d.querySelector('.about-footer').getBoundingClientRect();return{ok:!d.hidden&&r.width<=686&&r.height<=510&&b.height===220&&f.bottom<=r.bottom&&d.textContent.includes('Computer Universal Technology Systems')&&d.textContent.includes('Stefan Hermann')&&d.textContent.includes('Version 0.1.'),width:r.width,height:r.height}})()");
+                        if(!about.GetProperty("ok").GetBoolean())throw new Exception("About layout/content failed: "+about);
+                        var raw=await core.CallDevToolsProtocolMethodAsync("Page.captureScreenshot","{\"format\":\"png\"}");using var screen=JsonDocument.Parse(raw);await File.WriteAllBytesAsync(Path.Combine(testRoot,$"about-{theme}.png"),Convert.FromBase64String(screen.RootElement.GetProperty("data").GetString()!));
+                        await Evaluate("(()=>{document.querySelector('.about-footer button').click();return true})()");
+                        if(!(await Evaluate("document.querySelector('.locked-dialog').hidden&&window.meshMe360Locked.scene.document.selected.length===1")).GetBoolean())throw new Exception("About Close changed selection or failed");
+                    }
+                    Console.WriteLine("PASS: compact About banner, live version, required credits, both themes and Close preserve scene state");Console.WriteLine("About evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--dropdown"))
                 {
                     foreach(var theme in new[]{"Dark","Light"}){

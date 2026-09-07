@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Presents print checks, profiles and explicit placement actions. */
 import {placementProposal} from './print-analysis.js';
 import {startPrintAnalysis} from './print-client.js';
 

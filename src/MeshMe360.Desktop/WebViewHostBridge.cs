@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+// Routes validated web requests to native file, window and settings services.
 using System.IO;
 using System.Text;
 using System.Text.Json;

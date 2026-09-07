@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Persists custom source assets in the local texture library. */
 // User-owned entries only. Built-in presets never enter this mutable store.
 export class TextureLibraryStore {
  constructor(name='MeshMe360.TextureLibrary'){this.name=name;this.database=null;}

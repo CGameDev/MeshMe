@@ -70,7 +70,7 @@ Do not remove the original author/license notice to add this.
 
 ## 6. Repository license
 
-Because Mesh Me360 is intended to distribute a modified/combined version of the AGPL-covered upstream program, Codex must treat the combined application source as **AGPL-3.0-only** unless the repository owner obtains a different compatible permission/license from the relevant copyright holders.
+Because Mesh Me360 is intended to distribute a modified/combined version of the AGPL-covered upstream program, Contributors must treat the combined application source as **AGPL-3.0-only** unless the repository owner obtains a different compatible permission/license from the relevant copyright holders.
 
 Milestone 0 must add the complete GNU AGPL v3 license text to top-level `LICENSE` before imported upstream code is committed.
 
@@ -110,7 +110,7 @@ Mesh Me360 will also add desktop dependencies such as:
 - Velopack
 - any selected logging/test packages
 
-Codex must inspect each dependency's actual license before adding it and update `THIRD_PARTY_NOTICES.md`.
+Contributors must inspect each dependency's actual license before adding it and update `THIRD_PARTY_NOTICES.md`.
 
 Do not assume a dependency is redistributable merely because it is on NuGet/npm/GitHub.
 
@@ -148,7 +148,7 @@ When updating from upstream after the pinned baseline:
 6. update `UPSTREAM_BASELINE.md` only when the project intentionally adopts a new baseline;
 7. update About/diagnostics if the displayed upstream version changes.
 
-## 13. What Codex must not do
+## 13. What Contributors must not do
 
 - Do not delete `LICENSE`/notice files to make packaging simpler.
 - Do not remove upstream headers during formatting.

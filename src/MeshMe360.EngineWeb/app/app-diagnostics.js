@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Collects native and renderer diagnostics without exporting model contents. */
 import * as THREE from 'three';
 import {geometryFromObject} from './scene-document.js';
 export function attachAppDiagnostics({host,scene,engine,viewer,registry,openDialog,el}){

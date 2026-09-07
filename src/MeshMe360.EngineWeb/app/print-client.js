@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Coordinates cancellable print-analysis worker requests. */
+/** Analyze object copies in a worker while forwarding progress. */
 export function startPrintAnalysis(objects,onProgress=()=>{}){
  const worker=new Worker(new URL('./print-worker.js',import.meta.url),{type:'module'});let settled=false,rejectPending;
  const finish=()=>{settled=true;worker.terminate();};

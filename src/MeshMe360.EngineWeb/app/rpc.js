@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Correlates native requests and replies with timeouts and deterministic disposal. */
+/** Bind a transport; each request resolves only against its matching reply type and id. */
 export function createRpc(transport, { timeoutMs = 30000, id = () => crypto.randomUUID() } = {}) {
   const pending = new Map();
   const listeners = new Set();
@@ -17,17 +19,20 @@ export function createRpc(transport, { timeoutMs = 30000, id = () => crypto.rand
   };
   transport.addEventListener('message', receive);
   return {
+    /** Register correlation before sending so an immediate reply cannot be lost. */
     request(type, payload = {}) {
       const requestId = id();
       console.debug('[Mesh Me360 bridge]', requestId, type);
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => { pending.delete(requestId); reject(new Error(`Host request timed out: ${type}`)); }, timeoutMs);
+        // Registration precedes postMessage because native transports may reply immediately.
         pending.set(requestId, { type, resolve, reject, timer });
         try { transport.postMessage({ type, requestId, payload, success: null, error: null }); }
         catch (error) { clearTimeout(timer); pending.delete(requestId); reject(error); }
       });
     },
     onMessage(listener) { listeners.add(listener); return () => listeners.delete(listener); },
+    /** Detach the transport and reject every outstanding caller. */
     dispose() {
       transport.removeEventListener('message', receive);
       for (const waiting of pending.values()) { clearTimeout(waiting.timer); waiting.reject(new Error('Host bridge closed.')); }

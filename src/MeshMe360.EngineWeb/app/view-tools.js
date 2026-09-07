@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Controls scene fitting, projection, guides and panel visibility. */
 import * as THREE from 'three';
 import {geometryFromObject} from './scene-document.js';
 export function attachViewTools({scene,viewer,registry,openDialog,el,work}){

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Runs print-analysis requests outside the UI event loop. */
 import createManifold from '../vendor/manifold-3.5.1-csp/manifold.js';
 import {analyzePrintObject} from './print-analysis.js';
 const ready=createManifold({locateFile:name=>new URL('../vendor/manifold-3.5.1-csp/'+name,import.meta.url).href}).then(m=>{m.setup();return m;});

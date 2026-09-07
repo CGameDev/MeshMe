@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Connects document commands, preferences and recent-file navigation. */
 import {attachHelpTools} from './help-tools.js';
 export function attachDocumentMenus({document,host,registry,openDialog,el,refreshScene}){
- attachHelpTools({registry,openDialog,el});
+ attachHelpTools({host,registry,openDialog,el});
  function button(label,action){const b=el('button','',label);b.type='button';b.onclick=async()=>{try{await action();}catch(error){openDialog('Operation failed',[el('p','',String(error.message??error))]);}};return b;}
  function choice(label,entries,value){const row=el('label','locked-field'),input=el('select');input.setAttribute('aria-label',label);for(const [id,name]of entries){const option=el('option','',name);option.value=id;input.append(option);}input.value=value;row.append(el('span','',label),input);return{row,input};}
  registry.register('Project Settings',()=>{

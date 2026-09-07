@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Runs the original relief pipeline behind the application resource guard. */
 import {runGuardedPipeline} from './guarded-pipeline.js';
 self.onmessage=async({data})=>{
  if(data?.cmd!=='run')return;

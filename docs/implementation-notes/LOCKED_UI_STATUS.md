@@ -1,7 +1,7 @@
 # Locked UI milestone — NOT COMPLETE
 
 The owner supplied `MeshMe360_UI_Locked_Milestone_v1.0.zip` and explicitly requested
-its locked milestone. `CODEX_START_HERE.md` was read directly from the archive
+its locked milestone. `START_HERE.md` was read directly from the archive
 before extraction and the remaining instructions were read in their specified order.
 The original PNG was inspected at 1536×1024. No screenshot pixels are embedded in
 the application; icons and procedural textures are generated independently.

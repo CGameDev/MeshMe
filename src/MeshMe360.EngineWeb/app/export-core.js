@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+/** Prepares world-space scene geometry and supported export packages. */
 import * as THREE from '../vendor/three-0.170.0/build/three.module.js';
 import {OBJExporter} from '../vendor/three-0.170.0/examples/jsm/exporters/OBJExporter.js';
 import {zipSync,unzipSync,strToU8,strFromU8} from '../vendor/fflate-0.8.2/esm/browser.js';
@@ -15,6 +16,7 @@ export const exportWarnings={
  obj:'OBJ is saved as an .obj.zip package containing model.obj and materials.mtl. Diffuse color and opacity are retained; metallic/roughness remain in a metadata file. Source height images are included separately; procedural projection does not supply OBJ UV texture mapping.'
 };
 
+/** Validate selected objects, prepare world geometry and return format-specific bytes and reports. */
 export async function buildSceneExport(request,progress=()=>{}){
  const {objects,format,textures=[],title='Untitled',profile='Generic STL'}=request;
  if(!exportWarnings[format]||!objects?.length)throw new Error('Choose an export format and at least one object.');

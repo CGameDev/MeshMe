@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-export function attachHelpTools({registry,openDialog,el}){
+/** Registers offline help, licensing and product-information surfaces. */
+import {attachAboutDialog} from './about-dialog.js';
+/** Register local help, license and product-information commands. */
+export function attachHelpTools({host,registry,openDialog,el}){
  const source=()=>{const a=el('a','','Mesh Me360 source code');a.href='https://github.com/CGameDev/MeshMe';a.target='_blank';a.rel='noopener';return a;};
  async function legal(title,path){const response=await fetch(path);if(!response.ok)throw new Error('The packaged '+title+' could not be read.');const text=el('pre','',await response.text());text.style.whiteSpace='pre-wrap';text.style.overflowWrap='anywhere';openDialog(title,[text]);}
  registry.register('Documentation',()=>openDialog('Documentation',[
@@ -13,7 +16,7 @@ export function attachHelpTools({registry,openDialog,el}){
  ]));
  registry.register('Source Code / License',()=>legal('GNU AGPLv3 License','LICENSE'));
  registry.register('Third-Party Notices',()=>legal('Third-Party Notices','THIRD_PARTY_NOTICES.md'));
- registry.register('About Mesh Me360',()=>openDialog('About Mesh Me360',[el('h3','','Mesh Me360'),el('p','','Create. Texture. Print.'),el('p','','Done by Computer Universal Technology Systems'),el('p','','Original BumpMesh engine: CNC Kitchen / Stefan Hermann and contributors. GNU AGPLv3. See Source Code / License and Third-Party Notices for full license texts and dependency attribution.'),source()]));
+ attachAboutDialog({host,registry,openDialog,el,source});
  registry.register('menu:Help',()=>{const list=el('div');for(const name of ['Documentation','Keyboard Shortcuts','Source Code / License','Third-Party Notices','Application Diagnostics','About Mesh Me360']){const b=el('button','',name);b.onclick=()=>{Promise.resolve().then(()=>registry.execute(name)).catch(error=>openDialog('Help unavailable',[el('p','',String(error.message??error))]));};list.append(b);}openDialog('Help',[list]);});
  window.addEventListener('keydown',event=>{if(event.key==='F1'&&registry.state('Documentation').enabled){event.preventDefault();registry.execute('Documentation');}},true);
 }
