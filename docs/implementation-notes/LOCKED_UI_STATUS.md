@@ -376,3 +376,14 @@ The full expanded regression run passed: 25 Node, 38 Core, 6 offline assets,
 19 native app modes and all three geometry backend probes. Latest screenshot:
 artifacts/m2-integration-271f496fc4dd4168a8771ac0fd2e9de0.
 M3 remains NOT COMPLETE.
+
+### Packaged review checkpoint (2026-09-07)
+
+Fresh runnable build:
+artifacts/m3-locked-review-20260907-controls/MeshMe360.exe
+Published from source checkpoint 2abf045. All 224 packaged web files match staging;
+.NET/WPF/legal notices are present. Launched successfully; native web.ready
+handshake completed at 2026-09-07T13:25:20Z and the process was responding.
+This is a development review build, not a release or completed M3 checkpoint.
+Remaining controls, pixel/human fidelity, recovery/stress/DPI and physical Windows
+acceptance remain required. No milestone was marked complete.
