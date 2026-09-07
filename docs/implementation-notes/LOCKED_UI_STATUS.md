@@ -412,3 +412,31 @@ Source/Clear: artifacts/m2-integration-f5eab849e0944488bdf5b967391d0e60.
 Screenshot: artifacts/m2-integration-be1fc2f96bfa4a5ea69baee833b22167.
 M3 remains NOT COMPLETE: complete advanced/legacy integration, visual fidelity,
 recovery compatibility, stress/DPI, and human/physical acceptance remain open.
+
+
+### Advanced/legacy integration and display verification (2026-09-07)
+
+Advanced settings, painted masks, original orientation and the baked-face masking
+option now join scene history and native project persistence. Legacy projects
+have a visible all/settings chooser; intermediate load events cannot partially
+replace the scene. Conversion saves as a dirty .mm360 document. Cancel and
+settings-only Undo preserve the previous scene exactly. Programmatic previews
+are isolated from the engine's deferred history capture.
+
+The view cube reflects the camera and all six alignment directions. Wireframe
+and X-Ray also update non-active scene objects. Both themes and five required
+client sizes pass unclipped command-label checks at 100/125/150/200% emulated
+pixel density. Light statistics/slider contrast and the compressed shelf were
+visually corrected; physical Windows per-monitor DPI is still untested.
+
+Full suite PASS after the preview-history regression fix: 27 Node, 38 Core,
+6 offline assets, 24 native app modes and three backend probes. Zero build
+warnings/errors; all 117 upstream blobs remain exact. Final screenshot:
+artifacts/m2-integration-1bdc7ca995294f60a60e028f0b130fc0.
+Display evidence: artifacts/m2-integration-c735dab2d29042bb870e4bf8e090ddef.
+Relief/history evidence: artifacts/m2-integration-7b0fb4647034467d9f4880c8b2cf14e6.
+Earlier focused advanced/legacy evidence is retained at
+artifacts/m2-integration-4fbe11bb059148e98334e085d9190101 and
+artifacts/m2-integration-2fa92171d4e9494197f9e9fd08cf7048.
+M3 remains NOT COMPLETE. Refinement growth safety, performance/recovery
+compatibility, full functional coverage and pixel/human acceptance still need work.

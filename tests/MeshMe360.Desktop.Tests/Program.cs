@@ -82,6 +82,85 @@ internal static class Program
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
                 }
+                if(args.Contains("--display"))
+                {
+                    var displayReports=new List<JsonElement>();
+                    foreach(var theme in new[]{"Dark","Light"}){
+                        await Evaluate($"(async()=>{{await window.meshMe360.updateSettings({{theme:'{theme}'}});return true}})()");
+                        foreach(var (width,height) in new[]{(1280,720),(1366,768),(1536,1024),(1600,900),(1920,1080)})foreach(var scale in new[]{1.0,1.25,1.5,2.0}){
+                            await core.CallDevToolsProtocolMethodAsync("Emulation.setDeviceMetricsOverride",JsonSerializer.Serialize(new{width,height,deviceScaleFactor=scale,mobile=false}));
+                            var layout=await Evaluate("(async()=>{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const selectors=['.locked-toolbar button','.locked-quick button','.locked-tabs button','.locked-menu .menus button','.export-group button'];const failures=[];for(const selector of selectors)for(const b of document.querySelectorAll(selector)){const r=b.getBoundingClientRect();if(!r.width||r.x<0||r.y<0||r.right>innerWidth+1||r.bottom>innerHeight+1)failures.push(b.textContent+' outside client');const span=b.querySelector('span')??b,range=document.createRange();range.selectNodeContents(span);const text=range.getBoundingClientRect();if(text.width>r.width+1)failures.push(b.textContent+' clipped label');}return{width:innerWidth,height:innerHeight,scale:devicePixelRatio,theme:document.documentElement.dataset.theme,failures,viewport:document.querySelector('.locked-viewport').getBoundingClientRect().toJSON()}})()");
+                            displayReports.Add(layout);if(layout.GetProperty("failures").GetArrayLength()>0)throw new Exception("Display gate failed: "+layout);
+                            if(scale==1.0||width==1536&&scale==2.0){var raw=await core.CallDevToolsProtocolMethodAsync("Page.captureScreenshot","{\"format\":\"png\",\"fromSurface\":true}");using var screen=JsonDocument.Parse(raw);await File.WriteAllBytesAsync(Path.Combine(testRoot,$"display-{theme}-{width}x{height}-{scale}.png"),Convert.FromBase64String(screen.RootElement.GetProperty("data").GetString()!));}
+                        }
+                    }
+                    await File.WriteAllTextAsync(Path.Combine(testRoot,"display-layout.json"),JsonSerializer.Serialize(displayReports));
+                    Console.WriteLine("PASS: five required client sizes, both themes and 100/125/150/200% emulated pixel density without clipped toolbar/menu/quick-action labels");Console.WriteLine("Display evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if(args.Contains("--legacy"))
+                {
+                    var legacyPath=Path.Combine(testRoot,"legacy-fixture.bumpmesh");
+                    using(var legacyZip=ZipFile.Open(legacyPath,ZipArchiveMode.Create)){
+                        legacyZip.CreateEntryFromFile(fixture,"model.stl");
+                        using var settingsWriter=new StreamWriter(legacyZip.CreateEntry("settings.json").Open());
+                        await settingsWriter.WriteAsync("{\"version\":1,\"textureHeight\":1.25,\"scaleU\":3,\"scaleV\":4,\"activeMapName\":\"Bricks\"}");
+                    }
+                    var legacyPrior=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
+                    await bridge.OpenFileAsync(legacyPath);
+                    await Until(async()=> (await Evaluate("!document.querySelector('.locked-dialog').hidden&&document.querySelector('.locked-dialog h2').textContent==='Open legacy project'")).GetBoolean());
+                    await Evaluate("(()=>{document.querySelector('.locked-dialog .close').click();return true})()");
+                    await Until(async()=>!(await Evaluate("window.meshMe360Locked.registry.busy")).GetBoolean());
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=legacyPrior)throw new Exception("Cancelled legacy import changed scene");
+                    await bridge.OpenFileAsync(legacyPath);
+                    await Until(async()=> (await Evaluate("!document.querySelector('.locked-dialog').hidden&&document.querySelector('.locked-dialog h2').textContent==='Open legacy project'")).GetBoolean());
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Settings only').click();return true})()");
+                    await Until(async()=>!(await Evaluate("window.meshMe360Locked.registry.busy")).GetBoolean());
+                    if(!(await Evaluate("(()=>{const d=window.meshMe360Locked.scene.document;return d.selected[0].engineSettings.textureHeight===1.25&&d.state.objects.length===1&&d.selected[0].sourceFormat==='stl'})()")).GetBoolean())throw new Exception("Legacy settings-only failed");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=legacyPrior)throw new Exception("Legacy settings Undo mismatch");
+                    replacementChoice="discard";await bridge.OpenFileAsync(legacyPath);
+                    await Until(async()=> (await Evaluate("!document.querySelector('.locked-dialog').hidden&&document.querySelector('.locked-dialog h2').textContent==='Open legacy project'")).GetBoolean());
+                    await Evaluate("(()=>{[...document.querySelectorAll('.locked-dialog button')].find(b=>b.textContent==='Load model and settings').click();return true})()");
+                    await Until(async()=> (await Evaluate("!window.meshMe360Locked.registry.busy&&window.meshMe360Locked.scene.document.state.name==='legacy-fixture.mm360'")).GetBoolean());
+                    if(!(await Evaluate("(()=>{const d=window.meshMe360Locked.scene.document;return d.state.name==='legacy-fixture.mm360'&&d.dirty&&d.state.objects.length===1&&d.selected[0].sourceFormat==='bumpmesh'&&d.selected[0].engineSettings.textureHeight===1.25&&!!d.selected[0].textureId})()")).GetBoolean())throw new Exception("Legacy full conversion failed");
+                    await Evaluate("(async()=>{await window.meshMe360Locked.registry.execute('Save');return true})()");await ReopenNativeProject(chosen);
+                    if(!(await Evaluate("window.meshMe360Locked.scene.document.selected[0].engineSettings.textureHeight===1.25&&!window.meshMe360Locked.scene.document.dirty")).GetBoolean())throw new Exception("Converted legacy project reopen failed");
+                    Console.WriteLine("PASS: native legacy chooser cancellation, settings-only transaction/Undo, full model/settings conversion and mm360 native round trip");Console.WriteLine("Legacy evidence: "+testRoot);await session.CompleteAsync();return;
+                }
+                if(args.Contains("--advanced"))
+                {
+                    await Evaluate("(()=>{const a=window.meshMe360Locked;a.scene.document.markSaved();a.registry.execute('legacy');const input=document.getElementById('texture-smoothing-val');input.scrollIntoView();input.focus();input.select();return true})()");
+                    await core.CallDevToolsProtocolMethodAsync("Input.insertText","{\"text\":\"3\"}");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyDown\",\"key\":\"Tab\",\"code\":\"Tab\",\"windowsVirtualKeyCode\":9}");
+                    await core.CallDevToolsProtocolMethodAsync("Input.dispatchKeyEvent","{\"type\":\"keyUp\",\"key\":\"Tab\",\"code\":\"Tab\",\"windowsVirtualKeyCode\":9}");
+                    await Until(async()=> (await Evaluate("window.meshMe360Locked.scene.document.selected[0].engineSettings.textureSmoothing===3&&window.meshMe360Locked.scene.document.dirty")).GetBoolean());
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if(!(await Evaluate("document.getElementById('texture-smoothing-val').value==='0'&&!window.meshMe360Locked.scene.document.dirty")).GetBoolean())throw new Exception("Advanced setting Undo mismatch");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Redo');document.getElementById('excl-mode-exclude').click();return true})()");
+                    var selectedId=(await Evaluate("window.meshMe360Locked.scene.document.selected[0].id")).GetString();
+                    var point=await Evaluate("(()=>{const r=document.querySelector('.locked-viewport canvas').getBoundingClientRect();return{x:r.x+r.width*.5,y:r.y+r.height*.5}})()");
+                    foreach(var type in new[]{"mouseMoved","mousePressed","mouseReleased"})await core.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",JsonSerializer.Serialize(new{type,x=point.GetProperty("x").GetDouble(),y=point.GetProperty("y").GetDouble(),button=type=="mouseMoved"?"none":"left",clickCount=1}));
+                    await Until(async()=> (await Evaluate("(window.meshMe360Locked.scene.document.selected[0].engineMask?.excluded.length??0)>0")).GetBoolean());
+                    var painted=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected[0].engineMask)")).GetString();
+                    if((await Evaluate("window.meshMe360Locked.scene.document.selected[0].id")).GetString()!=selectedId)throw new Exception("Painting changed object selection");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if(!(await Evaluate("(async()=>{const e=await import('./js/main.js'),s=e.desktopSceneCapture();s.geometry.dispose();return !s.mask?.excluded.length})()")).GetBoolean())throw new Exception("Mask Undo retained painted engine faces");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Redo');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected[0].engineMask)")).GetString()!=painted)throw new Exception("Mask Redo mismatch");
+                    await Evaluate("(async()=>{document.querySelector('.locked-dialog .close').click();await window.meshMe360Locked.registry.execute('Save');return true})()");await ReopenNativeProject(chosen);
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.selected[0].engineMask)")).GetString()!=painted||!(await Evaluate("window.meshMe360Locked.scene.document.selected[0].engineSettings.textureSmoothing===3&&!window.meshMe360Locked.scene.document.dirty")).GetBoolean())throw new Exception("Advanced settings/mask native round trip mismatch");
+                    var orientationBefore=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('legacy');document.getElementById('rotate-btn').click();document.getElementById('rotate-x').value='30';document.getElementById('rotate-apply-btn').click();return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()==orientationBefore)throw new Exception("Legacy orientation did not commit scene geometry");
+                    await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Undo');return true})()");
+                    if((await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString()!=orientationBefore)throw new Exception("Legacy orientation Undo mismatch");
+                    var bakePoint=await Evaluate("(()=>{if(document.getElementById('advanced-section').classList.contains('collapsed'))document.getElementById('advanced-toggle').click();const b=document.getElementById('bake-mask-chk');b.scrollIntoView();const r=b.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()");
+                    foreach(var type in new[]{"mousePressed","mouseReleased"})await core.CallDevToolsProtocolMethodAsync("Input.dispatchMouseEvent",JsonSerializer.Serialize(new{type,x=bakePoint.GetProperty("x").GetDouble(),y=bakePoint.GetProperty("y").GetDouble(),button="left",clickCount=1}));
+                    if((await Evaluate("window.meshMe360Locked.scene.document.selected[0].engineSettings.desktopBakeMask")).GetBoolean())throw new Exception("Native baked-mask option was not recorded");
+                    await Evaluate("(async()=>{document.querySelector('.locked-dialog .close').click();await window.meshMe360Locked.registry.execute('Save');return true})()");await ReopenNativeProject(chosen);
+                    if((await Evaluate("document.getElementById('bake-mask-chk').checked")).GetBoolean())throw new Exception("Baked-mask option project restore failed");
+                    Console.WriteLine("PASS: advanced texture setting native keyboard Undo/Redo, viewport bucket painting without reselection, mask Undo/Redo and native settings/mask round trip");Console.WriteLine("Advanced evidence: "+testRoot);await session.CompleteAsync();return;
+                }
                 if(args.Contains("--lifecycle"))
                 {
                     var original=(await Evaluate("JSON.stringify(window.meshMe360Locked.scene.document.state)")).GetString();
@@ -203,6 +282,10 @@ internal static class Program
                     if(!(await Evaluate("(async()=>{const a=window.meshMe360Locked,v=await import('./js/viewer.js'),before=JSON.stringify(a.scene.document.state);a.registry.execute('Fit All');if(Math.abs(v.getControls().target.x-50)>.001)return false;a.registry.execute('Fit Selected');if(Math.abs(v.getControls().target.x-100)>.001)return false;a.registry.execute('Home view');return Math.abs(v.getControls().target.x-50)<.001&&JSON.stringify(a.scene.document.state)===before&&v.getCamera().projectionMatrix.elements.every(Number.isFinite)})()")).GetBoolean())throw new Exception("Fit selection/all did not use visible world bounds or changed document");
                     await Evaluate("(()=>{window.meshMe360Locked.registry.execute('Grid');window.meshMe360Locked.registry.execute('Axes');return true})()");
                     Console.WriteLine("PASS: actual guide/projection commands, panel hide/restore and selected/all world-bounds fitting without document changes");
+                    foreach(var face in new[]{"Top","Bottom","Front","Back","Left","Right"}){
+                        await Evaluate($"(()=>{{window.meshMe360Locked.registry.execute('view:{face}');return true}})()");
+                        if(!(await Evaluate($"(()=>{{const f=document.querySelector('[data-cube-face={face}]');return getComputedStyle(f).display!=='none'&&Number(f.dataset.facing)>.99}})()")).GetBoolean())throw new Exception("Orientation cube does not reflect "+face);
+                    }
                     Console.WriteLine("View evidence: "+testRoot);await session.CompleteAsync();return;
                 }
                 if(args.Contains("--settings"))

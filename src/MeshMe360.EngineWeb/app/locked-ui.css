@@ -50,7 +50,7 @@ body.locked-ui{margin:0;display:block;overflow:hidden;background:#161c20;color:#
 @media(min-width:1600px){.locked-work{grid-template-columns:288px minmax(0,1fr) 373px}}
 @media(max-width:1400px){.locked-work{grid-template-columns:240px minmax(0,1fr) 330px}.locked-toolbar{gap:0;padding-left:7px;padding-right:7px}.locked-toolbar .separator{margin:0 3px}.locked-menu{gap:3px}.locked-brand{width:205px;gap:8px}.locked-menu .menus{gap:0}.locked-menu .menus button{padding:5px}.locked-cards{padding-left:8px;padding-right:8px}.locked-field{grid-template-columns:65px minmax(0,1fr) 54px 20px}.locked-field.wide{grid-template-columns:105px 1fr}}
 @media(max-height:850px){.locked-work{grid-template-rows:minmax(0,1fr) 156px}.locked-cards{height:105px}.locked-cards button{height:96px}.locked-cards .swatch{height:60px;width:60px}.locked-right{grid-template-rows:minmax(0,1fr) 126px}}
-[data-theme=light] #locked-shell{--edge:#bec7d0;--panel:#f3f5f7;background:#eef1f4;color:#26333e}[data-theme=light] .locked-panel{background:#f4f6f8}[data-theme=light] .locked-inspector-body input,[data-theme=light] .locked-inspector-body select,[data-theme=light] .locked-search{background:#fff!important;color:#26333e!important}[data-theme=light] .locked-brand strong{color:#26333e}
+[data-theme=light] #locked-shell{--edge:#bec7d0;--panel:#f3f5f7;background:#eef1f4;color:#26333e}[data-theme=light] .locked-panel{background:#f4f6f8}[data-theme=light] .locked-inspector-body input:not([type=range]):not([type=checkbox]),[data-theme=light] .locked-inspector-body select,[data-theme=light] .locked-search{background:#fff!important;color:#26333e!important}[data-theme=light] .locked-brand strong{color:#26333e}
 /* Measured reference alignment; client panel placement is unchanged. */
 .locked-menu .menus{margin-right:auto}
 .locked-menu .document-name{margin-left:0;flex:0 1 328px}
@@ -76,3 +76,15 @@ body.locked-ui{margin:0;display:block;overflow:hidden;background:#161c20;color:#
 .locked-cards{padding-left:24px;padding-right:24px}
 .swatch.custom-swatch{display:flex!important;align-items:center;justify-content:center;font-size:30px;color:#a6b5c0;background:radial-gradient(circle at 40% 30%,#252d33,#192025);border:1px solid #35404a;box-shadow:none}
 @media(max-width:1400px){.locked-field{grid-template-columns:65px minmax(0,1fr) 54px 20px}.locked-menu .document-name{flex-basis:240px}}
+
+.locked-cube svg{width:80px;height:100px;overflow:visible}.locked-cube polygon{stroke:#263039;stroke-width:1;stroke-linejoin:round}.locked-cube text{text-anchor:middle;fill:#17232d;font:10px 'Segoe UI',sans-serif;pointer-events:none}.locked-cube .cube-axis{fill:#39a5f6;font-size:13px;font-style:italic}.locked-cube [role=button]{cursor:pointer;outline:none}.locked-cube [role=button]:hover polygon,.locked-cube [role=button]:focus-visible polygon{stroke:#58acff;stroke-width:2;fill:#8db6d8}
+
+.locked-modes button{color:#dbe2e9!important}
+[data-theme=light] #locked-shell button:hover{background:#d8e5ef}
+[data-theme=light] #locked-shell button.active,[data-theme=light] #locked-shell [aria-selected=true]{color:#fff}
+[data-theme=light] .locked-quick button{background:#e4ebf1!important;border-color:#bac6d1!important}
+[data-theme=light] .locked-modes button:hover{background:#30485b!important}
+@media(max-width:1400px){.locked-quick button{font-size:11px!important}}
+
+[data-theme=light] .locked-stats{color:#263b49;text-shadow:none}
+@media(max-height:850px){.locked-cards{height:calc(100% - 46px);overflow-y:hidden}.locked-cards button{height:92px}.locked-cards .swatch{height:56px;width:56px}}

@@ -453,3 +453,35 @@ subscriptions detach before WPF disposes WebView2 on accepted close.
 Clear Texture removes the active source/composition as one reversible transaction.
 It does not alter committed geometry: a baked relief is reversed through its
 existing Undo transaction. Source assets remain embedded for history/reference.
+
+
+## 2026-09-07 — Advanced controls, legacy projects and viewport presentation
+
+Advanced engine controls open in the right tool panel so mask painting can use
+the viewport. The original engine settings/mask Undo boundary notifies the scene;
+pending user edits flush before document commands. Programmatic preview/restoration
+suppresses that capture and resets its engine baseline, preventing preview-only
+settings from becoming document edits. A full-suite Emboss regression caught this
+interaction. Original orientation/place-on-face results become scene transactions;
+duplicated legacy Bake/STL/3MF buttons use the already tested scene workflows.
+The baked-face mask checkbox is persisted as desktopBakeMask in object settings.
+Apply Texture preserves the original symmetric-displacement setting; signed
+Emboss/Deboss retain their defined positive/negative behavior.
+
+Legacy import still calls the pinned parser, texture loader, settings migration
+and mask/pose restore. Intermediate model-load notifications are tagged and kept
+out of the scene until the complete import succeeds. The existing all/settings
+choice appears in a visible locked dialog. Full conversion requires normal dirty
+replacement approval and becomes a dirty .mm360 document; settings-only applies
+one Undo transaction to the selected object. Cancellation/failure reactivates the
+unchanged scene. Legacy source files are never silently overwritten.
+
+Surface Normal is the single displacement direction implemented by the preserved
+backend. It is enabled for an applicable object; no unsupported axis mode is
+advertised. Projection-axis controls remain available under mapping/engine controls.
+The original vector view cube now projects all six faces from the actual Z-up
+camera, and visible faces offer click/keyboard alignment. View modes update other
+scene objects as well as the active engine mesh. Theme colors, light statistics,
+small-window shelf spacing and quick-action typography were adjusted without
+changing locked region geometry. Display automation covers CSS client sizes and
+emulated pixel density; physical Windows per-monitor DPI remains a manual gate.

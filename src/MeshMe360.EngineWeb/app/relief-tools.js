@@ -29,7 +29,7 @@ export function attachReliefTools({engine,document,registry,openDialog,el,setBus
    try{
     if(document.revision!==revision)throw new Error('Document changed; reopen the texture tool');
     const options=Object.fromEntries(Object.entries(fields).map(([key,field])=>[key,field.valueAsNumber]));if(!Object.values(options).every(n=>Number.isFinite(n)&&n>=0)||options.scaleU<=0||options.scaleV<=0)throw new Error('Enter valid depth and positive scale');
-    engine.desktopConfigureTexture({...options,invertDisplacement:name==='Deboss'?true:name==='Emboss'?false:original.settings.invertDisplacement,symmetricDisplacement:false});
+    engine.desktopConfigureTexture({...options,invertDisplacement:name==='Deboss'?true:name==='Emboss'?false:original.settings.invertDisplacement,symmetricDisplacement:name==='Apply Texture'?original.settings.symmetricDisplacement:false});
     input=engine.desktopDisplacementInput();if(name==='Pattern'){input.pattern={kind:patternKind.value,...Object.fromEntries(Object.entries(patternFields).map(([key,field])=>[key,field.valueAsNumber]))};patternLayout(input.pattern);}
     const current=startDisplacement(input,data=>{status.textContent=`${data.stage}: ${Math.round(data.p*100)}%`;});job=current;
     const output=await current.promise;if(closed||job!==current)return;job=null;result=output;

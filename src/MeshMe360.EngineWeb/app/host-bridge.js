@@ -19,6 +19,7 @@ export function attachHost(transport) {
   };
   const finishModel = async event => {
     const { file, success, error } = event.detail;
+    if(event.detail.legacy)return;
     const activationId = activations.get(file);
     activations.delete(file);
     if (!success) {
@@ -27,7 +28,7 @@ export function attachHost(transport) {
     }
     if (activationId) await rpc.request('recent.add', { activationId });
     await rpc.request('document.titleChanged', { title: file.name });
-    await rpc.request('document.stateChanged', { state: 'ReadyClean', activationId: activationId ?? null });
+    await rpc.request('document.stateChanged', { state: window.meshMe360Locked?.scene.document.dirty?'ReadyDirty':'ReadyClean', activationId: activationId ?? null });
   };
   window.addEventListener('meshme:model-result', event => { void finishModel(event).catch(logError); });
   rpc.onMessage(message => {

@@ -10,7 +10,7 @@ def adapt_host(output: Path, notice: str):
         text = text.replace(old, new)
     replace('async function handleModelFile(file, stepSettings = null) {', "async function handleModelFile(file, stepSettings = null) {\n  window.dispatchEvent(new CustomEvent('meshme:before-model-load', {detail:{file}}));")
     replace("    updateSmartResBtnState();\n    updatePreview();\n  } catch (err) {",
-            "    updateSmartResBtnState();\n    updatePreview();\n    window.dispatchEvent(new CustomEvent('meshme:model-result', { detail: { file, success: true } }));\n    return true;\n  } catch (err) {\n    window.dispatchEvent(new CustomEvent('meshme:model-result', { detail: { file, success: false, error: err?.message } }));")
+            "    updateSmartResBtnState();\n    updatePreview();\n    window.dispatchEvent(new CustomEvent('meshme:model-result', { detail: { file, success: true, legacy: !!desktopLegacyLoading } }));\n    return true;\n  } catch (err) {\n    window.dispatchEvent(new CustomEvent('meshme:model-result', { detail: { file, success: false, legacy: !!desktopLegacyLoading, error: err?.message } }));")
     replace("      alert(t('alerts.loadFailed', { msg: err.message }));\n    }\n  } finally {",
             "      alert(t('alerts.loadFailed', { msg: err.message }));\n    }\n    return false;\n  } finally {")
     replace("function closeStepDialog() {\n  _stepEstimateSeq++;", "function closeStepDialog(accepted = false) {\n  if (_stepDialogFile && accepted !== true) window.dispatchEvent(new CustomEvent('meshme:model-result', { detail: { file: _stepDialogFile, success: false, error: 'STEP import cancelled' } }));\n  _stepEstimateSeq++;")
@@ -20,7 +20,11 @@ def adapt_host(output: Path, notice: str):
     replace("      await handleModelFile(stlFile);", "      if (await handleModelFile(stlFile) === false) throw new Error('Project model could not be loaded.');")
     replace("    await _applyImportedTexture(unzipped, data);\n\n    _autoSaveSettings();\n  } finally {", "    await _applyImportedTexture(unzipped, data);\n\n    _autoSaveSettings();\n    return true;\n  } finally {")
     replace("function _downloadBlob(blob, filename) {", "function _downloadBlob(blob, filename) {\n  if (window.meshMe360) { void window.meshMe360.download(blob, filename); return; }")
-    text += "\n// " + notice + "\nexport { handleModelFile as desktopLoadModel, importProject as desktopLoadProject, setViewerTheme as desktopSetTheme, setLang as desktopSetLanguage };\n"
+    replace("  _redoStack.length = 0;\n  _baselineSnapshot = next;\n  _updateUndoButtons();", "  _redoStack.length = 0;\n  _baselineSnapshot = next;\n  _updateUndoButtons();\n  desktopNotifySettingsEdit();")
+    replace("function promptLoadMode() {", "function promptLoadMode() {\n  if (window.meshMe360Locked?.scene) return window.meshMe360Locked.scene.chooseLegacyMode();")
+    replace("  checkResolutionWarning();\n  updatePreview();\n}\n\nfunction refreshExclusionOverlay()", "  checkResolutionWarning();\n  updatePreview();\n  desktopNotifyGeometryEdit();\n}\n\nfunction refreshExclusionOverlay()")
+    replace("  // Exit place-on-face mode\n  togglePlaceOnFace(false);", "  // Exit place-on-face mode\n  togglePlaceOnFace(false);\n  desktopNotifyGeometryEdit();")
+    text += "\n// " + notice + "\nexport { handleModelFile as desktopLoadModel, setViewerTheme as desktopSetTheme, setLang as desktopSetLanguage };\n"
     text += '\n' + Path(__file__).with_name('scene-adapter.js').read_text(encoding='utf-8')
     main_path.write_text('// ' + notice + '\n' + text, encoding='utf-8', newline='\n')
     exporter_path = output / 'js/exporter.js'

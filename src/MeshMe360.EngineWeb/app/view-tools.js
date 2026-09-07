@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import {geometryFromObject} from './scene-document.js';
 export function attachViewTools({scene,viewer,registry,openDialog,el,work}){
- let grid=true,axes=true;
- function syncGuides(render=true){if(viewer.getGrid())viewer.getGrid().visible=grid;if(viewer.getDesktopAxes())viewer.getDesktopAxes().visible=axes;if(render)viewer.requestRender();}
+ let grid=true,axes=true,styledGrid=null;
+ function syncGuides(render=true){const guide=viewer.getGrid(),light=document.documentElement.dataset.theme==='light';viewer.getScene().background.set(light?0xe8edf1:0x1b2226);if(guide){guide.visible=grid;if(guide!==styledGrid){styledGrid=guide;const color=new THREE.Color(light?0xbdc8d0:0x343c42),colors=guide.geometry.attributes.color;for(let i=0;i<colors.count;i++)colors.setXYZ(i,color.r,color.g,color.b);colors.needsUpdate=true;}}if(viewer.getDesktopAxes())viewer.getDesktopAxes().visible=axes;if(render)viewer.requestRender();}
  window.addEventListener('meshme:scene-changed',()=>syncGuides());
  const objects=all=>(all?scene.document.state.objects:scene.document.selected).filter(o=>o.visible);
  function fit(all,home=false){const box=new THREE.Box3();for(const object of objects(all)){const g=geometryFromObject(object,{world:true});g.computeBoundingBox();box.union(g.boundingBox);g.dispose();}if(box.isEmpty())return;
