@@ -1,0 +1,5 @@
+{
+  "defaults": { "run-as": "package" },
+  "username": "MeshMeActivation",
+  "join-groupname": "http"
+}

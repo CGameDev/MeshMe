@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import {geometryFromObject,objectFromGeometry} from './scene-document.js';
 import {startSolidOperation} from './solid-client.js';
+import {attachQuality} from './quality-presets.js';
 
 export function attachSolidTools({document,viewer,registry,editable,setBusy,refreshScene,openDialog,el}){
  function launch(kind){
@@ -27,6 +28,7 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
   if(kind==='Make Solid'){
    const g=geometryFromObject(inputs[0],{world:true});g.computeBoundingBox();const size=g.boundingBox.getSize(new THREE.Vector3());g.dispose();
    cellSize=field('Cell size (mm)','number',Math.max(size.x,size.y,size.z)/32);cellSize.min='.001';cellSize.step='.1';
+   attachQuality(form,cellSize,'solidify',Number(cellSize.value),el);
    form.append(el('p','','Approximate reconstruction for meshes with a coherent enclosed interior. Smaller cells retain more detail and create more triangles. Open sheets may have no valid interior.'));
   }
   if(kind==='Split'){
@@ -40,6 +42,7 @@ export function attachSolidTools({document,viewer,registry,editable,setBusy,refr
    drawPlane();
   }
   const preview=el('button','','Preview'),commit=el('button','primary','Commit'),cancel=el('button','','Cancel');commit.disabled=true;actions.append(preview,commit,cancel);
+  if(kind==='Repair'){const advanced=el('details','locked-advanced');advanced.append(el('summary','','Advanced'));advanced.append(maxHoleDiameter.closest('label'));form.prepend(advanced);}
   function clearPreview(){for(const mesh of hiddenOriginals.splice(0))mesh.visible=true;for(const mesh of [...previewGroup.children]){previewGroup.remove(mesh);mesh.geometry.dispose();mesh.material.dispose();}viewer.requestRender();}
   function invalidate(){if(job){job.cancel();job=null;}result=null;commit.disabled=true;clearPreview();setBusy(false);status.dataset.solidStatus='idle';status.textContent='Settings changed. Preview again before committing.';preview.disabled=false;}
   function cleanup(){if(closed)return;closed=true;job?.cancel();clearPreview();viewer.getScene().remove(previewGroup);setBusy(false);refreshScene();window.removeEventListener('meshme:before-model-load',cancelOnImport);}

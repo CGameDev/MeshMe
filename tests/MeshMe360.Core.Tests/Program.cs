@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using MeshMe360.Core;
 
+await LicensingChecks.Run();
+
 var root = Path.Combine(Path.GetTempPath(), "MeshMe360-tests-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(root);
 var paths = new AppDataPaths(Path.Combine(root, "Roaming"), Path.Combine(root, "Local"));

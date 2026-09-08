@@ -80,6 +80,12 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
                     Ready?.Invoke();
                     break;
                 case "settings.get": result = await _settings.GetAsync(); break;
+                case "license.show":
+                    if (_owner is MainWindow licenseOwner) await licenseOwner.ShowLicenseAsync();
+                    break;
+                case "graphics.openWindowsSettings":
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-settings:display-advancedgraphics") { UseShellExecute = true });
+                    break;
                 case "settings.set":
                     var changed = await _settings.PatchAsync(message.Payload);
                     ApplyTheme(changed); result = changed; break;
@@ -150,6 +156,9 @@ internal sealed class WebViewHostBridge : IHostBridge, IDisposable
                         windows = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
                         dotnet = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
                         webView2 = _web.Environment.BrowserVersionString,
+                        requestedRenderingMode = (await _settings.GetAsync()).RenderingMode,
+                        activeRenderingMode = (_owner as MainWindow)?.ActiveRenderingMode ?? "Automatic",
+                        gpuPreference = "Windows Default; physical adapter selection is managed in Windows Graphics Settings",
                         lastEngineError = _lastEngineError, logFolder = _log.DirectoryPath
                     }; break;
                 case "diagnostics.copy":

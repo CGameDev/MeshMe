@@ -25,6 +25,12 @@ public partial class App : Application
         }
         catch (Exception error) { System.Diagnostics.Debug.WriteLine(error); }
         finally { _window?.Session?.Dispose(); }
+        // Restart only after WebView disposal and releasing the old session lease.
+        if (_window?.RestartRequested == true)
+        {
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Environment.ProcessPath!) { UseShellExecute = true }); }
+            catch { MessageBox.Show("Compatibility Mode was saved. Reopen Mesh Me360 to continue.", "Mesh Me360"); }
+        }
         base.OnExit(e);
     }
 }

@@ -72,6 +72,7 @@ public sealed record AppSettings
     public int SchemaVersion { get; init; } = 1;
     public string Theme { get; init; } = "System";
     public string Language { get; init; } = "Auto";
+    public string RenderingMode { get; init; } = "Automatic";
     public bool AutomaticallyCheckForUpdates { get; init; } = true;
     public bool Autosave { get; init; } = true;
     public int AutosaveIntervalSeconds { get; init; } = 120;
@@ -80,6 +81,7 @@ public sealed record AppSettings
     /// <summary>Reject settings values that violate the supported ranges or schema.</summary>
     public void Validate()
     {
+        if (!GraphicsSettings.IsSupported(RenderingMode)) throw new InvalidDataException("Unsupported graphics mode.");
         if (SchemaVersion != 1 || !new[] { "System", "Light", "Dark" }.Contains(Theme) || AutosaveIntervalSeconds != 120)
             throw new InvalidDataException("Unsupported settings version, theme or autosave interval.");
         if (!new[] { "Auto", "en", "de", "da", "it", "es", "pt", "fr", "tr", "ja", "ko", "uk", "ru", "zh", "pl" }.Contains(Language))

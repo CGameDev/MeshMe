@@ -29,7 +29,7 @@ internal static class Program
                 if (args.Contains("--locked")) await new SettingsService(paths).PatchAsync(JsonSerializer.SerializeToElement(new {theme="Dark"}));
                 await session.StartAsync();
                 var packagedRuntime=Path.Combine(AppContext.BaseDirectory,"WebView2FixedRuntime");
-                var environment = await CoreWebView2Environment.CreateAsync(args.Contains("--packaged") ? packagedRuntime : null, Path.Combine(testRoot, "WebView2")).WaitAsync(TimeSpan.FromSeconds(30));
+                var environment = await CoreWebView2Environment.CreateAsync(args.Contains("--packaged") ? packagedRuntime : null, Path.Combine(testRoot, "WebView2"), new CoreWebView2EnvironmentOptions(GraphicsSettings.BrowserArguments(args.Contains("--compat") ? "SoftwareCompatibility" : "Automatic"))).WaitAsync(TimeSpan.FromSeconds(30));
                 await web.EnsureCoreWebView2Async(environment).WaitAsync(TimeSpan.FromSeconds(30));
                 if(args.Contains("--startup"))web.Visibility=Visibility.Visible;
                 var core = web.CoreWebView2;
@@ -92,6 +92,7 @@ internal static class Program
                     await bridge.OpenFileAsync(projectPath);
                     await Until(async()=> (await Evaluate($"(()=>{{const d=window.meshMe360Locked.scene.document;return d.revision!=={reopenRevision}&&!d.dirty&&d.state.name==={JsonSerializer.Serialize(Path.GetFileName(projectPath))}}})()")).GetBoolean());
                 }
+                if(args.Contains("--owner")){await OwnerUxChecks.Run(expression=>Evaluate(expression),testRoot);await session.CompleteAsync();return;}
                 if(args.Contains("--stress"))
                 {
                     var reports=new List<JsonElement>();

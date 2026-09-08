@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+umask 077
+: "${SYNOPKG_PKGVAR:?Package data directory is required}"
+mkdir -p "$SYNOPKG_PKGVAR/sessions"
+chmod 700 "$SYNOPKG_PKGVAR/sessions"
+# No database access, migration, key generation, ACL changes or public route changes.

@@ -1,0 +1,6 @@
+#!/bin/sh
+# Web Station's webservice worker owns PHP/Apache startup and shutdown.
+case "${1:-}" in
+    start|stop|status) exit 0 ;;
+    *) exit 1 ;;
+esac

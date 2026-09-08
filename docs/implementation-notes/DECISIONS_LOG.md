@@ -564,3 +564,31 @@ artifacts/m2-integration-4340440552794d949b251ea3ce647a00.
 
 ## September 2026 - Owner-requested MSI and user guide
 Added a per-user WiX 4.0.6 MSI preview alongside the planned update work, following the owner's explicit MSI request. The existing AGPL is the installation agreement; separate runtime licenses remain intact. Help opens a fixed packaged PDF through the native host. See MSI_PREVIEW.md. This does not complete M3 or the full release milestone.
+
+## 2026-09-07 — Issue #2 owner UX, graphics and activation
+
+Follow the additive owner milestone without changing toolbar order, panel structure,
+upstream geometry, or AGPL rights. Native Core/Desktop services own hardware hashing,
+HTTPS activation, signature verification, DPAPI cache and the entitlement surface.
+The web layer adds only contextual/progressive assistance through existing handlers.
+Keep Apply Texture at the approved location when its Advanced controls are collapsed.
+
+Use RSA-3072/SHA-256, fingerprint policy v1 with the specified weights/60-point
+threshold plus strong-component conflict rejection, a seven-day server UTC trial,
+and seven-day validation/30-day maximum paid lease defaults. Use a product-row lock
+before key rows for server mutations, including tolerant device recognition and trials.
+Hardware deficiency fails closed rather than silently weakening the policy. Public
+verification keys are owner-supplied configuration; no production private key is generated
+or shipped by this task. The owner selected consolecrate.xyz/meshme-activation/ and
+requested an installation package instead of deployment. Exact mappings, tests,
+pre-existing regression failures and acceptance gaps are in ISSUE_2_OWNER_MILESTONE.md.
+# 2026-09-08 — Dedicated Synology activation package
+
+Owner installation on DS1821+ / DSM 7.3.2-86009 Update 4 showed that manually
+created Web Station PHP profiles use the shared `http` identity. Added a source-only
+SPK using Synology's documented webservice worker and package account mechanism.
+The account is `MeshMeActivation`; both public/admin entry points verify its effective
+identity before loading the unchanged licensing code. The package registers services
+but no portals and does not migrate databases, regenerate keys, grant secret ACLs or
+change ConsoleCrate/tunnel routing. NAS installation, account isolation and cutover
+remain explicit validation gates. See `server/activation/synology/README.md`.

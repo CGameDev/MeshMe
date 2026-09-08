@@ -73,6 +73,10 @@ signing-secrets.*
 # Local build prerequisites and source verification cache
 .tools/
 .upstream-source/
+src/MeshMe360.Desktop/activation.json
+server/activation/config/config.php
+!server/activation/bin/
+!server/activation/bin/*.php
 
 # Pinned meshStep runtime is source-controlled, not our generated dist output.
 !src/MeshMe360.EngineWeb/vendor/meshstep-0.1.0/dist/

@@ -3,12 +3,14 @@
 import * as THREE from 'three';
 import {geometryFromObject} from './scene-document.js';
 import {startMeshProcessing} from './mesh-processing-client.js';
+import {attachQuality} from './quality-presets.js';
 export function attachMeshProcessing({document,viewer,registry,openDialog,el,setBusy,refreshScene,capture}){
  function launch(name,kind){
   capture();const source=structuredClone(document.selected[0]),revision=document.revision,original=viewer.getCurrentMesh(),originalVisible=original.visible;
   const form=el('div'),status=el('p','','Review settings and preview before committing.');status.dataset.meshStatus='idle';let job=null,result=null,mesh=null,closed=false,close;
   const count=(source.indices?.length??source.positions.length/3)/3,input=el('input');input.type='number';input.setAttribute('aria-label',kind==='refine'?'Maximum edge length (mm)':'Target triangles');input.min=kind==='refine'?'.001':'4';input.step=kind==='refine'?'.1':'1';input.value=kind==='refine'?'5':String(Math.max(4,Math.floor(count/2)));
   if(kind!=='normals'){form.append(el('p','',kind==='refine'?'Maximum edge length (mm)':'Target triangles'),input);input.oninput=invalidate;}
+  if(kind!=='normals')attachQuality(form,input,kind,count,el);
   const permission=el('input');permission.type='checkbox';permission.setAttribute('aria-label','Allow refinement growth');if(kind==='refine'){const label=el('label','',' Allow refinement up to the 3,000,000-triangle processing limit. ');label.prepend(permission);form.append(el('p','',`Current mesh: ${count.toLocaleString()} triangles. Smaller edges can multiply the triangle count and memory use. The result is checked after each upstream subdivision pass; exceeding the limit cancels the preview.`),label);permission.onchange=invalidate;}
   if(kind==='simplify')form.append(el('p','','The target is shared across material groups. Painted triangles and material boundaries stay protected; this may prevent reaching the target. Existing UV/source settings are retained.'));
   if(kind==='normals')form.append(el('p','','Recalculate vertex normals from the existing triangle topology. Indexed vertices are averaged; triangle-soup vertices keep face normals. This does not reverse triangle winding or repair openings.'));
