@@ -1,0 +1,4 @@
+{
+  "endpoint": "https://consolecrate.xyz/meshme-activation/",
+  "publicKeys": { "owner-key-1": "REPLACE WITH RSA-3072 PUBLIC KEY PEM; NEVER INCLUDE A PRIVATE KEY" }
+}
