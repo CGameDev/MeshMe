@@ -1,5 +1,13 @@
 # Mesh Me360 activation — Synology installation
 
+**DSM 7.3 dedicated-account correction:** for the DS1821+ installation, use
+[`synology/README.md`](synology/README.md) and its SPK builder. A manually created
+PHP profile was verified to run as the shared `http` user. Do not grant production
+signing-key/configuration access to that shared account or group. The SPK registers
+dedicated-account services without publishing portals or touching existing data;
+verify the real package account on the NAS before the guided cutover. The manual
+layout below remains reference material, not evidence of account isolation.
+
 Owner-selected public base URL: **https://consolecrate.xyz/meshme-activation/**.
 This package is prepared for installation; it has not been installed on the live NAS.
 Keep the existing ConsoleCrate `/api/` and all its data/configuration unchanged.

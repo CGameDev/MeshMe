@@ -582,3 +582,13 @@ verification keys are owner-supplied configuration; no production private key is
 or shipped by this task. The owner selected consolecrate.xyz/meshme-activation/ and
 requested an installation package instead of deployment. Exact mappings, tests,
 pre-existing regression failures and acceptance gaps are in ISSUE_2_OWNER_MILESTONE.md.
+# 2026-09-08 — Dedicated Synology activation package
+
+Owner installation on DS1821+ / DSM 7.3.2-86009 Update 4 showed that manually
+created Web Station PHP profiles use the shared `http` identity. Added a source-only
+SPK using Synology's documented webservice worker and package account mechanism.
+The account is `MeshMeActivation`; both public/admin entry points verify its effective
+identity before loading the unchanged licensing code. The package registers services
+but no portals and does not migrate databases, regenerate keys, grant secret ACLs or
+change ConsoleCrate/tunnel routing. NAS installation, account isolation and cutover
+remain explicit validation gates. See `server/activation/synology/README.md`.
